@@ -2,10 +2,10 @@ from transformers import AutoTokenizer, OpenLlamaForCausalLM
 
 
 #
-checkpoint = "gpt2"
+checkpoint = "../Models/overfit_one_example"
 tokenizer = AutoTokenizer.from_pretrained(checkpoint)
 # Load the trained model
-trained_model = OpenLlamaForCausalLM.from_pretrained("path_to_save_model")
+trained_model = OpenLlamaForCausalLM.from_pretrained("")
 
 # Generate answers using the trained model
 input_question = "You are an AI assistant. You will be given a task. You must generate a detailed and long answer.<SEP>What is the answer to life, the universe, and everything?<SEP>"

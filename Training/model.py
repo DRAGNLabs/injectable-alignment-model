@@ -1,12 +1,14 @@
 # Training for 20M parameter test model on OpenORCA dataset
 from transformers import OpenLlamaForCausalLM, OpenLlamaConfig
+from tokenizer import tokenizer
 
 # Initializing a Open-Llama open_llama-7b style configuration
 
 def scale(parameter):
-    return int(parameter * 1/8)
+    return int(parameter * 1/80)
 
 configuration = OpenLlamaConfig(
+    vocab_size=len(tokenizer),
     hidden_size=scale(4096),
     intermediate_size=scale(11008),
     num_hidden_layers=scale(32),
