@@ -1,7 +1,9 @@
 # Setup process
-1. Make and activate a mamba virtual environment for training called "rocket_training"
 2. Request access to Llama 2 https://ai.meta.com/llama/ using the same email address as your Hugging Face account
 3. Request access to 'Llama-2-7b-chat-hf' through Hugging Face. You must first request a download from the Meta AI website using the same email address as your Hugging Face account. After doing so, you can request access to any of the models on Hugging Face and within 1-2 days your account will be granted access to all versions.
+1. Run "mamba create --name rocket_training python=3.11"
+1. Activate the environment to run scripts with "mamba activate rocket_training"
+1. Run "pip install -r requirements.txt"
 3. Run "python setup.py" to complete setup
 
 # Train

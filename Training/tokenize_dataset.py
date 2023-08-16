@@ -1,6 +1,6 @@
-from Training.model import tokenizer
+from tokenizer import tokenizer
 from datasets import load_dataset
-
+from transformers import AutoTokenizer
 
 path = 'dataset/'
 

@@ -1,4 +1,5 @@
 from transformers import AutoTokenizer
 
-path = "../../test_llama/Llama-2-7b-chat-hf"
-tokenizer = AutoTokenizer.from_pretrained(path)
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf")
+tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+tokenizer.add_special_tokens({'sep_token': '<SEP>'})
