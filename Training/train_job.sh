@@ -14,5 +14,5 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 mamba init
 mamba activate rocket_training
 export WANDB_DISABLED=true
-python3 test.py
+python3 main.py
 nvidia-smi
