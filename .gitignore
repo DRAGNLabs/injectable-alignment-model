@@ -1,0 +1,5 @@
+Models/**
+Training/dataset
+Training/checkpoints
+Training/*.out
+__pycache__
