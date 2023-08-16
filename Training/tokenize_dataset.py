@@ -1,4 +1,4 @@
-from llama_model import tokenizer
+from Training.model import tokenizer
 from datasets import load_dataset
 
 

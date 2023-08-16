@@ -1,12 +1,9 @@
-from llama_model import model, tokenizer
+from Training.model import model, tokenizer
 from datasets import load_dataset
 from transformers import DataCollatorWithPadding
 from transformers import TrainingArguments, Trainer
-# from transformers import AutoModel, LlamaForCausalLM
-# import torch
-# import multiprocessing
 
-model_name = 'one_hundred_thousandth'
+model_name = 'ten_thousand'
 model_path = "../Models/" + model_name
 
 path = 'dataset/'
@@ -23,40 +20,22 @@ raw_datasets = load_dataset("parquet", data_files=data_files)
 #TODO: Use entire dataset
 # select() returns rows according to a list of indices:
 train_dataset = raw_datasets['train']
-# train_dataset = train_dataset.select([0])
-# print(train_dataset[0])
-# train_dataset = train_dataset.select([i for i in range(10000)])
+train_dataset = train_dataset.select([i for i in range(10000)])
 
-
-max_position_embeddings = 2048
+max_length = 2048
 
 # Define the tokenize function that processes a batch of examples
 def tokenize_function(example):
     # Tokenize inputs
-    prompt = example['system_prompt'] + '<SEP>' + example['question'] + '<SEP>'
-    inputs = tokenizer(prompt, example['response'], truncation=True, padding='max_length', max_length=max_position_embeddings)
-    if len(inputs) > max_position_embeddings:
-        print(f'Inputs were {len(inputs)} long')
-
-    # Tokenize each subsection
-    question_ids = tokenizer(prompt, truncation=True, max_length=max_position_embeddings)['input_ids']
-
-    # Create labels (-100 for those not backproped on)
-    labels = [-100]*len(question_ids)
-    # print(len(question_ids))
-    if len(question_ids) >= max_position_embeddings:
-        response_length = 0
-        print('test')
-    else:
-       response_length = max_position_embeddings-len(question_ids)
-       response_ids = tokenizer(example['response'], truncation=True, padding='max_length', max_length=response_length)['input_ids']
-       labels += response_ids
-
-    # Add labels to inputs
-    inputs['labels'] = labels
-
-    # if len(inputs['labels']) > max_position_embeddings:
-    #     print("ERROR!!!!!!!!!!!!!")
+    prompt = example['system_prompt'] + '<SEP>' + example['question'] + '<SEP>' + example['response']
+    inputs = tokenizer(prompt, padding='max_length')
+    if len(inputs['input_ids']) >= max_length:
+        diff = len(inputs['input_ids']) - max_length
+        inputs['input_ids'] = inputs['input_ids'][diff:]
+        inputs['labels'] = inputs['input_ids'][diff:]
+        inputs['attention_mask'] = inputs['attention_mask'][diff:]
+    if len(inputs['input_ids']) > max_length: #or len(question_ids) > max_position_embeddings or len(response_ids) > max_position_embeddings:
+        print('ERROR')
 
     return inputs
 
@@ -73,8 +52,8 @@ data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 training_args = TrainingArguments(
     learning_rate=1e-3,
     output_dir="./checkpoints",
-    num_train_epochs=.00001,  
-    per_device_train_batch_size=4,
+    num_train_epochs=1,  
+    per_device_train_batch_size=8,
     warmup_steps=500,
     logging_dir="./logs",
     # logging_steps=100,
