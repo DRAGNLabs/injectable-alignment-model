@@ -2,11 +2,11 @@ from llama_model import model, tokenizer
 from datasets import load_dataset
 from transformers import DataCollatorWithPadding
 from transformers import TrainingArguments, Trainer
-from transformers import AutoModel, LlamaForCausalLM
-import torch
-import multiprocessing
+# from transformers import AutoModel, LlamaForCausalLM
+# import torch
+# import multiprocessing
 
-model_name = 'ten_thousand_ten_times'
+model_name = 'one_hundred_thousandth'
 model_path = "../Models/" + model_name
 
 path = 'dataset/'
@@ -25,7 +25,7 @@ raw_datasets = load_dataset("parquet", data_files=data_files)
 train_dataset = raw_datasets['train']
 # train_dataset = train_dataset.select([0])
 # print(train_dataset[0])
-train_dataset = train_dataset.select([i for i in range(10000)])
+# train_dataset = train_dataset.select([i for i in range(10000)])
 
 
 max_position_embeddings = 2048
@@ -72,9 +72,9 @@ data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 # Define the training arguments
 training_args = TrainingArguments(
     learning_rate=1e-3,
-    output_dir="./output",
-    num_train_epochs=10,  
-    per_device_train_batch_size=16,
+    output_dir="./checkpoints",
+    num_train_epochs=.00001,  
+    per_device_train_batch_size=4,
     warmup_steps=500,
     logging_dir="./logs",
     # logging_steps=100,
