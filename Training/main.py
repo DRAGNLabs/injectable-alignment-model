@@ -1,4 +1,4 @@
-from Training.model import model, tokenizer
+from model import model, tokenizer
 from datasets import load_dataset
 from transformers import DataCollatorWithPadding
 from transformers import TrainingArguments, Trainer
