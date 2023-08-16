@@ -15,4 +15,5 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 mamba activate test_gpu
-python3 main.py
+export WANDB_DISABLED=true
+python3 tokenize_dataset.py
