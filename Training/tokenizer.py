@@ -1,4 +1,4 @@
 from transformers import AutoTokenizer
 
-checkpoint = "gpt2"
-tokenizer = AutoTokenizer.from_pretrained(checkpoint)
+path = "../../test_llama/Llama-2-7b-chat-hf"
+tokenizer = AutoTokenizer.from_pretrained(path)
