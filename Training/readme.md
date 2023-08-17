@@ -1,4 +1,4 @@
-## Rocket Training
+# Rocket Training
 
 Welcome to Rocket Training! In this repository, you'll find all the information you need to set up and train your rocket model using Hugging Face's Llama 2 platform.
 
