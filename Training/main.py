@@ -27,7 +27,7 @@ def tokenize_example(example):
 
     return inputs
 
-def train_model(model, train_dataset, data_collator, training_args, save_path):
+def train_model(train_dataset, data_collator, training_args, save_path):
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -43,7 +43,7 @@ def main():
     parser.add_argument('-t', action='store_true', help='Run only .map function')
     args = parser.parse_args()
 
-    model_name = 'one_ten_millionth'
+    model_name = 'one_hundred_thousandth'
     save_path = "../Models/" + model_name
 
     path = 'dataset/'
@@ -64,7 +64,7 @@ def main():
     training_args = TrainingArguments(
         learning_rate=1e-3,
         output_dir="./checkpoints",
-        num_train_epochs=.0000001,
+        num_train_epochs=.00001,
         per_device_train_batch_size=4,
         warmup_steps=500,
         logging_dir="./logs"
@@ -73,12 +73,12 @@ def main():
     train_dataset = train_dataset.map(tokenize_example, batched=False)
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 
-    train_model(model, train_dataset, data_collator, training_args, save_path)
+    train_model(train_dataset, data_collator, training_args, save_path)
 
     prompt = "You are an AI assistant. You will be given a task. You must generate a detailed and long answer.<SEP>You will be given a definition of a task first, then some input of the task.\nThis task is about using the specified sentence and converting the sentence to Resource Description Framework (RDF) triplets of the form (subject, predicate object). The RDF triplets generated must be such that the triplets accurately capture the structure and semantics of the input sentence. The input is a sentence and the output is a list of triplets of the form [subject, predicate, object] that capture the relationships present in the sentence. When a sentence has more than 1 RDF triplet possible, the output must contain all of them.\n\nAFC Ajax (amateurs)'s ground is Sportpark De Toekomst where Ajax Youth Academy also play.\nOutput:<SEP>"
     encoded = tokenizer.encode(prompt, return_tensors="pt")
 
-    model = model.to('cpu')
+    model.to('cpu')
 
     output_answer = model.generate(encoded, max_new_tokens=200)
     decoded_answer = tokenizer.decode(output_answer[0])
