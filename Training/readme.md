@@ -31,7 +31,13 @@ To get started, follow these steps to set up your environment and start training
       ```
       python setup.py
       ```
-    This script will tokenize the dataset, initiate a brief training sequence, and save a model to the "Models" folder.
+    This script will download and tokenize the dataset
+
+    - Submit job.sh to train a test model
+      ```
+      sbatch job.sh
+      ```
+    This will initiate a brief training sequence, and save a model to the "Models" folder.
 
 You're now all set up to start training your rocket model! If you have any questions or run into issues, feel free to refer to the documentation or reach out to our community for assistance.
 
