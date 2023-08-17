@@ -1,11 +1,7 @@
 import os
 from transformers import AutoTokenizer
 from transformers import LlamaConfig, LlamaForCausalLM
-
-path = "../../test_llama/Llama-2-7b-chat-hf"
-
-tokenizer = AutoTokenizer.from_pretrained(path)
-tokenizer.add_special_tokens({'pad_token': '[PAD]', 'sep_token': '<SEP>'})
+from tokenizer import tokenizer
 
 def scale(parameter):
     return int(parameter * 1/20)

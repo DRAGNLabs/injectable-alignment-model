@@ -11,7 +11,6 @@
 export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
-mamba init
 mamba activate rocket_training
 export WANDB_DISABLED=true
 python3 main.py
