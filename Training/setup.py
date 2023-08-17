@@ -44,7 +44,7 @@ def download_dataset():
     print("Files downloaded successfully!")
 
 def tokenize_dataset():
-    print(f'\n\nTokenizing dataset. Check latest slurm.out file for time left.')
+    print('\n\n')
     sbatch_command = [
         "sbatch",
         "tokenize_job.sh"
@@ -53,6 +53,7 @@ def tokenize_dataset():
     try:
         subprocess.check_call(sbatch_command)
         print("Job submitted successfully!")
+        print(f'Tokenizing dataset.\n Check latest slurm.out file for estimated time left.')
     except subprocess.CalledProcessError as e:
         print(f"Error submitting job: {e}")
 
