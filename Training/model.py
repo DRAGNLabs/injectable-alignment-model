@@ -16,4 +16,4 @@ configuration = LlamaConfig(vocab_size = len(tokenizer),
 model = LlamaForCausalLM(configuration)
 
 million_parameters = int(model.num_parameters()/1000000)
-print(f'{million_parameters} Million Parameters')
+print(f'{million_parameters} Million Parameters') 

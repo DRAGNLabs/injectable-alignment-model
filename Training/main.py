@@ -6,7 +6,7 @@ from transformers import TrainingArguments, Trainer
 # import torch
 # import multiprocessing
 
-model_name = 'one_hundred_thousandth'
+model_name = 'one_ten_millionth'
 model_path = "../Models/" + model_name
 
 path = 'dataset/'
@@ -70,7 +70,7 @@ data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
 training_args = TrainingArguments(
     learning_rate=1e-3,
     output_dir="./checkpoints",
-    num_train_epochs=.00001,  
+    num_train_epochs=.0000001,  
     per_device_train_batch_size=4,
     warmup_steps=500,
     logging_dir="./logs",
