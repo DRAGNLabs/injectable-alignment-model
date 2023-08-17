@@ -4,8 +4,6 @@ Welcome to Rocket Training! In this repository, you'll find all the information 
 
 ### Setup Process
 
-To get started, follow these steps to set up your environment and start training your rocket model:
-
 1. **Create a Hugging Face Account**: If you haven't already, go to [Hugging Face](https://huggingface.co/login) and create an account.
 
 2. **Request Access to Llama 2**: Visit [Llama 2](https://ai.meta.com/llama/) and request access using the same email address as your Hugging Face account. 
@@ -37,6 +35,6 @@ To get started, follow these steps to set up your environment and start training
       sbatch job.sh
       ```
 
-You're now all set up to start training your rocket model! If you have any questions or run into issues, feel free to refer to the documentation or reach out to our community for assistance.
+You're now all set up to start training your rocket model!
 
 Happy rocket training! 🚀🛰️
