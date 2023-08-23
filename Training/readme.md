@@ -23,7 +23,7 @@ To get started, follow these steps to set up your environment and start training
       ```
     - Install the required dependencies from the provided `requirements.txt` file:
       ```
-      pip install -r requirements.txt
+      mamba install -c conda-forge --file requirements.txt
       ```
 
 5. **Complete Setup**:
