@@ -12,7 +12,12 @@ To get started, follow these steps to set up your environment and start training
 
 3. **Access the Llama-2-7b-hf Model**: Request access to the [Llama-2-7b-hf](https://huggingface.co/meta-llama/Llama-2-7b-hf) model through Hugging Face. Your account will be granted access within 1-2 days.
 
-4. **Set Up Your Environment**:
+4. **Set Up Your Environment**
+    - In the command line, navigate to your preferred directory and clone this repository with the following prompt:
+      ```
+      git clone https://github.com/DRAGNLabs/Rocket.git
+      ```
+      
     - Run the following command to create a new environment with Python 3.11:
       ```
       mamba create --name rocket_training python=3.11
@@ -26,7 +31,7 @@ To get started, follow these steps to set up your environment and start training
       mamba install -c conda-forge --file requirements.txt
       ```
 
-5. **Complete Setup**:
+6. **Complete Setup**:
     - Run the setup script to finalize the configuration:
       ```
       python setup.py
