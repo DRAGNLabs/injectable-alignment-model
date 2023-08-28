@@ -2,9 +2,12 @@ import os
 import subprocess
 from transformers import AutoTokenizer
 
+os.system('huggingface-cli login --token $HF_TOKEN')  # Ensure you have exported an env var w/ the corresponding token
+
 def download_llama():
-    print(f'\n\nDownloading Llama')
+    print(f'\n\nDownloading Llama\r')
     tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf")
+    print("\033[1;32m Downloaded Llama-2! \033[1;30m\n\n")
 
 def download_dataset():
     print(f'\n\nDownloading dataset')
