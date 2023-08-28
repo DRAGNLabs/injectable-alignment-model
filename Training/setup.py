@@ -2,7 +2,7 @@ import os
 import subprocess
 from transformers import AutoTokenizer
 
-os.system('huggingface-cli login --token $HF_TOKEN')  # Ensure you have exported an env var w/ the corresponding token
+os.system('huggingface-cli login --token $HF_TOKEN')  # Ensure you have either [A] exported an env var w/ the corresponding token (recommended) or [B] replaced '$HF_TOKEN' w/ your exact token
 
 def download_llama():
     print(f'\n\nDownloading Llama\r')
