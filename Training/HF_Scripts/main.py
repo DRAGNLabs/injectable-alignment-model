@@ -9,7 +9,7 @@ def load_datasets(data_files):
     return raw_datasets['train']
 
 def tokenize_example(example):
-    max_position_embeddings = 2048
+    max_position_embeddings = 2048  # Max context length that this model will ever be used with-- can go up to 4096.
 
     prompt = example['system_prompt'] + '<SEP>' + example['question'] + '<SEP>'
     inputs = tokenizer(prompt, example['response'], truncation=True, padding='max_length', max_length=max_position_embeddings)
