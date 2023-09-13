@@ -4,4 +4,7 @@ Training/checkpoints
 __pycache__
 
 ./tokenizer.model
-./Training/Successful_Slurm.out
+Successful_Slurm.out
+tokenizer.model
+
+slurm-*

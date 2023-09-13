@@ -1,74 +1,28 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
-# This software may be used and distributed according to the terms of the Llama 2 Community License Agreement.
+# This software may be used and distributed according to the terms of the GNU General Public License version 3.
 
-''' 
-TODO: Trainer: 
-    'forward' func for training
+device = 'cpu'
 
-Research eventually: 
-        - RMSNorm
-        - rotary embeddings
-        - Fairscale library (how does it parallelize, etc.)
-        - Does Llama-2 parallelize with DP, TP, PP, ZeRO
-'''
-
-
+import torch
+from torch.utils.data import DataLoader
+import time
+import glob
+import pandas as pd
+import matplotlib as plt
+from llama_model import ModelArgs
+from llama_tokenizer import Tokenizer
 import json
 import os
-import sys
-import time
 from pathlib import Path
 from typing import List, Optional, Tuple, TypedDict, Literal
-import matplotlib.pyplot as plt
 import seaborn as sns
-from torch.utils.data import DataLoader
-import torch
 import torch.nn.functional as F
-from fairscale.nn.model_parallel.initialize import (
-    get_model_parallel_rank,
-    initialize_model_parallel,
-    model_parallel_is_initialized,
-)
 from memory_utils import MemoryTrace
 import numpy as np
-import pandas as pd
-from llama_model import ModelArgs, Transformer
-from llama_tokenizer import Tokenizer
 from sklearn.model_selection import train_test_split  # TODO: different function for test + train + validate?
 from llama_config import train_config
 from tqdm import tqdm
-
-Role = Literal["system", "user", "assistant"]
-
-# TypedDict = Tuple
-# Literal = Tuple
-
-class Message(TypedDict):
-    role: Role
-    content: str
-
-
-class CompletionPrediction(TypedDict, total=False):
-    generation: str
-    tokens: List[str]  # not required
-    logprobs: List[float]  # not required
-
-
-class ChatPrediction(TypedDict, total=False):
-    generation: Message
-    tokens: List[str]  # not required
-    logprobs: List[float]  # not required
-
-
-Dialog = List[Message]
-
-B_INST, E_INST = "[INST]", "[/INST]"
-B_SYS, E_SYS = "<<SYS>>\n", "\n<</SYS>>\n\n"
-
-SPECIAL_TAGS = [B_INST, E_INST, "<<SYS>>", "<</SYS>>"]
-UNSAFE_ERROR = "Error: special tags are not allowed as part of the prompt."
-
-device = torch.device('cpu' if torch.cuda.is_available() else 'cpu')
+from llama_model import Transformer
 
 class Rocket_DataSet(torch.utils.data.Dataset):  # our data loader
 
@@ -79,9 +33,6 @@ class Rocket_DataSet(torch.utils.data.Dataset):  # our data loader
         self.bos_tok = bos_tok
         self.eos_tok = eos_tok
         self.sequence_length = sequence_length
-
-        # self.get_lengths()
-
 
     def __len__(self):
         return len(self.train.index)
@@ -114,7 +65,7 @@ class Rocket_DataSet(torch.utils.data.Dataset):  # our data loader
         
         if make_plot==False:
             return seq_lengths
-        
+
         # Create a histogram
         plt.figure(figsize=(10, 6))
         plt.hist(seq_lengths, bins=100, color='skyblue', edgecolor='black')
@@ -174,8 +125,8 @@ class Rocket_DataSet(torch.utils.data.Dataset):  # our data loader
 
         return seq_lengths
         
-        
-class Llama:
+
+class LLaMA:
     @staticmethod
     def build(
         ckpt_dir: str,
@@ -183,42 +134,20 @@ class Llama:
         max_seq_len: int,
         dataset_path: str,
         max_batch_size: int,
-        model_parallel_size: Optional[int] = None,
-    ) -> "Llama":
-        if not torch.distributed.is_initialized():
-            torch.distributed.init_process_group("nccl")
-        if not model_parallel_is_initialized():
-            if model_parallel_size is None:
-                model_parallel_size = int(os.environ.get("WORLD_SIZE", 1))
-            initialize_model_parallel(model_parallel_size)
-
-        local_rank = int(os.environ.get("LOCAL_RANK", 0))
-        torch.cuda.set_device(local_rank)
-
-        # seed must be the same in all processes
-        torch.manual_seed(1)
-
-        if local_rank > 0:
-            sys.stdout = open(os.devnull, "w")
-
+    ) -> "LLaMA":
+     
         start_time = time.time()
         checkpoints = sorted(Path(ckpt_dir).glob("*.pth"))
         if len(checkpoints) > 0:
-            assert model_parallel_size == len(checkpoints), f"Loading a checkpoint for MP={len(checkpoints)} but world size is {model_parallel_size}"
-            ckpt_path = checkpoints[get_model_parallel_rank()]
-            checkpoint = torch.load(ckpt_path, map_location="cpu")
+            checkpoint = torch.load(ckpt_dir, map_location="cpu")
             with open(Path(ckpt_dir) / "params.json", "r") as f:
                 params = json.loads(f.read())
         else:
             params = {}
 
-        model_args: ModelArgs = ModelArgs(
-            max_seq_len=max_seq_len,
-            max_batch_size=max_batch_size,
-            **params,
-        )
+        model_args: ModelArgs = ModelArgs()
+        tokenizer = Tokenizer(model_path=tokenizer_path)  # including this for the special tokens (i.e. pad)
 
-        tokenizer = Tokenizer(model_path=tokenizer_path)
         model_args.vocab_size = tokenizer.n_words
         torch.set_default_tensor_type(torch.cuda.HalfTensor)
         model = Transformer(model_args)
@@ -226,31 +155,44 @@ class Llama:
             model.load_state_dict(checkpoint, strict=False)
         print(f"Loaded in {time.time() - start_time:.2f} seconds")
         dataset = Rocket_DataSet(dataset_path)
-        return Llama(model, tokenizer, dataset)
+        return LLaMA(model, tokenizer, dataset)
 
     def __init__(self, model: Transformer, tokenizer: Tokenizer, dataset:Rocket_DataSet):
         self.model = model
         self.tokenizer = tokenizer
         self.dataset:Rocket_DataSet = dataset
 
-    # @torch.inference_mode(but_training_tho) # This might be important
-    # def train_by_us(self, batch_size:int, epochs=2):
-    #     self.model.train()  # move to 'train' mode, as opposed to inference
-    
-    #     # Define tools
-    #     dataloader = DataLoader(self.dataset, batch_size = batch_size, shuffle=True, generator=torch.Generator(device='cuda'))
-    #     optim = torch.optim.Adam(self.model.parameters(), lr=0.0001)  # model.paramaters = weights tensor
-    #     criterion = torch.nn.CrossEntropyLoss()
 
-    #     for epoch in range(epochs):  # for each epoch,
-            # for batch, (x,y) in enumerate(dataloader):  # look at all the data
-            #     # print(f"\nBatch:\n {batch}, \nX:\n {x}, \nY:\n{y}")
-            #     optim.zero_grad()  # zero out gradients if you don't want to accumulate
-            #     logits = self.model.forward(tokens=x, start_pos=0)  # TODO: Figure out start position (attention caching?)
-            #     loss = criterion(input=logits, target=y, ignore_index=-1)
-            #     logits.backward()  # Back prop; PyTorch call it on the tensor, not the model ‾\(._.)/‾
-            #     optim.step()  # apply the calculated 
+    def _should_stop(self, tokens, prompt_tokens, stop_ids, stop_words):
+        if stop_ids is not None:
+            do_stop = [False for _ in range(len(tokens))]
+            for i, (t, p) in enumerate(zip(tokens, prompt_tokens)):
+                g = t[len(p):].tolist()
+                for stop_id in stop_ids:
+                    if stop_id in g:
+                        do_stop[i] = True
+
+            if all(do_stop):
+                return True
+
+        if stop_words is not None:
+            do_stop = [False for _ in range(len(tokens))]
+            for i, (t, p) in enumerate(zip(tokens, prompt_tokens)):
+                t = t.clone()
+                g = t[len(p):]
+                g[g == self.tokenizer.pad_id] = self.tokenizer.eos_id
+                g = g.tolist()
+                d = self.tokenizer.decode(g)
+                for stop_word in stop_words:
+                    if stop_word in d:
+                        do_stop[i] = True
+
+            if all(do_stop):
+                return True
+
+        return False
     
+
     def train_llama_wrapper(self, batch_size):
         dataloader = DataLoader(self.dataset, batch_size = batch_size, shuffle=True, generator=torch.Generator(device=device))
         optim = torch.optim.Adam(self.model.parameters(), lr=0.0001)  # model.paramaters = weights tensor
@@ -260,10 +202,10 @@ class Llama:
         self.train(model=self.model, train_dataloader=dataloader, eval_dataloader=None, tokenizer=self.tokenizer, optimizer=optim, criterion=criterion, lr_scheduler=lr_scheduler, gradient_accumulation_steps=1, train_config=trn_config)
 
 
-    def train(self, model, train_dataloader, eval_dataloader, tokenizer, optimizer, criterion, lr_scheduler, gradient_accumulation_steps, train_config, fsdp_config=None, local_rank=None, rank=None):
+    def train(self, model, train_dataloader, eval_dataloader, tokenizer, optimizer, criterion, lr_scheduler, gradient_accumulation_steps, train_config):
         """
         Trains the model on the given dataloader
-        
+    
         Args:
             model: The model to be trained
             train_dataloader: The dataloader containing the training data
@@ -283,8 +225,6 @@ class Llama:
             scaler = ShardedGradScaler()
         elif train_config.use_fp16 and not train_config.enable_fsdp:
             scaler = torch.cuda.amp.GradScaler() 
-        if train_config.enable_fsdp:
-            world_size = int(os.environ["WORLD_SIZE"]) 
         
         train_prep = []
         train_loss = []
@@ -294,6 +234,8 @@ class Llama:
         checkpoint_times = []
         results = {}
         best_val_loss = float("inf")
+
+
         for epoch in range(train_config.num_epochs):
             epoch_start_time = time.perf_counter()
             with MemoryTrace() as memtrace:  # track the memory usage
@@ -302,13 +244,8 @@ class Llama:
                 total_length = len(train_dataloader)//gradient_accumulation_steps
                 pbar = tqdm(colour="blue", desc=f"Training Epoch: {epoch+1}", total=total_length)
                 for step, (x, y_true) in enumerate(train_dataloader):
-                    if train_config.enable_fsdp:
-                        x = x.to(local_rank)
-                        y_true = y_true.to(local_rank)
-                    else:
-                        x = x.to(device)
-                        y_true = y_true.to(device)
-                    # loss = model(**batch).loss
+                    x = x.to(device)
+                    y_true = y_true.to(device)
                     y_hat = model(x)
                     loss = criterion(y_hat, y_true)
                     loss = loss / gradient_accumulation_steps
@@ -335,29 +272,17 @@ class Llama:
             epoch_end_time = time.perf_counter()-epoch_start_time
             epoch_times.append(epoch_end_time)    
             # Reducing total_loss across all devices if there's more than one CUDA device
-            if torch.cuda.device_count() > 1 and train_config.enable_fsdp:
-                dist.all_reduce(total_loss, op=dist.ReduceOp.SUM)
             train_epoch_loss = total_loss / len(train_dataloader)
-            if train_config.enable_fsdp:
-                train_epoch_loss = train_epoch_loss/world_size
             train_perplexity = torch.exp(train_epoch_loss)
             
             train_prep.append(train_perplexity)
             train_loss.append(train_epoch_loss)
             
-            if train_config.enable_fsdp:
-                if rank==0:
-                    print(f"Max CUDA memory allocated was {memtrace.peak} GB")
-                    print(f"Max CUDA memory reserved was {memtrace.max_reserved} GB")
-                    print(f"Peak active CUDA memory was {memtrace.peak_active_gb} GB")
-                    print(f"Cuda Malloc retires : {memtrace.cuda_malloc_retires}")
-                    print(f"CPU Total Peak Memory consumed during the train (max): {memtrace.cpu_peaked + memtrace.cpu_begin} GB")
-            else:
-                print(f"Max CUDA memory allocated was {memtrace.peak} GB")
-                print(f"Max CUDA memory reserved was {memtrace.max_reserved} GB")
-                print(f"Peak active CUDA memory was {memtrace.peak_active_gb} GB")
-                print(f"Cuda Malloc retires : {memtrace.cuda_malloc_retires}")
-                print(f"CPU Total Peak Memory consumed during the train (max): {memtrace.cpu_peaked + memtrace.cpu_begin} GB")
+            print(f"Max CUDA memory allocated was {memtrace.peak} GB")
+            print(f"Max CUDA memory reserved was {memtrace.max_reserved} GB")
+            print(f"Peak active CUDA memory was {memtrace.peak_active_gb} GB")
+            print(f"Cuda Malloc retires : {memtrace.cuda_malloc_retires}")
+            print(f"CPU Total Peak Memory consumed during the train (max): {memtrace.cpu_peaked + memtrace.cpu_begin} GB")
             
             # Update the learning rate as needed
             lr_scheduler.step()
@@ -439,211 +364,80 @@ class Llama:
         results["avg_checkpoint_time"] = avg_checkpoint_time
         
         #saving the training params including fsdp setting for reference.
-        if train_config.enable_fsdp and not train_config.use_peft:
-            save_train_params(train_config, fsdp_config, rank)
-            
         return results
 
 
-
-        
-        
-        
-    @torch.inference_mode()
     def generate(
         self,
-        prompt_tokens: List[List[int]],
+        prompts: List[str],
         max_gen_len: int,
-        temperature: float = 0.6,
-        top_p: float = 0.9,
-        logprobs: bool = False,
-        echo: bool = False,
-    ) -> Tuple[List[List[int]], Optional[List[List[float]]]]:
+        temperature: float = 0.8,
+        top_p: float = 0.95,
+        stop_ids: List[int] = None,
+        stop_words: List[str] = None,
+        repetition_penalty: float = 1.0,
+    ) -> List[str]:
+        bsz = len(prompts)
         params = self.model.params
-        bsz = len(prompt_tokens)
         assert bsz <= params.max_batch_size, (bsz, params.max_batch_size)
 
-        min_prompt_len = min(len(t) for t in prompt_tokens)
-        max_prompt_len = max(len(t) for t in prompt_tokens)
-        assert max_prompt_len <= params.max_seq_len
-        total_len = min(params.max_seq_len, max_gen_len + max_prompt_len)
+        prompt_tokens = [self.tokenizer.encode(x, bos=True, eos=False) for x in prompts]
+        num_input_tokens = [len(t) for t in prompt_tokens]
 
-        pad_id = self.tokenizer.pad_id
-        tokens = torch.full((bsz, total_len), pad_id, dtype=torch.long, device="cuda")
+        min_prompt_size = min([len(t) for t in prompt_tokens])
+        max_prompt_size = max([len(t) for t in prompt_tokens])
+
+        total_len = min(params.max_seq_len, max_gen_len + max_prompt_size)
+
+        tokens = torch.full((bsz, total_len), self.tokenizer.pad_id).cuda().long()
         for k, t in enumerate(prompt_tokens):
-            tokens[k, : len(t)] = torch.tensor(t, dtype=torch.long, device="cuda")
-        if logprobs:
-            token_logprobs = torch.zeros_like(tokens, dtype=torch.float)
-
+            tokens[k, : len(t)] = torch.tensor(t).long()
+        input_text_mask = tokens != self.tokenizer.pad_id
+        start_pos = min_prompt_size
         prev_pos = 0
-        eos_reached = torch.tensor([False] * bsz, device="cuda")
-        input_text_mask = tokens != pad_id
-        for cur_pos in range(min_prompt_len, total_len):
+        for cur_pos in range(start_pos, total_len):
             logits = self.model.forward(tokens[:, prev_pos:cur_pos], prev_pos)
-            if logprobs:
-                token_logprobs[:, prev_pos + 1 : cur_pos + 1] = -F.cross_entropy(
-                    input=logits.transpose(1, 2),
-                    target=tokens[:, prev_pos + 1 : cur_pos + 1],
-                    reduction="none",
-                    ignore_index=pad_id,
-                )
+            if repetition_penalty != 1.0:
+                logits_new = logits.clone()
+                batch_size = len(tokens)
+                for i in range(batch_size):
+                    for token in set(tokens[i].tolist()):
+                        if logits[i, token] < 0:
+                            logits_new[i, token] = logits[i, token] * repetition_penalty
+                        else:
+                            logits_new[i, token] = logits[i, token] / repetition_penalty
+                logits = logits_new
             if temperature > 0:
-                probs = torch.softmax(logits[:, -1] / temperature, dim=-1)
+                probs = torch.softmax(logits / temperature, dim=-1)
                 next_token = sample_top_p(probs, top_p)
             else:
-                next_token = torch.argmax(logits[:, -1], dim=-1)
-
+                next_token = torch.argmax(logits, dim=-1)
             next_token = next_token.reshape(-1)
             # only replace token if prompt has already been generated
             next_token = torch.where(
                 input_text_mask[:, cur_pos], tokens[:, cur_pos], next_token
             )
+
             tokens[:, cur_pos] = next_token
-            eos_reached |= (~input_text_mask[:, cur_pos]) & (
-                next_token == self.tokenizer.eos_id
-            )
             prev_pos = cur_pos
-            if all(eos_reached):
+
+            if self._should_stop(tokens, prompt_tokens, stop_ids, stop_words):
                 break
-
-        if logprobs:
-            token_logprobs = token_logprobs.tolist()
-        out_tokens, out_logprobs = [], []
-        for i, toks in enumerate(tokens.tolist()):
+        
+        tokens[tokens == self.tokenizer.pad_id] = self.tokenizer.eos_id
+        decoded = []
+        num_generated_tokens = []
+        for i, t in enumerate(tokens.tolist()):
             # cut to max gen len
-            start = 0 if echo else len(prompt_tokens[i])
-            toks = toks[start : len(prompt_tokens[i]) + max_gen_len]
-            probs = None
-            if logprobs:
-                probs = token_logprobs[i][start : len(prompt_tokens[i]) + max_gen_len]
+            t = t[: len(prompt_tokens[i]) + max_gen_len]
             # cut to eos tok if any
-            if self.tokenizer.eos_id in toks:
-                eos_idx = toks.index(self.tokenizer.eos_id)
-                toks = toks[:eos_idx]
-                probs = probs[:eos_idx] if logprobs else None
-            out_tokens.append(toks)
-            out_logprobs.append(probs)
-        return (out_tokens, out_logprobs if logprobs else None)
-
-    def text_completion(
-        self,
-        prompts: List[str],
-        temperature: float = 0.6,
-        top_p: float = 0.9,
-        max_gen_len: Optional[int] = None,
-        logprobs: bool = False,
-        echo: bool = False,
-    ) -> List[CompletionPrediction]:
-        if max_gen_len is None:
-            max_gen_len = self.model.params.max_seq_len - 1
-        prompt_tokens = [self.tokenizer.encode(x, bos=True, eos=False) for x in prompts]
-        generation_tokens, generation_logprobs = self.generate(
-            prompt_tokens=prompt_tokens,
-            max_gen_len=max_gen_len,
-            temperature=temperature,
-            top_p=top_p,
-            logprobs=logprobs,
-            echo=echo,
-        )
-        if logprobs:
-            return [
-                {
-                    "generation": self.tokenizer.decode(t),
-                    "tokens": [self.tokenizer.decode(x) for x in t],
-                    "logprobs": logprobs_i,
-                }
-                for t, logprobs_i in zip(generation_tokens, generation_logprobs)
-            ]
-        return [{"generation": self.tokenizer.decode(t)} for t in generation_tokens]
-
-    def chat_completion(
-        self,
-        dialogs: List[Dialog],
-        temperature: float = 0.6,
-        top_p: float = 0.9,
-        max_gen_len: Optional[int] = None,
-        logprobs: bool = False,
-    ) -> List[ChatPrediction]:
-        if max_gen_len is None:
-            max_gen_len = self.model.params.max_seq_len - 1
-        prompt_tokens = []
-        unsafe_requests = []
-        for dialog in dialogs:
-            unsafe_requests.append(
-                any([tag in msg["content"] for tag in SPECIAL_TAGS for msg in dialog])
-            )
-            if dialog[0]["role"] == "system":
-                dialog = [
-                    {
-                        "role": dialog[1]["role"],
-                        "content": B_SYS
-                        + dialog[0]["content"]
-                        + E_SYS
-                        + dialog[1]["content"],
-                    }
-                ] + dialog[2:]
-            assert all([msg["role"] == "user" for msg in dialog[::2]]) and all(
-                [msg["role"] == "assistant" for msg in dialog[1::2]]
-            ), (
-                "model only supports 'system', 'user' and 'assistant' roles, "
-                "starting with 'system', then 'user' and alternating (u/a/u/a/u...)"
-            )
-            dialog_tokens: List[int] = sum(
-                [
-                    self.tokenizer.encode(
-                        f"{B_INST} {(prompt['content']).strip()} {E_INST} {(answer['content']).strip()} ",
-                        bos=True,
-                        eos=True,
-                    )
-                    for prompt, answer in zip(
-                        dialog[::2],
-                        dialog[1::2],
-                    )
-                ],
-                [],
-            )
-            assert (
-                dialog[-1]["role"] == "user"
-            ), f"Last message must be from user, got {dialog[-1]['role']}"
-            dialog_tokens += self.tokenizer.encode(
-                f"{B_INST} {(dialog[-1]['content']).strip()} {E_INST}",
-                bos=True,
-                eos=False,
-            )
-            prompt_tokens.append(dialog_tokens)
-
-        generation_tokens, generation_logprobs = self.generate(
-            prompt_tokens=prompt_tokens,
-            max_gen_len=max_gen_len,
-            temperature=temperature,
-            top_p=top_p,
-            logprobs=logprobs,
-        )
-        if logprobs:
-            return [
-                {
-                    "generation": {
-                        "role": "assistant",
-                        "content": self.tokenizer.decode(t)
-                        if not unsafe
-                        else UNSAFE_ERROR,
-                    },
-                    "tokens": [self.tokenizer.decode(x) for x in t],
-                    "logprobs": logprobs_i,
-                }
-                for t, logprobs_i, unsafe in zip(
-                    generation_tokens, generation_logprobs, unsafe_requests
-                )
-            ]
-        return [
-            {
-                "generation": {
-                    "role": "assistant",
-                    "content": self.tokenizer.decode(t) if not unsafe else UNSAFE_ERROR,
-                }
-            }
-            for t, unsafe in zip(generation_tokens, unsafe_requests)
-        ]
+            try:
+                num_generated_tokens.append(t.index(self.tokenizer.eos_id) - len(prompt_tokens[i]))
+                t = t[: t.index(self.tokenizer.eos_id)]
+            except ValueError:
+                num_generated_tokens.append(max_gen_len)
+            decoded.append(self.tokenizer.decode(t))
+        return decoded, dict(num_input_tokens=num_input_tokens, num_generated_tokens=num_generated_tokens)
 
 
 def sample_top_p(probs, p):
@@ -660,19 +454,19 @@ def main():
     print(device, '\n')
     path_to_dataset = "/home/dsg2060/Rocket/rocket_test/Training/dataset/tokenized_files/toy_tokenized_data.pkl"
     ckpt_dir = ""
-    tokenizer_path = "../tokenizer.model"
+    tokenizer_path = "../../tokenizer.model"
     max_seq_len = 512
     max_batch_size = 8
 
-    Drew_and_Jays_Llama = Llama.build(
+    Drew_and_Jay_and_Jacksons_Llama = LLaMA.build(
         ckpt_dir=ckpt_dir,
         tokenizer_path=tokenizer_path,
         max_seq_len=max_seq_len,
         max_batch_size=max_batch_size,
-        dataset_path=path_to_dataset
+        dataset_path=path_to_dataset,
         )
     
-    Drew_and_Jays_Llama.train_llama_wrapper(batch_size=10)
+    Drew_and_Jay_and_Jacksons_Llama.train_llama_wrapper(batch_size=10)
 
     print('\nNo errors!\n')
 

@@ -15,7 +15,7 @@
 export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
-nvidia-smi
+# nvidia-smi
 mamba activate rocket_training
 torchrun --nproc_per_node 1 llama_generation.py
 # python3 llama_tokenizer.py -t
