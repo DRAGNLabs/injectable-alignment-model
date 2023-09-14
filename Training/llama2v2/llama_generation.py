@@ -4,6 +4,7 @@
 device = 'cpu'
 
 import torch
+torch.set_default_device('cpu')
 from torch.utils.data import DataLoader
 import time
 import glob
@@ -15,7 +16,6 @@ import json
 import os
 from pathlib import Path
 from typing import List, Optional, Tuple, TypedDict, Literal
-import seaborn as sns
 import torch.nn.functional as F
 from memory_utils import MemoryTrace
 import numpy as np
@@ -452,11 +452,12 @@ def sample_top_p(probs, p):
 
 def main():
     print(device, '\n')
-    path_to_dataset = "/home/dsg2060/Rocket/rocket_test/Training/dataset/tokenized_files/toy_tokenized_data.pkl"
+    path_to_dataset = "../dataset/tokenized_files/toy_tokenized_data.pkl"
     ckpt_dir = ""
     tokenizer_path = "../../tokenizer.model"
     max_seq_len = 512
-    max_batch_size = 8
+    #TODO: Check batch size
+    max_batch_size = 1
 
     Drew_and_Jay_and_Jacksons_Llama = LLaMA.build(
         ckpt_dir=ckpt_dir,
@@ -465,8 +466,8 @@ def main():
         max_batch_size=max_batch_size,
         dataset_path=path_to_dataset,
         )
-    
-    Drew_and_Jay_and_Jacksons_Llama.train_llama_wrapper(batch_size=10)
+    #TODO: check batch size
+    Drew_and_Jay_and_Jacksons_Llama.train_llama_wrapper(batch_size=1)
 
     print('\nNo errors!\n')
 

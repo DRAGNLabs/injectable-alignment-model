@@ -27,7 +27,7 @@ class RMSNorm(torch.nn.Module):
     def __init__(self, dim: int, eps: float = 1e-6):
         super().__init__()
         self.eps = eps
-        self.weight = nn.Parameter(torch.ones(dim))
+        self.weight = nn.Parameter(torch.ones(dim, device=device))
 
     def _norm(self, x):
         return x * torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + self.eps)
@@ -38,7 +38,7 @@ class RMSNorm(torch.nn.Module):
 
 
 def precompute_freqs_cis(dim: int, end: int, theta: float = 10000.0):
-    freqs = 1.0 / (theta ** (torch.arange(0, dim, 2)[: (dim // 2)].float() / dim))
+    freqs = 1.0 / (theta ** (torch.arange(0, dim, 2, device=device)[: (dim // 2)].float() / dim))
     t = torch.arange(end, device=freqs.device)  # type: ignore
     freqs = torch.outer(t, freqs).float()  # type: ignore
     freqs_cis = torch.polar(torch.ones_like(freqs), freqs)  # complex64
@@ -77,29 +77,33 @@ class Attention(nn.Module):
             args.dim,
             args.n_heads * self.head_dim,
             bias=False,
+            device=device
         )
         self.wk = nn.Linear(
             args.dim,
             args.n_heads * self.head_dim,
             bias=False,
+            device=device
         )
         self.wv = nn.Linear(
             args.dim,
             args.n_heads * self.head_dim,
             bias=False,
+            device=device
         )
         self.wo = nn.Linear(
             args.dim,
             args.n_heads * self.head_dim,
             bias=False,
+            device=device
         )
 
         self.cache_k = torch.zeros(
-            (args.max_batch_size, args.max_seq_len, self.n_local_heads, self.head_dim)
-        ).to(device)
+            (args.max_batch_size, args.max_seq_len, self.n_local_heads, self.head_dim), device=device
+        )
         self.cache_v = torch.zeros(
-            (args.max_batch_size, args.max_seq_len, self.n_local_heads, self.head_dim)
-        ).to(device)
+            (args.max_batch_size, args.max_seq_len, self.n_local_heads, self.head_dim), device=device
+        )
 
     def forward(
         self,
@@ -150,16 +154,18 @@ class FeedForward(nn.Module):
         hidden_dim = int(2 * hidden_dim / 3)
         hidden_dim = multiple_of * ((hidden_dim + multiple_of - 1) // multiple_of)
 
-        self.w1 = nn.Linear(dim, hidden_dim, bias=False)
+        self.w1 = nn.Linear(dim, hidden_dim, bias=False, device=device)
         self.w2 = nn.Linear(
             hidden_dim,
             dim,
             bias=False,
+            device=device
         )
         self.w3 = nn.Linear(
             dim,
             hidden_dim,
             bias=False,
+            device=device
         )
 
     def forward(self, x):
@@ -217,7 +223,8 @@ class Transformer(nn.Module):
         self.vocab_size = params.vocab_size
         self.n_layers = params.n_layers
 
-        self.tok_embeddings = torch.nn.Embedding(params.vocab_size, params.dim)
+        print(params.vocab_size, params.dim)
+        self.tok_embeddings = torch.nn.Embedding(params.vocab_size, params.dim, device=device)
 
         self.layers = torch.nn.ModuleList()
         for layer_id in range(params.n_layers):
@@ -225,15 +232,20 @@ class Transformer(nn.Module):
 
         self.norm = RMSNorm(params.dim, eps=params.norm_eps)
 
-        self.output = nn.Linear(params.dim, params.vocab_size, bias=False)
+        self.output = nn.Linear(params.dim, params.vocab_size, bias=False, device=device)
 
         self.freqs_cis = precompute_freqs_cis(
             self.params.dim // self.params.n_heads, self.params.max_seq_len * 2
         )
 
-    @torch.inference_mode()
-    def forward(self, tokens: torch.Tensor, start_pos: int):
+    #TODO: make 2 versions?
+    # @torch.inference_mode()
+    def forward(self, tokens: torch.Tensor):
+        start_pos = 0
         _bsz, seqlen = tokens.shape
+        print(f'tokens dim: {tokens.shape}\n')
+        print(tokens.max())
+        print('\n\n')
         h = self.tok_embeddings(tokens)
         self.freqs_cis = self.freqs_cis.to(h.device)
         freqs_cis = self.freqs_cis[start_pos : start_pos + seqlen]
