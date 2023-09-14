@@ -387,6 +387,8 @@ class LLaMA:
         min_prompt_size = min([len(t) for t in prompt_tokens])
         max_prompt_size = max([len(t) for t in prompt_tokens])
 
+        
+
         total_len = min(params.max_seq_len, max_gen_len + max_prompt_size)
 
         tokens = torch.full((bsz, total_len), self.tokenizer.pad_id).cuda().long()
