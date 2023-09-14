@@ -452,7 +452,7 @@ def sample_top_p(probs, p):
 
 def main():
     print(device, '\n')
-    path_to_dataset = "/home/dsg2060/Rocket/rocket_test/Training/dataset/tokenized_files/toy_tokenized_data.pkl"
+    path_to_dataset = "/PATH/TO/A/TOY/TOKENIZED/DATA.pkl"
     ckpt_dir = ""
     tokenizer_path = "../../tokenizer.model"
     max_seq_len = 512
