@@ -2,3 +2,6 @@ Models/**
 Training/dataset
 Training/checkpoints
 __pycache__
+
+./tokenizer.model
+./Training/Successful_Slurm.out
