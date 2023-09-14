@@ -8,6 +8,7 @@
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
+>>>>>>> 0782ae86611bab8dad00a8282f3801a5f51dcd47:Training/HF_Scripts/tokenize_job.sh
 
 
 # Set the max number of threads to use for programs using OpenMP. Should be <= ppn. Does nothing if the program doesn't use OpenMP.
