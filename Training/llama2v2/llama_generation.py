@@ -11,7 +11,7 @@ import glob
 import pandas as pd
 import matplotlib as plt
 from llama_model import ModelArgs
-from llama_tokenizer import Tokenizer
+from Rocket.rocket_test.Training.llama2v2.tokenizer.llama_tokenizer import Tokenizer
 import json
 import os
 from pathlib import Path
