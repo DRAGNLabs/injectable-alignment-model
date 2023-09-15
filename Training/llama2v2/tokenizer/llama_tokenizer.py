@@ -46,10 +46,9 @@ class Tokenizer:
     
 
 
-def tokenize_data_chunk(self, tokenizer, chunk, seq_len):  
+def tokenize_data_chunk(tokenizer, chunk, seq_len):  
     '''
     Take some tokenizer object and some dictionary-like(?) data format
-    TODO: look into padding and sequence length for our tokenizer
     ''' 
     # print(chunk)
     to_tokenize:str = chunk['system_prompt'] + '<SEP>' + chunk['question'] + '<SEP>' + chunk['response']
@@ -60,19 +59,18 @@ def tokenize_data_chunk(self, tokenizer, chunk, seq_len):
         chunk = chunk[:seq_len]
     else:
         deficient:int = seq_len - len(chunk)
-        pads = [self.pad_id]*deficient
-        chunk = chunk + pads
+        pads = [tokenizer.pad_id]*deficient
+        chunk['Tokenized_Data'] = chunk['Tokenized_Data'] + pads
 
     # print(chunk.columns)
     return chunk
 
-def generate_tokenized_file(df:pd.DataFrame, path_to_model, seq_len=1000):
+def generate_tokenized_file(df:pd.DataFrame, path_to_model, seq_len=1024):
     # Call 'tokenize_data_chunk' over entire file
     tokenizer = Tokenizer(path_to_model)
-    tok_lambda = lambda x: tokenize_data_chunk(tokenizer, x, seq_len=seq_len)  # 'df.' of line 62 becomes 'x' in this lambda
-    print("\033[0;33m")  # Turn text orange
+    tok_lambda = lambda x: tokenize_data_chunk(tokenizer=tokenizer, chunk=x, seq_len=seq_len)  # 'df.' of line 62 becomes 'x' in this lambda
+    print(f'Dataframe: {df}\n\n')
     df1 = df.progress_apply(tok_lambda, axis=1)
-    print("\033[0;37m")  # return text to white
     df1 = df1.drop(['system_prompt','question','response'], axis=1)
     return df1
 
@@ -84,18 +82,18 @@ def main():
     tqdm.tqdm.pandas()
     print('\nStarting tokenization...\n')
     # load data
-    model_path = "../tokenizer.model"
+    model_path = "../../tokenizer.model"
     # model_name = 'one_hundred_thousandth'
-    path = 'dataset/'
+    path = '../dataset/'
     data_files = {
         'train': [
-            # f'{path}1M-GPT4-Augmented.parquet']#,
-            f'{path}3_5M-GPT3_5-Augmented.parquet'
+            f'{path}1M-GPT4-Augmented.parquet'
+            # f'{path}3_5M-GPT3_5-Augmented.parquet'
         ]
     }
 
     # Load Dataset into pd.DataFrame
-    training_dataframe:pd.DataFrame = load_datasets(data_files).iloc[2000000:]
+    training_dataframe:pd.DataFrame = load_datasets(data_files).iloc[:10]
 
     # Generate tokenized file
     tokenized_df:pd.DataFrame = generate_tokenized_file(training_dataframe, path_to_model=model_path, seq_len=1000)

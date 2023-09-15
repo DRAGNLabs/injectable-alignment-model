@@ -1,3 +1,6 @@
 transformers
 datasets
 pytorch
+matplotlib
+sentencepiece
+sci-kit learn
