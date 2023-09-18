@@ -7,6 +7,10 @@ print('\n\n\n  1  \n\n\n')
 # Add tokens to tokenizer dict
 
 def add_tokens(file_path, new_tokens):
+    """
+    Exercise caution with this function! 
+    Only add a token 1 time, or you will have to start OVER!
+    """
     # Load tokenizer model
     m = model.ModelProto()
     m.ParseFromString(open(file=file_path, mode="rb").read())
@@ -56,7 +60,7 @@ def export_vocab(file_path):
             piece = spp.IdToPiece(i)
             outf.write(str(i) + '\t' + piece + '\n')
 
-special_tokens: list[str] = ['bananaaa']  # Add tokens here; e.g. '<pad>', '<UNK>', etc.
+special_tokens: 'list[str]' = ['bananaaaa']  # Add tokens here; e.g. '<pad>', '<UNK>', etc.
 
 # add_tokens(file_path=file_path, new_tokens=special_tokens)
 # check_submission(special_tokens, path_to_file=file_path)
