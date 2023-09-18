@@ -3,8 +3,7 @@ Training/dataset
 Training/checkpoints
 __pycache__
 
-./tokenizer.model
-Successful_Slurm.out
 tokenizer.model
+Training/llama2v2/tokenizer/toy_tokenizer.model
 
 *.out
