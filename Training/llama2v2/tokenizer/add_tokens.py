@@ -1,20 +1,17 @@
 import sentencepiece as sp
 from sentencepiece import sentencepiece_model_pb2 as model
 
-file_path = "./toy_tokenizer.model"
-sp_old = sp.SentencePieceProcessor(model_file=file_path)
-print('\n\n\n  1  \n\n\n')
-# Add tokens to tokenizer dict
 
 def add_tokens(file_path, new_tokens):
     """
-    Exercise caution with this function! 
+    Add tokens to tokenizer dict
+
+    **Exercise caution with this function! 
     Only add a token 1 time, or you will have to start OVER!
     """
     # Load tokenizer model
     m = model.ModelProto()
     m.ParseFromString(open(file=file_path, mode="rb").read())
-    print('\nViewing tokens...\n')
     # Add tokens
     for token in new_tokens:
         new_token = model.ModelProto().SentencePiece()
@@ -38,10 +35,7 @@ def check_submission(tokens_to_check, path_to_file):
         After adding {len(special_tokens)} more tokens, the new vocab length is: {sp_new.get_piece_size()} tokens.')
     else:
         print('!!!!!!!!!!!!!!!!\nError: The new tokens were not added correctly!\n!!!!!!!!!!!!!!!!')
-    for token in tokens_to_check:
-        print(sp_new[token])
-    print(f'The old vocab length was {sp_old.get_piece_size()} tokens\n \
-    After adding {len(special_tokens)} more tokens, the new vocab length is: {sp_new.get_piece_size()} tokens.')
+    
 
 def export_vocab(file_path):
 
@@ -60,8 +54,14 @@ def export_vocab(file_path):
             piece = spp.IdToPiece(i)
             outf.write(str(i) + '\t' + piece + '\n')
 
-special_tokens: 'list[str]' = ['bananaaaa']  # Add tokens here; e.g. '<pad>', '<UNK>', etc.
 
-# add_tokens(file_path=file_path, new_tokens=special_tokens)
-# check_submission(special_tokens, path_to_file=file_path)
+
+
+file_path = "./practice_tokenizer.model"
+sp_old = sp.SentencePieceProcessor(model_file=file_path)
+
+special_tokens: 'list[str]' = ['<pad>']  # Add tokens here; e.g. '<pad>', '<UNK>', etc.
+
+add_tokens(file_path=file_path, new_tokens=special_tokens)
+check_submission(special_tokens, path_to_file=file_path)
 # export_vocab(file_path=file_path)

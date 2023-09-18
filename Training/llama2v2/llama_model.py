@@ -224,7 +224,7 @@ class Transformer(nn.Module):
         self.n_layers = params.n_layers
 
         print(params.vocab_size, params.dim)
-        self.tok_embeddings = torch.nn.Embedding(params.vocab_size, params.dim, device=device)
+        self.tok_embeddings = torch.nn.Embedding(params.vocab_size, params.dim, padding_idx=32000, device=device)
 
         self.layers = torch.nn.ModuleList()
         for layer_id in range(params.n_layers):
@@ -243,8 +243,8 @@ class Transformer(nn.Module):
     def forward(self, tokens: torch.Tensor):
         start_pos = 0
         _bsz, seqlen = tokens.shape
-        print(f'tokens dim: {tokens.shape}\n')
-        print(tokens.max())
+        print(f'tokens dim: {tokens.shape}\n')  # (1, 1000) == batch size x seq. length
+        print(tokens.max(), '\n\n', tokens)
         print('\n\n')
         h = self.tok_embeddings(tokens)
         self.freqs_cis = self.freqs_cis.to(h.device)

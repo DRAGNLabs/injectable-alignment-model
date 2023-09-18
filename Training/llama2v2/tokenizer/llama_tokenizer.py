@@ -82,9 +82,9 @@ def main():
     tqdm.tqdm.pandas()
     print('\nStarting tokenization...\n')
     # load data
-    model_path = "../../tokenizer.model"
+    model_path = "./practice_tokenizer.model"
     # model_name = 'one_hundred_thousandth'
-    path = '../dataset/'
+    path = '../../dataset/'
     data_files = {
         'train': [
             f'{path}1M-GPT4-Augmented.parquet'
@@ -93,17 +93,17 @@ def main():
     }
 
     # Load Dataset into pd.DataFrame
-    training_dataframe:pd.DataFrame = load_datasets(data_files).iloc[:10]
+    training_dataframe:pd.DataFrame = load_datasets(data_files).iloc[:25]
 
     # Generate tokenized file
-    tokenized_df:pd.DataFrame = generate_tokenized_file(training_dataframe, path_to_model=model_path, seq_len=1000)
+    tokenized_df:pd.DataFrame = generate_tokenized_file(training_dataframe, path_to_model=model_path, seq_len=1024)
     out_dir = "./tokenized_files/"
     if not os.path.isdir(out_dir):
         os.mkdir(out_dir)
-    path_to_file = f'{out_dir}gpt3-2_tokenized_data.pkl'
+    path_to_file = f'{out_dir}toy_tokenized_data.pkl'
     tokenized_df.to_pickle(path_to_file)
     print(f'\033[0;37m Saved as pickle at "{path_to_file}"')    
-    print(f"# of tokenized prompts: {len(tokenized_df)}")
+    print(f"# of tokenized prompts: {len(tokenized_df)}\n")
 
 
 if __name__== "__main__":

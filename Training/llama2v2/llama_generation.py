@@ -1,17 +1,14 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # This software may be used and distributed according to the terms of the GNU General Public License version 3.
 
-device = 'cpu'
-
 import torch
-torch.set_default_device('cpu')
 from torch.utils.data import DataLoader
 import time
 import glob
 import pandas as pd
 import matplotlib as plt
 from llama_model import ModelArgs
-from Rocket.rocket_test.Training.llama2v2.tokenizer.llama_tokenizer import Tokenizer
+from tokenizer.llama_tokenizer import Tokenizer
 import json
 import os
 from pathlib import Path
@@ -23,6 +20,10 @@ from sklearn.model_selection import train_test_split  # TODO: different function
 from llama_config import train_config
 from tqdm import tqdm
 from llama_model import Transformer
+
+torch.set_default_device('cpu')  # Set all devices to 'cpu' for now
+device = 'cpu'
+
 
 class Rocket_DataSet(torch.utils.data.Dataset):  # our data loader
 
@@ -454,9 +455,9 @@ def sample_top_p(probs, p):
 
 def main():
     print(device, '\n')
-    path_to_dataset = "../dataset/tokenized_files/toy_tokenized_data.pkl"
+    path_to_dataset = "./tokenizer/tokenized_files/toy_tokenized_data.pkl"
     ckpt_dir = ""
-    tokenizer_path = "../../tokenizer.model"
+    tokenizer_path = "./tokenizer/practice_tokenizer.model"
     max_seq_len = 512
     #TODO: Check batch size
     max_batch_size = 1
