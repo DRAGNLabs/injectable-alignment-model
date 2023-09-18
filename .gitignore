@@ -6,5 +6,6 @@ __pycache__
 tokenizer.model
 Training/llama2v2/tokenizer/toy_tokenizer.model
 
+# All slurm files
 *.out
 Training/llama2v2/tokenized_files/gpt3-2_tokenized_data.pkl
