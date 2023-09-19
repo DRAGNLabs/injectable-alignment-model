@@ -150,7 +150,7 @@ class LLaMA:
         tokenizer = Tokenizer(model_path=tokenizer_path)  # including this for the special tokens (i.e. pad)
 
         model_args.vocab_size = tokenizer.n_words
-        torch.set_default_tensor_type(torch.cuda.HalfTensor)
+        # torch.set_default_tensor_type(torch.cuda.HalfTensor)  # for using GPU
         model = Transformer(model_args)
         if len(checkpoints) > 0:
             model.load_state_dict(checkpoint, strict=False)
@@ -236,7 +236,6 @@ class LLaMA:
         results = {}
         best_val_loss = float("inf")
 
-
         for epoch in range(train_config.num_epochs):
             epoch_start_time = time.perf_counter()
             with MemoryTrace() as memtrace:  # track the memory usage
@@ -248,8 +247,10 @@ class LLaMA:
                     x = x.to(device)
                     y_true = y_true.to(device)
                     y_hat = model(x)
+                    y_hat = y_hat.transpose(1, 2) # dim==[1, 32k, 1k] (ALWAYS put sequence dim last)
+                    # print(f'\n\ny_hat shape: {y_hat.shape},\ny_true shape: {y_true.shape}\n\n')
                     loss = criterion(y_hat, y_true)
-                    loss = loss / gradient_accumulation_steps
+                    loss = loss/gradient_accumulation_steps
                     total_loss += loss.detach().float()
                     if train_config.use_fp16:
                         # if fp16 is enabled, use gradient scaler to handle gradient update
@@ -262,10 +263,11 @@ class LLaMA:
                     else:
                         # regular backpropagation when fp16 is not used
                         loss.backward()
-                        if (step + 1) % gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
-                            optimizer.step()
-                            optimizer.zero_grad()
-                            pbar.update(1)
+                    # if (step + 1) % gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
+                        print('reached')
+                        optimizer.step()
+                        optimizer.zero_grad()
+                        pbar.update(1)
 
                     pbar.set_description(f"Training Epoch: {epoch+1}/{train_config.num_epochs}, step {step}/{len(train_dataloader)} completed (loss: {loss.detach().float()})")
                 pbar.close()

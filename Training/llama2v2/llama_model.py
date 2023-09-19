@@ -223,7 +223,7 @@ class Transformer(nn.Module):
         self.vocab_size = params.vocab_size
         self.n_layers = params.n_layers
 
-        print(params.vocab_size, params.dim)
+        # print(params.vocab_size, params.dim)
         self.tok_embeddings = torch.nn.Embedding(params.vocab_size, params.dim, padding_idx=32000, device=device)
 
         self.layers = torch.nn.ModuleList()
@@ -243,9 +243,9 @@ class Transformer(nn.Module):
     def forward(self, tokens: torch.Tensor):
         start_pos = 0
         _bsz, seqlen = tokens.shape
-        print(f'tokens dim: {tokens.shape}\n')  # (1, 1000) == batch size x seq. length
-        print(tokens.max(), '\n\n', tokens)
-        print('\n\n')
+        # print(f'tokens dim: {tokens.shape}\n')  # (1, 1000) == batch size x seq. length
+        # print(tokens.max(), '\n\n', tokens)
+        # print('\n\n')
         h = self.tok_embeddings(tokens)
         self.freqs_cis = self.freqs_cis.to(h.device)
         freqs_cis = self.freqs_cis[start_pos : start_pos + seqlen]
@@ -262,8 +262,9 @@ class Transformer(nn.Module):
             h = layer(h, start_pos, freqs_cis, mask)
         h = h.to(self.norm.parameters().__next__().device)
         h = self.norm(h)
+        
+        hl = h#[:, -1, :]  # Probably for inference mode?
 
-        hl = h[:, -1, :]
         hl = hl.to(self.output.parameters().__next__().device)
         output = self.output(hl)
         return output.float()
