@@ -247,7 +247,7 @@ class LLaMA:
                     x = x.to(device)
                     y_true = y_true.to(device)
                     y_hat = model(x)
-                    y_hat = y_hat.transpose(1, 2) # dim==[1, 32k, 1k] (ALWAYS put sequence dim last)
+                    #y_hat = y_hat.transpose(1, 2) # dim==[1, 32k, 1k] (ALWAYS put sequence dim last)
                     # print(f'\n\ny_hat shape: {y_hat.shape},\ny_true shape: {y_true.shape}\n\n')
                     loss = criterion(y_hat, y_true)
                     loss = loss/gradient_accumulation_steps

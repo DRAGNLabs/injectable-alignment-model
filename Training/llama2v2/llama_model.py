@@ -263,7 +263,8 @@ class Transformer(nn.Module):
         h = h.to(self.norm.parameters().__next__().device)
         h = self.norm(h)
         
-        hl = h#[:, -1, :]  # Probably for inference mode?
+        #hl = h#[:, -1, :]  # Probably for inference mode?
+        hl = h.transpose(1, 2)
 
         hl = hl.to(self.output.parameters().__next__().device)
         output = self.output(hl)
