@@ -21,6 +21,8 @@ class ModelArgs:
 
     max_batch_size: int = 32
     max_seq_len: int = 1024
+    dim_k = None
+    dim_v = None
 
 
 class RMSNorm(torch.nn.Module):
@@ -65,7 +67,7 @@ def apply_rotary_emb(
     xk_out = torch.view_as_real(xk_ * freqs_cis).flatten(3)
     return xq_out.type_as(xq), xk_out.type_as(xk)
 
-
+"""
 class Attention(nn.Module):
     def __init__(self, args: ModelArgs):
         super().__init__()
@@ -115,6 +117,12 @@ class Attention(nn.Module):
         bsz, seqlen, _ = x.shape
         xq, xk, xv = self.wq(x), self.wk(x), self.wv(x)
 
+        print('xq size: ', xq.size()) # 1, 1000, 512
+        print('bsz: ', bsz) # 1
+        print('seqlen: ', seqlen)# 1000
+        print('n local heads: ', self.n_local_heads) # 8
+        print('self.head_dim: ', self.head_dim)# 64
+
         xq = xq.view(bsz, seqlen, self.n_local_heads, self.head_dim)
         xk = xk.view(bsz, seqlen, self.n_local_heads, self.head_dim)
         xv = xv.view(bsz, seqlen, self.n_local_heads, self.head_dim)
@@ -124,6 +132,11 @@ class Attention(nn.Module):
         self.cache_k = self.cache_k.to(xq)
         self.cache_v = self.cache_v.to(xq)
 
+        #print('start pos: ', start_pos)
+        #print('seqlen: ', seqlen)
+        #print(self.cache_v.grad)
+        print('cache k grad: ', self.cache_k.requires_grad)
+        print('cache v grad: ', self.cache_v.requires_grad)
         self.cache_k[:bsz, start_pos : start_pos + seqlen] = xk
         self.cache_v[:bsz, start_pos : start_pos + seqlen] = xv
 
@@ -133,7 +146,12 @@ class Attention(nn.Module):
         xq = xq.transpose(1, 2)
         keys = keys.transpose(1, 2)
         values = values.transpose(1, 2)
+        print('xq: ', xq.size()) # 1, 8, 1024, 64
+        print('keys: ', keys.size()) #1, 8, 1024, 64
+        print('values: ', values.size()) # 1, 8, 1024, 64
         scores = torch.matmul(xq, keys.transpose(2, 3)) / math.sqrt(self.head_dim)
+        print('scores: ', scores.size()) # 1,8,1024,1024
+        print('mask: ', mask.size()) #1,1,1024,1024
         if mask is not None:
             scores = scores + mask  # (bs, n_local_heads, slen, cache_len + slen)
         scores = F.softmax(scores.float(), dim=-1).type_as(xq)
@@ -142,6 +160,118 @@ class Attention(nn.Module):
 
         return self.wo(output)
 
+"""  
+class Attention(nn.Module):
+    def __init__(
+        self, args: ModelArgs
+    ) -> None:
+        super().__init__()
+
+        assert args.dim % args.n_heads == 0, "n_heads must be a multiple of dim"
+
+        if args.dim_k is None:
+            args.dim_k = args.dim
+        if args.dim_v is None:
+            args.dim_v = args.dim
+
+        self.max_seq_len = args.max_seq_len
+        self.n_heads = args.n_heads
+        self.dim_head = args.dim // args.n_heads
+        self.dim_k = args.dim_k
+        #self.causal = causal
+
+        # positional encoding to be applied to query and key projections
+        # self.positional_encoding = CosinePositionalEncoding(max_seq_len, dim // n_heads)
+        #self.positional_encoding = RotaryPositionalEncoding(max_seq_len, dim // n_heads)
+
+        # Query, Key and Value projections
+        self.proj_q = nn.Linear(args.dim, args.n_heads * self.dim_head, bias=False, device=device)
+        self.proj_k = nn.Linear(
+            args.dim,
+            args.n_heads * self.dim_head,
+            bias=False,
+            device=device
+        )
+        self.proj_v = nn.Linear(
+            args.dim,
+            args.n_heads * self.dim_head,
+            bias=False,
+            device=device
+        )
+        self.proj_out = nn.Linear(
+            args.dim,
+            args.n_heads * self.dim_head,
+            bias=False,
+            device=device
+        )
+
+        # Build the causal mask, masking upper triangular part of attention scores
+        #causal_mask = torch.triu(torch.ones(max_seq_len, max_seq_len), diagonal=1).bool()
+        #self.register_buffer("causal_mask", causal_mask)
+
+    def forward(self, 
+        x: torch.Tensor, 
+        start_pos: int,
+        freqs_cis: torch.Tensor,
+        mask: Optional[torch.Tensor],
+        return_scores: bool = False
+    ) -> torch.Tensor:
+        bsz, seqlen, _ = x.shape
+
+        # projects input to Q, K, V spaces
+        q = self.proj_q(x)  # (bs, max_seq_len, dim_k)
+        k = self.proj_k(x)  # (bs, max_seq_len, dim_k)
+        v = self.proj_v(x)  # (bs, max_seq_len, dim_v)
+
+        print('q size: ', q.size())
+        print('bsz: ', bsz) # 1
+        print('seqlen: ', self.max_seq_len)# 1000
+        print('n local heads: ', self.n_heads) # 8
+        print('self.head_dim: ', self.dim_head)# 64
+        # split projections between heads -> (bs, n_heads, max_seq_len, dim_k)
+        q = q.view(bsz, self.max_seq_len, self.n_heads, self.dim_head)#.transpose(2, 3)
+        k = k.view(bsz, self.max_seq_len, self.n_heads, self.dim_head)#.transpose(2, 3)
+        v = v.view(bsz, self.max_seq_len, self.n_heads, self.dim_head)#.transpose(2, 3)
+
+        # apply positional encoding to projections, for each heads
+        #q = self.positional_encoding(q)  # (bs, n_heads, max_seq_len, dim_k)
+        #k = self.positional_encoding(k)  # (bs, n_heads, max_seq_len, dim_k)
+        q, k = apply_rotary_emb(q, k, freqs_cis=freqs_cis)
+
+        q = q.transpose(1, 2)
+        k = k.transpose(1, 2)
+        v = v.transpose(1, 2)
+
+        print('q: ', q.size()) # 1, 8, 1024, 64
+        print('k: ', k.size()) #1, 8, 1024, 64
+        print('v: ', v.size()) # 1, 8, 1024, 64
+        # Compute the correlation between a query q_i and all the keys, for every q_i
+        #attn_scores = (q @ k.permute(0, 1, 3, 2)) * self.dim_k**-0.5  # (bs, n_heads, max_seq_len, max_seq_len)
+        attn_scores = torch.matmul(q, k.transpose(2, 3)) / math.sqrt(self.dim_head)
+
+        # Fill the upper triangular part of the attention scores with -inf to inhibit them in the softmax
+        #m_inf = -torch.finfo(attn_scores.dtype).max # TODO:what is this doing?
+        #attn_scores.masked_fill_(mask[None, None, ...], m_inf)
+        print('attn_scores: ', attn_scores.size())
+        print('mask: ', mask.size())
+        attn_scores = attn_scores + mask 
+
+        # attention scores are used to build a weighted linear combination of values vectors
+        attn_scores = torch.softmax(attn_scores, dim=-1)  # (bs, n_heads, max_seq_len, max_seq_len)
+        out = attn_scores @ v  # (bs, n_heads, max_seq_len, dim_v)
+
+        # merge heads
+        out = out.transpose(2, 3).contiguous().view(bsz, self.max_seq_len, self.dim_k)  # (bs, max_seq_len, dim_v)
+
+        # projects to the output space
+        out = self.proj_out(out)  # (bs, max_seq_len, dim_v)
+
+        return out
+        #if return_scores:
+        #    return out, attn_scores
+        #else:
+        #    return out
+   
 
 class FeedForward(nn.Module):
     def __init__(
@@ -200,22 +330,6 @@ class TransformerBlock(nn.Module):
         return out
 
 
-def convert_linear_to_bnb(float_linear):
-    new_layer = InferenceQuantizedLinear(
-        float_linear.in_features,
-        float_linear.out_features,
-        bias=float_linear.bias is not None,
-    )
-    new_layer._parameters["weight"] = bnb.nn.Int8Params(
-        float_linear.weight.data.cpu(),
-        requires_grad=False,
-        has_fp16_weights=False,
-    )
-    if float_linear.bias is not None:
-        new_layer._parameters["bias"] = float_linear.bias
-    return new_layer
-
-
 class Transformer(nn.Module):
     def __init__(self, params: ModelArgs):
         super().__init__()
@@ -249,6 +363,7 @@ class Transformer(nn.Module):
         h = self.tok_embeddings(tokens)
         self.freqs_cis = self.freqs_cis.to(h.device)
         freqs_cis = self.freqs_cis[start_pos : start_pos + seqlen]
+        
 
         mask = None
         if seqlen > 1:
@@ -264,8 +379,9 @@ class Transformer(nn.Module):
         h = self.norm(h)
         
         #hl = h#[:, -1, :]  # Probably for inference mode?
-        hl = h.transpose(1, 2)
 
-        hl = hl.to(self.output.parameters().__next__().device)
-        output = self.output(hl)
+        #hl = hl.to(self.output.parameters().__next__().device)
+        output = self.output(h)
+        output = output.transpose(1, 2)
+        
         return output.float()

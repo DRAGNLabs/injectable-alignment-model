@@ -55,9 +55,7 @@ def export_vocab(file_path):
             outf.write(str(i) + '\t' + piece + '\n')
 
 
-
-
-file_path = "./practice_tokenizer.model"
+file_path = "../../tokenizer.model"
 sp_old = sp.SentencePieceProcessor(model_file=file_path)
 
 special_tokens: 'list[str]' = ['<pad>']  # Add tokens here; e.g. '<pad>', '<UNK>', etc.

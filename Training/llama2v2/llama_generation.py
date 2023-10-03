@@ -27,7 +27,7 @@ device = 'cpu'
 
 class Rocket_DataSet(torch.utils.data.Dataset):  # our data loader
 
-    def __init__(self, path_to_data, pad_tok=-1, bos_tok=1, eos_tok=2, sequence_length=1001):
+    def __init__(self, path_to_data, pad_tok=-1, bos_tok=1, eos_tok=2, sequence_length=1025):
         self.df:pd.DataFrame = pd.read_pickle(path_to_data)
         self.train, self.test = train_test_split(self.df, test_size=.2)
         self.pad_tok = pad_tok
@@ -250,9 +250,10 @@ class LLaMA:
                     #y_hat = y_hat.transpose(1, 2) # dim==[1, 32k, 1k] (ALWAYS put sequence dim last)
                     # print(f'\n\ny_hat shape: {y_hat.shape},\ny_true shape: {y_true.shape}\n\n')
                     loss = criterion(y_hat, y_true)
-                    loss = loss/gradient_accumulation_steps
-                    total_loss += loss.detach().float()
-                    if train_config.use_fp16:
+                    #loss = loss/gradient_accumulation_steps
+                    #total_loss += loss.detach().float()
+                    """if train_config.use_fp16:
+                        print('reached2')
                         # if fp16 is enabled, use gradient scaler to handle gradient update
                         scaler.scale(loss).backward()
                         if (step + 1) % gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
@@ -260,14 +261,14 @@ class LLaMA:
                             scaler.update()
                             optimizer.zero_grad()
                             pbar.update(1)
-                    else:
+                    else:"""
                         # regular backpropagation when fp16 is not used
-                        loss.backward()
+                    loss.backward()
                     # if (step + 1) % gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
-                        print('reached')
-                        optimizer.step()
-                        optimizer.zero_grad()
-                        pbar.update(1)
+                    print('reached')
+                    optimizer.step()
+                    optimizer.zero_grad()
+                    pbar.update(1)
 
                     pbar.set_description(f"Training Epoch: {epoch+1}/{train_config.num_epochs}, step {step}/{len(train_dataloader)} completed (loss: {loss.detach().float()})")
                 pbar.close()
@@ -276,7 +277,7 @@ class LLaMA:
             epoch_times.append(epoch_end_time)    
             # Reducing total_loss across all devices if there's more than one CUDA device
             train_epoch_loss = total_loss / len(train_dataloader)
-            train_perplexity = torch.exp(train_epoch_loss)
+            train_perplexity = torch.exp(torch.tensor(train_epoch_loss))
             
             train_prep.append(train_perplexity)
             train_loss.append(train_epoch_loss)
@@ -459,7 +460,7 @@ def main():
     print(device, '\n')
     path_to_dataset = "./tokenizer/tokenized_files/toy_tokenized_data.pkl"
     ckpt_dir = ""
-    tokenizer_path = "./tokenizer/practice_tokenizer.model"
+    tokenizer_path = "../tokenizer.model"
     max_seq_len = 512
     #TODO: Check batch size
     max_batch_size = 1
