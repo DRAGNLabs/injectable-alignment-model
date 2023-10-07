@@ -7,8 +7,6 @@
 #SBATCH --gpus=1
 #SBATCH --qos=dw87
 #SBATCH -J "test_gpu"   # job name
-#SBATCH --mail-type=END
-
 
 # Set the max number of threads to use for programs using OpenMP. Should be <= ppn. Does nothing if the program doesn't use OpenMP.
 export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
