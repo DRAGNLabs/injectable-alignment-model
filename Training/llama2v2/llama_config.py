@@ -3,12 +3,13 @@
 
 from dataclasses import dataclass
 
+#TODO: combine this with the dataclass in llama_model for consistency
 @dataclass
 class train_config:
     model_name: str="PATH/to/LLAMA/7B"
     enable_fsdp: bool=False
     low_cpu_fsdp: bool=False
-    run_validation: bool=False
+    run_validation: bool=True
     batch_size_training: int=4
     gradient_accumulation_steps: int=1
     num_epochs: int=3

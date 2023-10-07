@@ -1,13 +1,12 @@
 #!/bin/bash
 
-#SBATCH --time=02:00:00   # walltime
+#SBATCH --time=00:20:00   # walltime
 #SBATCH --ntasks=1   # number of processor cores (i.e. tasks)
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --mem-per-cpu=16384M   # memory per CPU core
 #SBATCH --gpus=1
-#SBATCH --qos=cs
-#SBATCH -J "tokenize"   # job name
-#SBATCH --mail-user=drew.s.galbraith@gmail.com   # email address
+#SBATCH --qos=dw87
+#SBATCH -J "test_gpu"   # job name
 #SBATCH --mail-type=END
 
 
@@ -15,7 +14,7 @@
 export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
-# nvidia-smi
+nvidia-smi
 mamba activate rocket_training
-torchrun --nproc_per_node 1 ../llama_generation.py
-#python3 ../llama_generation.py -t
+#torchrun --nproc_per_node 1 ../llama_generation.py
+python3 ../llama_generation.py -t

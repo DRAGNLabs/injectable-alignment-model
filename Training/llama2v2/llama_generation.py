@@ -1,6 +1,7 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # This software may be used and distributed according to the terms of the GNU General Public License version 3.
 
+# TODO: Reorganize all of this, remove unneeded packages
 import torch
 from torch.utils.data import DataLoader
 import time
@@ -20,10 +21,18 @@ from sklearn.model_selection import train_test_split  # TODO: different function
 from llama_config import train_config
 from tqdm import tqdm
 from llama_model import Transformer
+import yaml
+from contextlib import nullcontext
+from pkg_resources import packaging
+import torch.cuda.nccl as nccl
+import torch.distributed as dist
+from torch.distributed.fsdp import StateDictType
+from torch.distributed.fsdp.sharded_grad_scaler import ShardedGradScaler
+from checkpoint_utils import save_model_checkpoint, save_model_and_optimizer_sharded, save_optimizer_checkpoint
 
-torch.set_default_device('cpu')  # Set all devices to 'cpu' for now
-device = 'cpu'
-
+# TODO: simplify this, set one place to define for all code
+torch.set_default_device('cuda')  # Set all devices to 'cpu' for now
+device = 'cuda'
 
 class Rocket_DataSet(torch.utils.data.Dataset):  # our data loader
 
@@ -51,6 +60,7 @@ class Rocket_DataSet(torch.utils.data.Dataset):  # our data loader
 
         return (torch.tensor(tensor_item[:self.sequence_length-1]).to(device), torch.tensor(tensor_item[1:self.sequence_length]).to(device))  # handles truncation
     
+    # TODO: remove this or put it in a seperate module
     def get_lengths(self, filter=True, min_length=0, max_length=2000, make_plot=True):
         """
         Get the lengths of sequences
@@ -196,14 +206,17 @@ class LLaMA:
 
     def train_llama_wrapper(self, batch_size):
         dataloader = DataLoader(self.dataset, batch_size = batch_size, shuffle=True, generator=torch.Generator(device=device))
+        eval_dataloader = DataLoader(self.dataset, batch_size = batch_size, shuffle=True, generator=torch.Generator(device=device))
         optim = torch.optim.Adam(self.model.parameters(), lr=0.0001)  # model.paramaters = weights tensor
         criterion = torch.nn.CrossEntropyLoss()
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optim, 1)  # We'll probably want to change this
         trn_config=train_config()
-        self.train(model=self.model, train_dataloader=dataloader, eval_dataloader=None, tokenizer=self.tokenizer, optimizer=optim, criterion=criterion, lr_scheduler=lr_scheduler, gradient_accumulation_steps=1, train_config=trn_config)
 
+        # TODO: This returns a results data structure containing metrics
+        self.train(model=self.model, train_dataloader=dataloader, eval_dataloader=eval_dataloader, tokenizer=self.tokenizer, optimizer=optim, criterion=criterion, lr_scheduler=lr_scheduler, gradient_accumulation_steps=4, train_config=trn_config, fsdp_config=None, local_rank=None, rank=None)
 
-    def train(self, model, train_dataloader, eval_dataloader, tokenizer, optimizer, criterion, lr_scheduler, gradient_accumulation_steps, train_config):
+    # TODO: you don't need to pass tokenizer in, it's a class member
+    def train(self, model, train_dataloader, eval_dataloader, tokenizer, optimizer, criterion, lr_scheduler, gradient_accumulation_steps, train_config, fsdp_config=None, local_rank=None, rank=None):
         """
         Trains the model on the given dataloader
     
@@ -225,7 +238,10 @@ class LLaMA:
         if train_config.use_fp16 and train_config.enable_fsdp:
             scaler = ShardedGradScaler()
         elif train_config.use_fp16 and not train_config.enable_fsdp:
-            scaler = torch.cuda.amp.GradScaler() 
+            scaler = torch.cuda.amp.GradScaler()
+        if train_config.enable_fsdp:
+            world_size = int(os.environ["WORLD_SIZE"])
+        autocast = torch.cuda.amp.autocast if train_config.use_fp16 else nullcontext
         
         train_prep = []
         train_loss = []
@@ -243,17 +259,22 @@ class LLaMA:
                 total_loss = 0.0
                 total_length = len(train_dataloader)//gradient_accumulation_steps
                 pbar = tqdm(colour="blue", desc=f"Training Epoch: {epoch+1}", total=total_length)
-                for step, (x, y_true) in enumerate(train_dataloader):
-                    x = x.to(device)
-                    y_true = y_true.to(device)
-                    y_hat = model(x)
-                    #y_hat = y_hat.transpose(1, 2) # dim==[1, 32k, 1k] (ALWAYS put sequence dim last)
-                    # print(f'\n\ny_hat shape: {y_hat.shape},\ny_true shape: {y_true.shape}\n\n')
-                    loss = criterion(y_hat, y_true)
-                    #loss = loss/gradient_accumulation_steps
-                    #total_loss += loss.detach().float()
-                    """if train_config.use_fp16:
-                        print('reached2')
+                for step, batch in enumerate(train_dataloader): # batch = (x, y_true)
+                    for element in batch:
+                        if train_config.enable_fsdp:
+                            element = element.to(local_rank) # This isn't unnecessary
+                        else:
+                            element = element.to(device) # This is unneccessary, they are being put on device in the dataloader
+
+                    (x, y_true) = batch
+
+                    with autocast(): # autocast is torch package for running in mixed precision, which improves performance
+                        y_hat = model(x)
+                        loss = criterion(y_hat, y_true)
+
+                    loss = loss/gradient_accumulation_steps
+                    total_loss += loss.detach().float()
+                    if train_config.use_fp16:
                         # if fp16 is enabled, use gradient scaler to handle gradient update
                         scaler.scale(loss).backward()
                         if (step + 1) % gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
@@ -261,14 +282,13 @@ class LLaMA:
                             scaler.update()
                             optimizer.zero_grad()
                             pbar.update(1)
-                    else:"""
+                    else:
                         # regular backpropagation when fp16 is not used
-                    loss.backward()
-                    # if (step + 1) % gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
-                    print('reached')
-                    optimizer.step()
-                    optimizer.zero_grad()
-                    pbar.update(1)
+                        loss.backward()
+                        if (step + 1) % gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
+                            optimizer.step()
+                            optimizer.zero_grad()
+                            pbar.update(1)
 
                     pbar.set_description(f"Training Epoch: {epoch+1}/{train_config.num_epochs}, step {step}/{len(train_dataloader)} completed (loss: {loss.detach().float()})")
                 pbar.close()
@@ -276,101 +296,181 @@ class LLaMA:
             epoch_end_time = time.perf_counter()-epoch_start_time
             epoch_times.append(epoch_end_time)    
             # Reducing total_loss across all devices if there's more than one CUDA device
+            if torch.cuda.device_count() > 1 and train_config.enable_fsdp:
+                dist.all_reduce(total_loss, op=dist.ReduceOp.SUM)
             train_epoch_loss = total_loss / len(train_dataloader)
+            if train_config.enable_fsdp:
+                train_epoch_loss = train_epoch_loss/world_size
             train_perplexity = torch.exp(torch.tensor(train_epoch_loss))
             
             train_prep.append(train_perplexity)
             train_loss.append(train_epoch_loss)
-            
-            print(f"Max CUDA memory allocated was {memtrace.peak} GB")
-            print(f"Max CUDA memory reserved was {memtrace.max_reserved} GB")
-            print(f"Peak active CUDA memory was {memtrace.peak_active_gb} GB")
-            print(f"Cuda Malloc retires : {memtrace.cuda_malloc_retires}")
-            print(f"CPU Total Peak Memory consumed during the train (max): {memtrace.cpu_peaked + memtrace.cpu_begin} GB")
-            
+            if train_config.enable_fsdp:
+                if rank==0:
+                    print(f"Max CUDA memory allocated was {memtrace.peak} GB")
+                    print(f"Max CUDA memory reserved was {memtrace.max_reserved} GB")
+                    print(f"Peak active CUDA memory was {memtrace.peak_active_gb} GB")
+                    print(f"Cuda Malloc retires : {memtrace.cuda_malloc_retires}")
+                    print(f"CPU Total Peak Memory consumed during the train (max): {memtrace.cpu_peaked + memtrace.cpu_begin} GB")
+            else:
+                print(f"Max CUDA memory allocated was {memtrace.peak} GB")
+                print(f"Max CUDA memory reserved was {memtrace.max_reserved} GB")
+                print(f"Peak active CUDA memory was {memtrace.peak_active_gb} GB")
+                print(f"Cuda Malloc retires : {memtrace.cuda_malloc_retires}")
+                print(f"CPU Total Peak Memory consumed during the train (max): {memtrace.cpu_peaked + memtrace.cpu_begin} GB")
+        
             # Update the learning rate as needed
             lr_scheduler.step()
             
-            # if train_config.run_validation:
-            #     eval_ppl, eval_epoch_loss = evaluation(model, train_config, eval_dataloader, local_rank, tokenizer)
-            #     checkpoint_start_time = time.perf_counter()
-            #     if train_config.save_model and eval_epoch_loss < best_val_loss:
-            #         if train_config.enable_fsdp:
-            #             dist.barrier()
-            #         if train_config.use_peft:
-            #             if train_config.enable_fsdp:
-            #                 if rank==0:
-            #                     print(f"we are about to save the PEFT modules")
-            #             else:
-            #                 print(f"we are about to save the PEFT modules")
-            #             model.save_pretrained(train_config.output_dir)  
-            #             if train_config.enable_fsdp:
-            #                 if rank==0: 
-            #                     print(f"PEFT modules are saved in {train_config.output_dir} directory")
-            #             else:
-            #                 print(f"PEFT modules are saved in {train_config.output_dir} directory")
+            # TODO: All this stuff with checkpointing needs to be implemented
+            if train_config.run_validation:
+                eval_ppl, eval_epoch_loss = self.evaluation(model, criterion, train_config, eval_dataloader, local_rank, tokenizer)
+                checkpoint_start_time = time.perf_counter()
+                if train_config.save_model and eval_epoch_loss < best_val_loss:
+                    if train_config.enable_fsdp:
+                        dist.barrier()
+                    if train_config.use_peft:
+                        if train_config.enable_fsdp:
+                            if rank==0:
+                                print(f"we are about to save the PEFT modules")
+                        else:
+                            print(f"we are about to save the PEFT modules")
+                        model.save_pretrained(train_config.output_dir)  
+                        if train_config.enable_fsdp:
+                            if rank==0: 
+                                print(f"PEFT modules are saved in {train_config.output_dir} directory")
+                        else:
+                            print(f"PEFT modules are saved in {train_config.output_dir} directory")
                             
-            #         else:
-            #             if not train_config.use_peft and fsdp_config.checkpoint_type == StateDictType.FULL_STATE_DICT:
+                    else:
+                        if not train_config.use_peft and fsdp_config.checkpoint_type == StateDictType.FULL_STATE_DICT:
                             
-            #                 save_model_checkpoint(
-            #                     model, optimizer, rank, train_config, epoch=epoch
-            #                 )
-            #             elif not train_config.use_peft and fsdp_config.checkpoint_type == StateDictType.SHARDED_STATE_DICT:
-            #                 print(" Saving the FSDP model checkpoints using SHARDED_STATE_DICT")
-            #                 print("=====================================================")
+                            save_model_checkpoint(
+                                model, optimizer, rank, train_config, epoch=epoch
+                            )
+                        elif not train_config.use_peft and fsdp_config.checkpoint_type == StateDictType.SHARDED_STATE_DICT:
+                            print(" Saving the FSDP model checkpoints using SHARDED_STATE_DICT")
+                            print("=====================================================")
                             
-            #                 save_model_and_optimizer_sharded(model, rank, train_config)
-            #                 if train_config.save_optimizer:
-            #                     save_model_and_optimizer_sharded(model, rank, train_config, optim=optimizer)
-            #                     print(" Saving the FSDP model checkpoints and optimizer using SHARDED_STATE_DICT")
-            #                     print("=====================================================")
+                            save_model_and_optimizer_sharded(model, rank, train_config)
+                            if train_config.save_optimizer:
+                                save_model_and_optimizer_sharded(model, rank, train_config, optim=optimizer)
+                                print(" Saving the FSDP model checkpoints and optimizer using SHARDED_STATE_DICT")
+                                print("=====================================================")
 
-            #             if not train_config.use_peft and  train_config.save_optimizer:
-            #                 save_optimizer_checkpoint(
-            #                     model, optimizer, rank, train_config, epoch=epoch
-            #                 )
-            #                 print(" Saving the FSDP model checkpoints and optimizer using FULL_STATE_DICT")
-            #                 print("=====================================================")                     
-            #         if train_config.enable_fsdp:
-            #             dist.barrier()
-            #     checkpoint_end_time = time.perf_counter() - checkpoint_start_time
-            #     checkpoint_times.append(checkpoint_end_time)
-            #     if eval_epoch_loss < best_val_loss:
-            #         best_val_loss = eval_epoch_loss
-            #         if train_config.enable_fsdp:
-            #             if rank==0:
-            #                 print(f"best eval loss on epoch {epoch+1} is {best_val_loss}")
-            #         else:
-            #             print(f"best eval loss on epoch {epoch+1} is {best_val_loss}")
-            #     val_loss.append(best_val_loss)
-            #     val_prep.append(eval_ppl)
-            # if train_config.enable_fsdp:
-            #     if rank==0:
-            #         print(f"Epoch {epoch+1}: train_perplexity={train_perplexity:.4f}, train_epoch_loss={train_epoch_loss:.4f}, epoch time {epoch_end_time}s")
-            # else:
-            #     print(f"Epoch {epoch+1}: train_perplexity={train_perplexity:.4f}, train_epoch_loss={train_epoch_loss:.4f}, epoch time {epoch_end_time}s")
+                        if not train_config.use_peft and  train_config.save_optimizer:
+                            save_optimizer_checkpoint(
+                                model, optimizer, rank, train_config, epoch=epoch
+                            )
+                            print(" Saving the FSDP model checkpoints and optimizer using FULL_STATE_DICT")
+                            print("=====================================================")                     
+                    if train_config.enable_fsdp:
+                        dist.barrier()
+                checkpoint_end_time = time.perf_counter() - checkpoint_start_time
+                checkpoint_times.append(checkpoint_end_time)
+                if eval_epoch_loss < best_val_loss:
+                    best_val_loss = eval_epoch_loss
+                    if train_config.enable_fsdp:
+                        if rank==0:
+                            print(f"best eval loss on epoch {epoch+1} is {best_val_loss}")
+                    else:
+                        print(f"best eval loss on epoch {epoch+1} is {best_val_loss}")
+                val_loss.append(best_val_loss)
+                val_prep.append(eval_ppl)
+            if train_config.enable_fsdp:
+                if rank==0:
+                    print(f"Epoch {epoch+1}: train_perplexity={train_perplexity:.4f}, train_epoch_loss={train_epoch_loss:.4f}, epoch time {epoch_end_time}s")
+            else:
+                print(f"Epoch {epoch+1}: train_perplexity={train_perplexity:.4f}, train_epoch_loss={train_epoch_loss:.4f}, epoch time {epoch_end_time}s")
         
         avg_epoch_time = sum(epoch_times)/ len(epoch_times)
         avg_checkpoint_time = sum(checkpoint_times)/ len(checkpoint_times) if len(checkpoint_times) > 0 else 0
         avg_train_prep = sum(train_prep)/len(train_prep)
         avg_train_loss = sum(train_loss)/len(train_loss)
-        # if train_config.run_validation:
-            # avg_eval_prep = sum(val_prep)/len(val_prep) 
-            # avg_eval_loss = sum(val_loss)/len(val_loss) 
+        if train_config.run_validation:
+            avg_eval_prep = sum(val_prep)/len(val_prep) 
+            avg_eval_loss = sum(val_loss)/len(val_loss) 
 
         results['avg_train_prep'] = avg_train_prep
         results['avg_train_loss'] = avg_train_loss
-        # if train_config.run_validation:
-        #     results['avg_eval_prep'] = avg_eval_prep
-        #     results['avg_eval_loss'] = avg_eval_loss
+        if train_config.run_validation:
+            results['avg_eval_prep'] = avg_eval_prep
+            results['avg_eval_loss'] = avg_eval_loss
         results["avg_epoch_time"] = avg_epoch_time
         results["avg_checkpoint_time"] = avg_checkpoint_time
+
+        #saving the training params including fsdp setting for reference.
+        # TODO: why only with enable_fsdp?
+        if train_config.enable_fsdp and not train_config.use_peft:
+            save_train_params(train_config, fsdp_config, rank)
         
         #saving the training params including fsdp setting for reference.
         return results
 
+    def evaluation(self, model, criterion, train_config, eval_dataloader, local_rank, tokenizer):
+        """
+        Evaluates the model on the given dataloader
+        
+        Args:
+            model: The model to evaluate
+            eval_dataloader: The dataloader containing the evaluation data
+            local_rank: The rank of the current node in a distributed setting
+            tokenizer: The tokenizer used to decode predictions
+        
+        Returns: eval_ppl, eval_epoch_loss
+        """
+        if train_config.enable_fsdp:
+            world_size = int(os.environ["WORLD_SIZE"]) 
+        model.eval()
+        eval_preds = []
+        eval_loss = 0.0  # Initialize evaluation loss
+        with MemoryTrace() as memtrace:
+            for step, batch in enumerate(tqdm(eval_dataloader,colour="green", desc="evaluating Epoch", dynamic_ncols=True)):
+                for element in batch:
+                    if train_config.enable_fsdp:
+                        element = element.to(local_rank)
+                    else:
+                        element = element.to(device) # Might want this to be 'cuda:0'
+                # Ensure no gradients are computed for this scope to save memory
+                with torch.no_grad():
+                    # Forward pass and compute loss
+                    (x, y_true) = batch
+                    y_hat = model(x)
+                    loss = criterion(y_hat, y_true)
+                    eval_loss += loss.detach().float()
+                # Decode predictions and add to evaluation predictions list
+                preds = torch.argmax(y_hat, 1).detach().cpu().tolist()
 
+                # Uncomment to view predictions throughout training
+                #print('preds: ', preds)
+                #print('preds shape: ', len(preds))
+                decoded = tokenizer.decode(preds)
+
+                # Nothing is being done with this list currently
+                eval_preds.extend( 
+                    decoded
+                )
+        
+        # If there's more than one CUDA device, reduce evaluation loss across all devices
+        if torch.cuda.device_count() > 1 and train_config.enable_fsdp:
+            dist.all_reduce(eval_loss, op=dist.ReduceOp.SUM)
+        
+        # Compute average loss and perplexity
+        eval_epoch_loss = eval_loss / len(eval_dataloader)
+        if train_config.enable_fsdp:
+            eval_epoch_loss = eval_epoch_loss/world_size
+        eval_ppl = torch.exp(eval_epoch_loss)
+        
+        # Print evaluation metrics
+        if train_config.enable_fsdp:
+            if local_rank==0:
+                print(f" {eval_ppl=} {eval_epoch_loss=}")
+        else:
+            print(f" {eval_ppl=} {eval_epoch_loss=}")
+            
+        return eval_ppl, eval_epoch_loss
+
+# TODO: this needs to be implemented/tested
     def generate(
         self,
         prompts: List[str],
@@ -456,11 +556,51 @@ def sample_top_p(probs, p):
     next_token = torch.gather(probs_idx, -1, next_token)
     return next_token
 
+# TODO: This is only being called if FSDP is enabled..why? Maybe split it up, seems useful.
+def save_train_params(train_config, fsdp_config, rank):
+    """
+    This function saves the train_config and FSDP config into a train_params.yaml.
+    This will be used by converter script in the inference folder to fetch the HF model name or path.
+    It also would be hepful as a log for future references.
+    """
+    # Convert the train_config and fsdp_config objects to dictionaries, 
+    # converting all values to strings to ensure they can be serialized into a YAML file
+    train_config_dict = {k: str(v) for k, v in vars(train_config).items() if not k.startswith('__')}
+    fsdp_config_dict = {k: str(v) for k, v in vars(fsdp_config).items() if not k.startswith('__')}
+    # Merge the two dictionaries into one
+    train_params_dict = {**train_config_dict, **fsdp_config_dict}
+    # Construct the folder name (follwoing FSDP checkpointing style) using properties of the train_config object
+    folder_name = (
+    train_config.dist_checkpoint_root_folder
+    + "/"
+    + train_config.dist_checkpoint_folder
+    + "-"
+    + train_config.model_name
+    )
+
+    save_dir = Path.cwd() / folder_name
+    # If the directory does not exist, create it
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+    # Convert the dictionary to a YAML string
+    config_yaml = yaml.dump(train_params_dict, indent=4)
+    file_name = os.path.join(save_dir,'train_params.yaml')
+
+    # Check if there's a directory with the same name as the file
+    if os.path.isdir(file_name):
+        print(f"Error: {file_name} is a directory, not a file.")
+    else:
+        # Write the YAML string to the file
+        with open(file_name, 'w') as f:
+            f.write(config_yaml)
+        if rank==0:
+            print(f"training params are saved in {file_name}")
+
 def main():
     print(device, '\n')
-    path_to_dataset = "./tokenizer/tokenized_files/toy_tokenized_data.pkl"
+    path_to_dataset = "../tokenizer/tokenized_files/toy_tokenized_data.pkl"
     ckpt_dir = ""
-    tokenizer_path = "../tokenizer.model"
+    tokenizer_path = "../../tokenizer.model"
     max_seq_len = 512
     #TODO: Check batch size
     max_batch_size = 1

@@ -37,9 +37,6 @@ class Tokenizer:
         if eos:
             t = t + [self.eos_id]
         return t
-        
-            
-
 
     def decode(self, t: List[int]) -> str:
         return self.sp_model.decode(t)

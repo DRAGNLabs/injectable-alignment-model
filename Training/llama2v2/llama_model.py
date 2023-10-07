@@ -8,7 +8,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-device = 'cpu'
+device = 'cuda'
 
 @dataclass
 class ModelArgs:
@@ -223,11 +223,11 @@ class Attention(nn.Module):
         k = self.proj_k(x)  # (bs, max_seq_len, dim_k)
         v = self.proj_v(x)  # (bs, max_seq_len, dim_v)
 
-        print('q size: ', q.size())
-        print('bsz: ', bsz) # 1
-        print('seqlen: ', self.max_seq_len)# 1000
-        print('n local heads: ', self.n_heads) # 8
-        print('self.head_dim: ', self.dim_head)# 64
+        #print('q size: ', q.size())
+        #print('bsz: ', bsz) # 1
+        #print('seqlen: ', self.max_seq_len)# 1000
+        #print('n local heads: ', self.n_heads) # 8
+        #print('self.head_dim: ', self.dim_head)# 64
         # split projections between heads -> (bs, n_heads, max_seq_len, dim_k)
         q = q.view(bsz, self.max_seq_len, self.n_heads, self.dim_head)#.transpose(2, 3)
         k = k.view(bsz, self.max_seq_len, self.n_heads, self.dim_head)#.transpose(2, 3)
@@ -238,13 +238,10 @@ class Attention(nn.Module):
         #k = self.positional_encoding(k)  # (bs, n_heads, max_seq_len, dim_k)
         q, k = apply_rotary_emb(q, k, freqs_cis=freqs_cis)
 
-        q = q.transpose(1, 2)
-        k = k.transpose(1, 2)
-        v = v.transpose(1, 2)
+        q = q.transpose(1, 2) # 1, 8, 1024, 64
+        k = k.transpose(1, 2) # 1, 8, 1024, 64
+        v = v.transpose(1, 2) # 1, 8, 1024, 64
 
-        print('q: ', q.size()) # 1, 8, 1024, 64
-        print('k: ', k.size()) #1, 8, 1024, 64
-        print('v: ', v.size()) # 1, 8, 1024, 64
         # Compute the correlation between a query q_i and all the keys, for every q_i
         #attn_scores = (q @ k.permute(0, 1, 3, 2)) * self.dim_k**-0.5  # (bs, n_heads, max_seq_len, max_seq_len)
         attn_scores = torch.matmul(q, k.transpose(2, 3)) / math.sqrt(self.dim_head)
@@ -252,8 +249,6 @@ class Attention(nn.Module):
         # Fill the upper triangular part of the attention scores with -inf to inhibit them in the softmax
         #m_inf = -torch.finfo(attn_scores.dtype).max # TODO:what is this doing?
         #attn_scores.masked_fill_(mask[None, None, ...], m_inf)
-        print('attn_scores: ', attn_scores.size())
-        print('mask: ', mask.size())
         attn_scores = attn_scores + mask 
 
         # attention scores are used to build a weighted linear combination of values vectors
