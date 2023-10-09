@@ -8,26 +8,11 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
+from llama_config import train_config
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.set_default_device(device)
 
 #TODO: clean all these classes up, add comments
-
-@dataclass
-class ModelArgs:
-    dim: int = 512
-    n_layers: int = 8
-    n_heads: int = 8
-    vocab_size: int = -1  # defined later by tokenizer
-    multiple_of: int = 256  # make SwiGLU hidden layer size multiple of large power of 2
-    norm_eps: float = 1e-5
-
-    max_batch_size: int = 32
-    max_seq_len: int = 1024
-    dim_k = None
-    dim_v = None
-
-
 class RMSNorm(torch.nn.Module):
     def __init__(self, dim: int, eps: float = 1e-6):
         super().__init__()
@@ -70,103 +55,9 @@ def apply_rotary_emb(
     xk_out = torch.view_as_real(xk_ * freqs_cis).flatten(3)
     return xq_out.type_as(xq), xk_out.type_as(xk)
 
-"""
-class Attention(nn.Module):
-    def __init__(self, args: ModelArgs):
-        super().__init__()
-
-        self.n_local_heads = args.n_heads
-        self.head_dim = args.dim // args.n_heads
-
-        self.wq = nn.Linear(
-            args.dim,
-            args.n_heads * self.head_dim,
-            bias=False,
-            device=device
-        )
-        self.wk = nn.Linear(
-            args.dim,
-            args.n_heads * self.head_dim,
-            bias=False,
-            device=device
-        )
-        self.wv = nn.Linear(
-            args.dim,
-            args.n_heads * self.head_dim,
-            bias=False,
-            device=device
-        )
-        self.wo = nn.Linear(
-            args.dim,
-            args.n_heads * self.head_dim,
-            bias=False,
-            device=device
-        )
-
-        self.cache_k = torch.zeros(
-            (args.max_batch_size, args.max_seq_len, self.n_local_heads, self.head_dim), device=device
-        )
-        self.cache_v = torch.zeros(
-            (args.max_batch_size, args.max_seq_len, self.n_local_heads, self.head_dim), device=device
-        )
-
-    def forward(
-        self,
-        x: torch.Tensor,
-        start_pos: int,
-        freqs_cis: torch.Tensor,
-        mask: Optional[torch.Tensor],
-    ):
-        bsz, seqlen, _ = x.shape
-        xq, xk, xv = self.wq(x), self.wk(x), self.wv(x)
-
-        print('xq size: ', xq.size()) # 1, 1000, 512
-        print('bsz: ', bsz) # 1
-        print('seqlen: ', seqlen)# 1000
-        print('n local heads: ', self.n_local_heads) # 8
-        print('self.head_dim: ', self.head_dim)# 64
-
-        xq = xq.view(bsz, seqlen, self.n_local_heads, self.head_dim)
-        xk = xk.view(bsz, seqlen, self.n_local_heads, self.head_dim)
-        xv = xv.view(bsz, seqlen, self.n_local_heads, self.head_dim)
-
-        xq, xk = apply_rotary_emb(xq, xk, freqs_cis=freqs_cis)
-
-        self.cache_k = self.cache_k.to(xq)
-        self.cache_v = self.cache_v.to(xq)
-
-        #print('start pos: ', start_pos)
-        #print('seqlen: ', seqlen)
-        #print(self.cache_v.grad)
-        print('cache k grad: ', self.cache_k.requires_grad)
-        print('cache v grad: ', self.cache_v.requires_grad)
-        self.cache_k[:bsz, start_pos : start_pos + seqlen] = xk
-        self.cache_v[:bsz, start_pos : start_pos + seqlen] = xv
-
-        keys = self.cache_k[:bsz, : start_pos + seqlen]
-        values = self.cache_v[:bsz, : start_pos + seqlen]
-
-        xq = xq.transpose(1, 2)
-        keys = keys.transpose(1, 2)
-        values = values.transpose(1, 2)
-        print('xq: ', xq.size()) # 1, 8, 1024, 64
-        print('keys: ', keys.size()) #1, 8, 1024, 64
-        print('values: ', values.size()) # 1, 8, 1024, 64
-        scores = torch.matmul(xq, keys.transpose(2, 3)) / math.sqrt(self.head_dim)
-        print('scores: ', scores.size()) # 1,8,1024,1024
-        print('mask: ', mask.size()) #1,1,1024,1024
-        if mask is not None:
-            scores = scores + mask  # (bs, n_local_heads, slen, cache_len + slen)
-        scores = F.softmax(scores.float(), dim=-1).type_as(xq)
-        output = torch.matmul(scores, values)  # (bs, n_local_heads, slen, head_dim)
-        output = output.transpose(1, 2).contiguous().view(bsz, seqlen, -1)
-
-        return self.wo(output)
-
-"""  
 class Attention(nn.Module):
     def __init__(
-        self, args: ModelArgs
+        self, args: train_config
     ) -> None:
         super().__init__()
 
@@ -185,7 +76,7 @@ class Attention(nn.Module):
 
         # positional encoding to be applied to query and key projections
         # self.positional_encoding = CosinePositionalEncoding(max_seq_len, dim // n_heads)
-        #self.positional_encoding = RotaryPositionalEncoding(max_seq_len, dim // n_heads)
+        # self.positional_encoding = RotaryPositionalEncoding(max_seq_len, dim // n_heads)
 
         # Query, Key and Value projections
         self.proj_q = nn.Linear(args.dim, args.n_heads * self.dim_head, bias=False, device=device)
@@ -216,8 +107,7 @@ class Attention(nn.Module):
         x: torch.Tensor, 
         start_pos: int,
         freqs_cis: torch.Tensor,
-        mask: Optional[torch.Tensor],
-        return_scores: bool = False
+        mask: Optional[torch.Tensor]
     ) -> torch.Tensor:
         bsz, seqlen, _ = x.shape
 
@@ -237,8 +127,6 @@ class Attention(nn.Module):
         v = v.view(bsz, self.max_seq_len, self.n_heads, self.dim_head)#.transpose(2, 3)
 
         # apply positional encoding to projections, for each heads
-        #q = self.positional_encoding(q)  # (bs, n_heads, max_seq_len, dim_k)
-        #k = self.positional_encoding(k)  # (bs, n_heads, max_seq_len, dim_k)
         q, k = apply_rotary_emb(q, k, freqs_cis=freqs_cis)
 
         q = q.transpose(1, 2) # 1, 8, 1024, 64
@@ -249,26 +137,18 @@ class Attention(nn.Module):
         #attn_scores = (q @ k.permute(0, 1, 3, 2)) * self.dim_k**-0.5  # (bs, n_heads, max_seq_len, max_seq_len)
         attn_scores = torch.matmul(q, k.transpose(2, 3)) / math.sqrt(self.dim_head)
 
-        # Fill the upper triangular part of the attention scores with -inf to inhibit them in the softmax
-        #m_inf = -torch.finfo(attn_scores.dtype).max # TODO:what is this doing?
-        #attn_scores.masked_fill_(mask[None, None, ...], m_inf)
         attn_scores = attn_scores + mask 
 
         # attention scores are used to build a weighted linear combination of values vectors
         attn_scores = torch.softmax(attn_scores, dim=-1)  # (bs, n_heads, max_seq_len, max_seq_len)
         out = attn_scores @ v  # (bs, n_heads, max_seq_len, dim_v)
 
-        # merge heads
         out = out.transpose(2, 3).contiguous().view(bsz, self.max_seq_len, self.dim_k)  # (bs, max_seq_len, dim_v)
 
         # projects to the output space
         out = self.proj_out(out)  # (bs, max_seq_len, dim_v)
 
         return out
-        #if return_scores:
-        #    return out, attn_scores
-        #else:
-        #    return out
    
 
 class FeedForward(nn.Module):
@@ -301,7 +181,7 @@ class FeedForward(nn.Module):
 
 
 class TransformerBlock(nn.Module):
-    def __init__(self, layer_id: int, args: ModelArgs):
+    def __init__(self, layer_id: int, args: train_config):
         super().__init__()
         self.n_heads = args.n_heads
         self.dim = args.dim
@@ -329,14 +209,14 @@ class TransformerBlock(nn.Module):
 
 
 class Transformer(nn.Module):
-    def __init__(self, params: ModelArgs):
+    def __init__(self, params: train_config):
         super().__init__()
         self.params = params
         self.vocab_size = params.vocab_size
         self.n_layers = params.n_layers
 
-        # print(params.vocab_size, params.dim)
-        self.tok_embeddings = torch.nn.Embedding(params.vocab_size, params.dim, padding_idx=32000, device=device)
+        # TODO: padding_idx should not be hardcoded here
+        self.tok_embeddings = torch.nn.Embedding(params.vocab_size, params.dim, padding_idx=params.pad_tok, device=device)
 
         self.layers = torch.nn.ModuleList()
         for layer_id in range(params.n_layers):
@@ -356,8 +236,6 @@ class Transformer(nn.Module):
         start_pos = 0
         _bsz, seqlen = tokens.shape
         # print(f'tokens dim: {tokens.shape}\n')  # (1, 1000) == batch size x seq. length
-        # print(tokens.max(), '\n\n', tokens)
-        # print('\n\n')
         h = self.tok_embeddings(tokens)
         self.freqs_cis = self.freqs_cis.to(h.device)
         freqs_cis = self.freqs_cis[start_pos : start_pos + seqlen]
@@ -375,10 +253,7 @@ class Transformer(nn.Module):
             h = layer(h, start_pos, freqs_cis, mask)
         h = h.to(self.norm.parameters().__next__().device)
         h = self.norm(h)
-        
-        #hl = h#[:, -1, :]  # Probably for inference mode?
 
-        #hl = hl.to(self.output.parameters().__next__().device)
         output = self.output(h)
         output = output.transpose(1, 2)
         

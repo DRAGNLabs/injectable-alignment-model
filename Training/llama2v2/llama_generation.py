@@ -1,7 +1,6 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # This software may be used and distributed according to the terms of the GNU General Public License version 3.
 
-# TODO: Reorganize all of this, remove unneeded packages
 import torch
 from torch.utils.data import DataLoader
 import torch.cuda.nccl as nccl
@@ -23,7 +22,6 @@ from tqdm import tqdm
 import yaml
 
 from tokenizer.llama_tokenizer import Tokenizer
-from llama_model import ModelArgs
 from llama_config import train_config
 from llama_model import Transformer
 from contextlib import nullcontext
@@ -33,9 +31,8 @@ from checkpoint_utils import save_model_checkpoint, save_model_and_optimizer_sha
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.set_default_device(device)
 
-class Rocket_DataSet(torch.utils.data.Dataset):  # our data loader
-
-    def __init__(self, path_to_data, pad_tok=-1, bos_tok=1, eos_tok=2, sequence_length=1025):
+class Rocket_DataSet(torch.utils.data.Dataset):
+    def __init__(self, path_to_data, pad_tok, bos_tok, eos_tok, sequence_length):
         self.df:pd.DataFrame = pd.read_pickle(path_to_data)
         self.train, self.test = train_test_split(self.df, test_size=.2)
         self.pad_tok = pad_tok
@@ -70,6 +67,7 @@ class LLaMA:
     ) -> "LLaMA":
      
         start_time = time.time()
+        # TODO: need to test/implement this
         checkpoints = sorted(Path(ckpt_dir).glob("*.pth"))
         if len(checkpoints) > 0:
             checkpoint = torch.load(ckpt_dir, map_location="cpu")
@@ -78,23 +76,33 @@ class LLaMA:
         else:
             params = {}
 
-        model_args: ModelArgs = ModelArgs()
+        train_args = train_config(max_seq_len=max_seq_len,
+            max_batch_size=max_batch_size,
+            **params)
+        
         tokenizer = Tokenizer(model_path=tokenizer_path)  # including this for the special tokens (i.e. pad)
 
-        model_args.vocab_size = tokenizer.n_words
-        # torch.set_default_tensor_type(torch.cuda.HalfTensor)  # for using GPU
-        model = Transformer(model_args)
+        train_args.vocab_size = tokenizer.n_words
+        torch.set_default_tensor_type(torch.cuda.HalfTensor)  # for using GPU
+
+        model = Transformer(train_args)
+
         if len(checkpoints) > 0:
             model.load_state_dict(checkpoint, strict=False)
-        print(f"Loaded in {time.time() - start_time:.2f} seconds")
-        dataset = Rocket_DataSet(dataset_path)
-        return LLaMA(model, tokenizer, dataset)
 
-    def __init__(self, model: Transformer, tokenizer: Tokenizer, dataset:Rocket_DataSet):
+        print(f"Loaded in {time.time() - start_time:.2f} seconds")
+        dataset = Rocket_DataSet(dataset_path, pad_tok=tokenizer.pad_id, bos_tok=tokenizer.bos_id, eos_tok=tokenizer.eos_id, sequence_length=train_args.max_seq_len)
+        return LLaMA(model, tokenizer, dataset, train_args)
+
+    def __init__(self, 
+                 model: Transformer, 
+                 tokenizer: Tokenizer, 
+                 dataset:Rocket_DataSet,
+                 train_args: train_config):
         self.model = model
         self.tokenizer = tokenizer
-        self.dataset:Rocket_DataSet = dataset
-
+        self.dataset = dataset
+        self.train_args = train_args
 
     def _should_stop(self, tokens, prompt_tokens, stop_ids, stop_words):
         if stop_ids is not None:
@@ -125,20 +133,19 @@ class LLaMA:
 
         return False
     
-
-    def train_llama_wrapper(self, batch_size):
-        dataloader = DataLoader(self.dataset, batch_size = batch_size, shuffle=True, generator=torch.Generator(device=device))
-        eval_dataloader = DataLoader(self.dataset, batch_size = batch_size, shuffle=True, generator=torch.Generator(device=device))
-        optim = torch.optim.Adam(self.model.parameters(), lr=0.0001)  # model.paramaters = weights tensor
+    # TODO: change all the stuff being passed in that's part of the class
+    def train_llama_wrapper(self):
+        dataloader = DataLoader(self.dataset, batch_size = self.train_args.max_batch_size, shuffle=True, generator=torch.Generator(device=device))
+        eval_dataloader = DataLoader(self.dataset, batch_size = self.train_args.max_batch_size, shuffle=True, generator=torch.Generator(device=device))
+        optim = torch.optim.Adam(self.model.parameters(), lr=self.train_args.lr)  # model.paramaters = weights tensor
         criterion = torch.nn.CrossEntropyLoss()
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optim, 1)  # We'll probably want to change this
-        trn_config=train_config()
 
         # TODO: This returns a results data structure containing metrics, do something with it
-        self.train(model=self.model, train_dataloader=dataloader, eval_dataloader=eval_dataloader, tokenizer=self.tokenizer, optimizer=optim, criterion=criterion, lr_scheduler=lr_scheduler, gradient_accumulation_steps=4, train_config=trn_config, fsdp_config=None, local_rank=None, rank=None)
+        self.train(model=self.model, train_dataloader=dataloader, eval_dataloader=eval_dataloader, optimizer=optim, criterion=criterion, lr_scheduler=lr_scheduler, gradient_accumulation_steps=4, fsdp_config=None, local_rank=None, rank=None)
 
-    # TODO: you don't need to pass tokenizer in, it's a class member
-    def train(self, model, train_dataloader, eval_dataloader, tokenizer, optimizer, criterion, lr_scheduler, gradient_accumulation_steps, train_config, fsdp_config=None, local_rank=None, rank=None):
+    # TODO: you don't need to pass model in, it's a class member
+    def train(self, model, train_dataloader, eval_dataloader, optimizer, criterion, lr_scheduler, gradient_accumulation_steps, fsdp_config=None, local_rank=None, rank=None):
         """
         Trains the model on the given dataloader
     
@@ -150,20 +157,18 @@ class LLaMA:
             gradient_accumulation_steps: The number of steps to accumulate gradients before performing a backward/update operation
             num_epochs: The number of epochs to train for
             local_rank: The rank of the current node in a distributed setting
-            train_config: The training configuration
             eval_dataloader: The dataloader containing the eval data
-            tokenizer: tokenizer used in the eval for decoding the predicitons
         
         Returns: results dictionary containing average training and validation perplexity and loss
         """
         # Create a gradient scaler for fp16
-        if train_config.use_fp16 and train_config.enable_fsdp:
+        if self.train_args.use_fp16 and self.train_args.enable_fsdp:
             scaler = ShardedGradScaler()
-        elif train_config.use_fp16 and not train_config.enable_fsdp:
+        elif self.train_args.use_fp16 and not self.train_args.enable_fsdp:
             scaler = torch.cuda.amp.GradScaler()
-        if train_config.enable_fsdp:
+        if self.train_args.enable_fsdp:
             world_size = int(os.environ["WORLD_SIZE"])
-        autocast = torch.cuda.amp.autocast if train_config.use_fp16 else nullcontext
+        autocast = torch.cuda.amp.autocast if self.train_args.use_fp16 else nullcontext
         
         train_prep = []
         train_loss = []
@@ -174,7 +179,7 @@ class LLaMA:
         results = {}
         best_val_loss = float("inf")
 
-        for epoch in range(train_config.num_epochs):
+        for epoch in range(self.train_args.num_epochs):
             epoch_start_time = time.perf_counter()
             with MemoryTrace() as memtrace:  # track the memory usage
                 model.train()
@@ -183,7 +188,7 @@ class LLaMA:
                 pbar = tqdm(colour="blue", desc=f"Training Epoch: {epoch+1}", total=total_length)
                 for step, batch in enumerate(train_dataloader): # batch = (x, y_true)
                     for element in batch:
-                        if train_config.enable_fsdp:
+                        if self.train_args.enable_fsdp:
                             element = element.to(local_rank) # This isn't unnecessary
                         else:
                             element = element.to(device) # This is unneccessary, they are being put on device in the dataloader
@@ -196,7 +201,7 @@ class LLaMA:
 
                     loss = loss/gradient_accumulation_steps
                     total_loss += loss.detach().float()
-                    if train_config.use_fp16:
+                    if self.train_args.use_fp16:
                         # if fp16 is enabled, use gradient scaler to handle gradient update
                         scaler.scale(loss).backward()
                         if (step + 1) % gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
@@ -212,22 +217,22 @@ class LLaMA:
                             optimizer.zero_grad()
                             pbar.update(1)
 
-                    pbar.set_description(f"Training Epoch: {epoch+1}/{train_config.num_epochs}, step {step}/{len(train_dataloader)} completed (loss: {loss.detach().float()})")
+                    pbar.set_description(f"Training Epoch: {epoch+1}/{self.train_args.num_epochs}, step {step}/{len(train_dataloader)} completed (loss: {loss.detach().float()})")
                 pbar.close()
                     
             epoch_end_time = time.perf_counter()-epoch_start_time
             epoch_times.append(epoch_end_time)    
             # Reducing total_loss across all devices if there's more than one CUDA device
-            if torch.cuda.device_count() > 1 and train_config.enable_fsdp:
+            if torch.cuda.device_count() > 1 and self.train_args.enable_fsdp:
                 dist.all_reduce(total_loss, op=dist.ReduceOp.SUM)
             train_epoch_loss = total_loss / len(train_dataloader)
-            if train_config.enable_fsdp:
+            if self.train_args.enable_fsdp:
                 train_epoch_loss = train_epoch_loss/world_size
             train_perplexity = torch.exp(torch.tensor(train_epoch_loss))
             
             train_prep.append(train_perplexity)
             train_loss.append(train_epoch_loss)
-            if train_config.enable_fsdp:
+            if self.train_args.enable_fsdp:
                 if rank==0:
                     print(f"Max CUDA memory allocated was {memtrace.peak} GB")
                     print(f"Max CUDA memory reserved was {memtrace.max_reserved} GB")
@@ -245,61 +250,61 @@ class LLaMA:
             lr_scheduler.step()
             
             # TODO: All this stuff with checkpointing needs to be implemented
-            if train_config.run_validation:
-                eval_ppl, eval_epoch_loss = self.evaluation(model, criterion, train_config, eval_dataloader, local_rank, tokenizer)
+            if self.train_args.run_validation:
+                eval_ppl, eval_epoch_loss = self.evaluation(model, criterion, eval_dataloader, local_rank)
                 checkpoint_start_time = time.perf_counter()
-                if train_config.save_model and eval_epoch_loss < best_val_loss:
-                    if train_config.enable_fsdp:
+                if self.train_args.save_model and eval_epoch_loss < best_val_loss:
+                    if self.train_args.enable_fsdp:
                         dist.barrier()
-                    if train_config.use_peft:
-                        if train_config.enable_fsdp:
+                    if self.train_args.use_peft:
+                        if self.train_args.enable_fsdp:
                             if rank==0:
                                 print(f"we are about to save the PEFT modules")
                         else:
                             print(f"we are about to save the PEFT modules")
-                        model.save_pretrained(train_config.output_dir)  
-                        if train_config.enable_fsdp:
+                        model.save_pretrained(self.train_args.output_dir)  
+                        if self.train_args.enable_fsdp:
                             if rank==0: 
-                                print(f"PEFT modules are saved in {train_config.output_dir} directory")
+                                print(f"PEFT modules are saved in {self.train_args.output_dir} directory")
                         else:
-                            print(f"PEFT modules are saved in {train_config.output_dir} directory")
+                            print(f"PEFT modules are saved in {self.train_args.output_dir} directory")
                             
                     else:
-                        if not train_config.use_peft and fsdp_config.checkpoint_type == StateDictType.FULL_STATE_DICT:
+                        if not self.train_args.use_peft and fsdp_config.checkpoint_type == StateDictType.FULL_STATE_DICT:
                             
                             save_model_checkpoint(
-                                model, optimizer, rank, train_config, epoch=epoch
+                                model, optimizer, rank, self.train_args, epoch=epoch
                             )
-                        elif not train_config.use_peft and fsdp_config.checkpoint_type == StateDictType.SHARDED_STATE_DICT:
+                        elif not self.train_args.use_peft and fsdp_config.checkpoint_type == StateDictType.SHARDED_STATE_DICT:
                             print(" Saving the FSDP model checkpoints using SHARDED_STATE_DICT")
                             print("=====================================================")
                             
-                            save_model_and_optimizer_sharded(model, rank, train_config)
-                            if train_config.save_optimizer:
-                                save_model_and_optimizer_sharded(model, rank, train_config, optim=optimizer)
+                            save_model_and_optimizer_sharded(model, rank, self.train_args)
+                            if self.train_args.save_optimizer:
+                                save_model_and_optimizer_sharded(model, rank, self.train_args, optim=optimizer)
                                 print(" Saving the FSDP model checkpoints and optimizer using SHARDED_STATE_DICT")
                                 print("=====================================================")
 
-                        if not train_config.use_peft and  train_config.save_optimizer:
+                        if not self.train_args.use_peft and  self.train_args.save_optimizer:
                             save_optimizer_checkpoint(
-                                model, optimizer, rank, train_config, epoch=epoch
+                                model, optimizer, rank, self.train_args, epoch=epoch
                             )
                             print(" Saving the FSDP model checkpoints and optimizer using FULL_STATE_DICT")
                             print("=====================================================")                     
-                    if train_config.enable_fsdp:
+                    if self.train_args.enable_fsdp:
                         dist.barrier()
                 checkpoint_end_time = time.perf_counter() - checkpoint_start_time
                 checkpoint_times.append(checkpoint_end_time)
                 if eval_epoch_loss < best_val_loss:
                     best_val_loss = eval_epoch_loss
-                    if train_config.enable_fsdp:
+                    if self.train_args.enable_fsdp:
                         if rank==0:
                             print(f"best eval loss on epoch {epoch+1} is {best_val_loss}")
                     else:
                         print(f"best eval loss on epoch {epoch+1} is {best_val_loss}")
                 val_loss.append(best_val_loss)
                 val_prep.append(eval_ppl)
-            if train_config.enable_fsdp:
+            if self.train_args.enable_fsdp:
                 if rank==0:
                     print(f"Epoch {epoch+1}: train_perplexity={train_perplexity:.4f}, train_epoch_loss={train_epoch_loss:.4f}, epoch time {epoch_end_time}s")
             else:
@@ -309,13 +314,13 @@ class LLaMA:
         avg_checkpoint_time = sum(checkpoint_times)/ len(checkpoint_times) if len(checkpoint_times) > 0 else 0
         avg_train_prep = sum(train_prep)/len(train_prep)
         avg_train_loss = sum(train_loss)/len(train_loss)
-        if train_config.run_validation:
+        if self.train_args.run_validation:
             avg_eval_prep = sum(val_prep)/len(val_prep) 
             avg_eval_loss = sum(val_loss)/len(val_loss) 
 
         results['avg_train_prep'] = avg_train_prep
         results['avg_train_loss'] = avg_train_loss
-        if train_config.run_validation:
+        if self.train_args.run_validation:
             results['avg_eval_prep'] = avg_eval_prep
             results['avg_eval_loss'] = avg_eval_loss
         results["avg_epoch_time"] = avg_epoch_time
@@ -323,13 +328,13 @@ class LLaMA:
 
         #saving the training params including fsdp setting for reference.
         # TODO: why only with enable_fsdp?
-        if train_config.enable_fsdp and not train_config.use_peft:
-            save_train_params(train_config, fsdp_config, rank)
+        if self.train_args.enable_fsdp and not self.train_args.use_peft:
+            save_train_params(self.train_args, fsdp_config, rank)
         
         #saving the training params including fsdp setting for reference.
         return results
 
-    def evaluation(self, model, criterion, train_config, eval_dataloader, local_rank, tokenizer):
+    def evaluation(self, model, criterion, eval_dataloader, local_rank):
         """
         Evaluates the model on the given dataloader
         
@@ -341,7 +346,7 @@ class LLaMA:
         
         Returns: eval_ppl, eval_epoch_loss
         """
-        if train_config.enable_fsdp:
+        if self.train_args.enable_fsdp:
             world_size = int(os.environ["WORLD_SIZE"]) 
         model.eval()
         eval_preds = []
@@ -349,7 +354,7 @@ class LLaMA:
         with MemoryTrace() as memtrace:
             for step, batch in enumerate(tqdm(eval_dataloader,colour="green", desc="evaluating Epoch", dynamic_ncols=True)):
                 for element in batch:
-                    if train_config.enable_fsdp:
+                    if self.train_args.enable_fsdp:
                         element = element.to(local_rank)
                     else:
                         element = element.to(device) # Might want this to be 'cuda:0'
@@ -366,7 +371,7 @@ class LLaMA:
                 # Uncomment to view predictions throughout training
                 #print('preds: ', preds)
                 #print('preds shape: ', len(preds))
-                decoded = tokenizer.decode(preds)
+                decoded = self.tokenizer.decode(preds)
 
                 # Nothing is being done with this list currently
                 eval_preds.extend( 
@@ -374,17 +379,17 @@ class LLaMA:
                 )
         
         # If there's more than one CUDA device, reduce evaluation loss across all devices
-        if torch.cuda.device_count() > 1 and train_config.enable_fsdp:
+        if torch.cuda.device_count() > 1 and self.train_args.enable_fsdp:
             dist.all_reduce(eval_loss, op=dist.ReduceOp.SUM)
         
         # Compute average loss and perplexity
         eval_epoch_loss = eval_loss / len(eval_dataloader)
-        if train_config.enable_fsdp:
+        if self.train_args.enable_fsdp:
             eval_epoch_loss = eval_epoch_loss/world_size
         eval_ppl = torch.exp(eval_epoch_loss)
         
         # Print evaluation metrics
-        if train_config.enable_fsdp:
+        if self.train_args.enable_fsdp:
             if local_rank==0:
                 print(f" {eval_ppl=} {eval_epoch_loss=}")
         else:
@@ -412,8 +417,6 @@ class LLaMA:
 
         min_prompt_size = min([len(t) for t in prompt_tokens])
         max_prompt_size = max([len(t) for t in prompt_tokens])
-
-        
 
         total_len = min(params.max_seq_len, max_gen_len + max_prompt_size)
 
@@ -534,8 +537,8 @@ def main():
         max_batch_size=max_batch_size,
         dataset_path=path_to_dataset,
         )
-    #TODO: check batch size
-    Drew_and_Jay_and_Jacksons_Llama.train_llama_wrapper(batch_size=1)
+    
+    Drew_and_Jay_and_Jacksons_Llama.train_llama_wrapper()
 
     print('\nNo errors!\n')
 

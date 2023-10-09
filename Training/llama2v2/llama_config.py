@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass
 
-#TODO: combine this with the dataclass in llama_model for consistency
+# TODO: many of these are likely remnants from HF and not needed.
 @dataclass
 class train_config:
     model_name: str="PATH/to/LLAMA/7B"
@@ -34,7 +34,14 @@ class train_config:
     dist_checkpoint_folder: str="fine-tuned" # will be used if using FSDP
     save_optimizer: bool=False # will be used if using FSDP
     use_fast_kernels: bool = False # Enable using SDPA from PyTroch Accelerated Transformers, make use Flash Attention and Xformer memory-efficient kernels
-
-    
-    
+    dim: int = 512
+    n_layers: int = 8
+    n_heads: int = 8
+    vocab_size: int = -1  # defined later by tokenizer
+    multiple_of: int = 256  # make SwiGLU hidden layer size multiple of large power of 2
+    norm_eps: float = 1e-5
+    max_batch_size: int = 32
+    max_seq_len: int = 1024
+    dim_k = None
+    dim_v = None
     
