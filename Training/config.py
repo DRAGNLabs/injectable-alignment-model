@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass
 
-# TODO: many of these are likely remnants from HF and not needed.
+# TODO: clean this up, many of these are likely remnants from HF and not needed.
 @dataclass
 class train_config:
     model_name: str="PATH/to/LLAMA/7B"
@@ -33,7 +33,7 @@ class train_config:
     dist_checkpoint_root_folder: str="PATH/to/save/FSDP/model" # will be used if using FSDP
     dist_checkpoint_folder: str="fine-tuned" # will be used if using FSDP
     save_optimizer: bool=False # will be used if using FSDP
-    use_fast_kernels: bool = False # Enable using SDPA from PyTroch Accelerated Transformers, make use Flash Attention and Xformer memory-efficient kernels
+    use_fast_kernels: bool = False # Enable using SDPA from PyTorch Accelerated Transformers, make use Flash Attention and Xformer memory-efficient kernels
     dim: int = 512
     n_layers: int = 8
     n_heads: int = 8

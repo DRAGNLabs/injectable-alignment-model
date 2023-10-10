@@ -76,6 +76,7 @@ class LLaMA:
         else:
             params = {}
 
+        # TODO: make it possible to input params to model class
         train_args = train_config(max_seq_len=max_seq_len,
             max_batch_size=max_batch_size,
             **params)
@@ -145,7 +146,7 @@ class LLaMA:
         self.train(model=self.model, train_dataloader=dataloader, eval_dataloader=eval_dataloader, optimizer=optim, criterion=criterion, lr_scheduler=lr_scheduler, gradient_accumulation_steps=4, fsdp_config=None, local_rank=None, rank=None)
 
     # TODO: you don't need to pass model in, it's a class member
-    def train(self, model, train_dataloader, eval_dataloader, optimizer, criterion, lr_scheduler, gradient_accumulation_steps, fsdp_config=None, local_rank=None, rank=None):
+    def train(self, train_dataloader, eval_dataloader, optimizer, criterion, lr_scheduler, gradient_accumulation_steps, fsdp_config=None, local_rank=None, rank=None):
         """
         Trains the model on the given dataloader
     
@@ -182,7 +183,7 @@ class LLaMA:
         for epoch in range(self.train_args.num_epochs):
             epoch_start_time = time.perf_counter()
             with MemoryTrace() as memtrace:  # track the memory usage
-                model.train()
+                self.model.train()
                 total_loss = 0.0
                 total_length = len(train_dataloader)//gradient_accumulation_steps
                 pbar = tqdm(colour="blue", desc=f"Training Epoch: {epoch+1}", total=total_length)
@@ -196,7 +197,7 @@ class LLaMA:
                     (x, y_true) = batch
 
                     with autocast(): # autocast is torch package for running in mixed precision, which improves performance
-                        y_hat = model(x)
+                        y_hat = self.model(x)
                         loss = criterion(y_hat, y_true)
 
                     loss = loss/gradient_accumulation_steps
@@ -251,7 +252,7 @@ class LLaMA:
             
             # TODO: All this stuff with checkpointing needs to be implemented
             if self.train_args.run_validation:
-                eval_ppl, eval_epoch_loss = self.evaluation(model, criterion, eval_dataloader, local_rank)
+                eval_ppl, eval_epoch_loss = self.evaluation(self.model, criterion, eval_dataloader, local_rank)
                 checkpoint_start_time = time.perf_counter()
                 if self.train_args.save_model and eval_epoch_loss < best_val_loss:
                     if self.train_args.enable_fsdp:
@@ -262,7 +263,7 @@ class LLaMA:
                                 print(f"we are about to save the PEFT modules")
                         else:
                             print(f"we are about to save the PEFT modules")
-                        model.save_pretrained(self.train_args.output_dir)  
+                        self.model.save_pretrained(self.train_args.output_dir)  
                         if self.train_args.enable_fsdp:
                             if rank==0: 
                                 print(f"PEFT modules are saved in {self.train_args.output_dir} directory")
@@ -273,21 +274,21 @@ class LLaMA:
                         if not self.train_args.use_peft and fsdp_config.checkpoint_type == StateDictType.FULL_STATE_DICT:
                             
                             save_model_checkpoint(
-                                model, optimizer, rank, self.train_args, epoch=epoch
+                                self.model, optimizer, rank, self.train_args, epoch=epoch
                             )
                         elif not self.train_args.use_peft and fsdp_config.checkpoint_type == StateDictType.SHARDED_STATE_DICT:
                             print(" Saving the FSDP model checkpoints using SHARDED_STATE_DICT")
                             print("=====================================================")
                             
-                            save_model_and_optimizer_sharded(model, rank, self.train_args)
+                            save_model_and_optimizer_sharded(self.model, rank, self.train_args)
                             if self.train_args.save_optimizer:
-                                save_model_and_optimizer_sharded(model, rank, self.train_args, optim=optimizer)
+                                save_model_and_optimizer_sharded(self.model, rank, self.train_args, optim=optimizer)
                                 print(" Saving the FSDP model checkpoints and optimizer using SHARDED_STATE_DICT")
                                 print("=====================================================")
 
                         if not self.train_args.use_peft and  self.train_args.save_optimizer:
                             save_optimizer_checkpoint(
-                                model, optimizer, rank, self.train_args, epoch=epoch
+                                self.model, optimizer, rank, self.train_args, epoch=epoch
                             )
                             print(" Saving the FSDP model checkpoints and optimizer using FULL_STATE_DICT")
                             print("=====================================================")                     
@@ -482,6 +483,7 @@ def sample_top_p(probs, p):
     return next_token
 
 # TODO: This is only being called if FSDP is enabled..why? Maybe split it up, seems useful.
+# TODO: Do we need this? how should we this?
 def save_train_params(train_config, fsdp_config, rank):
     """
     This function saves the train_config and FSDP config into a train_params.yaml.
@@ -521,8 +523,12 @@ def save_train_params(train_config, fsdp_config, rank):
         if rank==0:
             print(f"training params are saved in {file_name}")
 
+# TODO: put this into seperate script.
 def main():
+    # TODO: Take in cmdline arg for config name
+
     print(device, '\n')
+    # TODO: fix all file paths
     path_to_dataset = "../tokenizer/tokenized_files/toy_tokenized_data.pkl"
     ckpt_dir = ""
     tokenizer_path = "../../tokenizer.model"

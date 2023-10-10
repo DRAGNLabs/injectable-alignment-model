@@ -22,7 +22,7 @@ class Tokenizer:
         self.n_words: int = self.sp_model.vocab_size()
         self.bos_id: int = self.sp_model.bos_id()
         self.eos_id: int = self.sp_model.eos_id()
-        self.pad_id: int = self.sp_model['<pad>']
+        self.pad_id: int = self.sp_model['<pad>'] # TODO: should not hard code this
         logger.info(
             f"# of words: {self.n_words} - BOS ID: {self.bos_id} - EOS ID: {self.eos_id}"
         )
