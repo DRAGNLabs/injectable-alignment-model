@@ -1,4 +1,5 @@
 from main import LLaMA
+from config import train_config
 
 def main():
     # TODO: Take in cmdline arg for config name
@@ -9,19 +10,17 @@ def main():
     ckpt_dir = ""
     #TODO: this kinda breaks/doesn't make sense because this path is ultimately used inside a different directory, need to find another way.
     tokenizer_path = "../../Tokenizers/tokenizer.model"
-    max_seq_len = 1024
-    #TODO: Check batch size
-    max_batch_size = 1
+
+    train_args = train_config() # You can customize this here
 
     Drew_and_Jay_and_Jacksons_Llama = LLaMA.build(
         ckpt_dir=ckpt_dir,
         tokenizer_path=tokenizer_path,
-        max_seq_len=max_seq_len,
-        max_batch_size=max_batch_size,
         dataset_path=path_to_dataset,
+        train_args=train_args
         )
     
-    Drew_and_Jay_and_Jacksons_Llama.train_llama_wrapper()
+    Drew_and_Jay_and_Jacksons_Llama.train()
 
     print('\nNo errors!\n')
 

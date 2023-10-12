@@ -68,15 +68,15 @@ class Attention(nn.Module):
         if args.dim_v is None:
             args.dim_v = args.dim
 
-        self.max_seq_len = args.max_seq_len
+        self.seq_len = args.seq_len
         self.n_heads = args.n_heads
         self.dim_head = args.dim // args.n_heads
         self.dim_k = args.dim_k
         #self.causal = causal
 
         # positional encoding to be applied to query and key projections
-        # self.positional_encoding = CosinePositionalEncoding(max_seq_len, dim // n_heads)
-        # self.positional_encoding = RotaryPositionalEncoding(max_seq_len, dim // n_heads)
+        # self.positional_encoding = CosinePositionalEncoding(seq_len, dim // n_heads)
+        # self.positional_encoding = RotaryPositionalEncoding(seq_len, dim // n_heads)
 
         # Query, Key and Value projections
         self.proj_q = nn.Linear(args.dim, args.n_heads * self.dim_head, bias=False, device=device)
@@ -100,7 +100,7 @@ class Attention(nn.Module):
         )
 
         # Build the causal mask, masking upper triangular part of attention scores
-        #causal_mask = torch.triu(torch.ones(max_seq_len, max_seq_len), diagonal=1).bool()
+        #causal_mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool()
         #self.register_buffer("causal_mask", causal_mask)
 
     def forward(self, 
@@ -114,16 +114,16 @@ class Attention(nn.Module):
         #print('x shape: ', x.size())
 
         # projects input to Q, K, V spaces
-        q = self.proj_q(x)  # (bs, max_seq_len, dim_k)
-        k = self.proj_k(x)  # (bs, max_seq_len, dim_k)
-        v = self.proj_v(x)  # (bs, max_seq_len, dim_v)
+        q = self.proj_q(x)  # (bs, seq_len, dim_k)
+        k = self.proj_k(x)  # (bs, seq_len, dim_k)
+        v = self.proj_v(x)  # (bs, seq_len, dim_v)
 
         #print('q size: ', q.size()) # 1, 1023, 512 NEEDS to be 1, 1023, 512
         #print('bsz: ', bsz) # 1
         #print('seqlen: ', seqlen) # 1024
         #print('n local heads: ', self.n_heads) # 8
         #print('self.head_dim: ', self.dim_head) # 64
-        # split projections between heads -> (bs, n_heads, max_seq_len, dim_k)
+        # split projections between heads -> (bs, n_heads, seq_len, dim_k)
         q = q.view(bsz, seqlen, self.n_heads, self.dim_head)#.transpose(2, 3)
         k = k.view(bsz, seqlen, self.n_heads, self.dim_head)#.transpose(2, 3)
         v = v.view(bsz, seqlen, self.n_heads, self.dim_head)#.transpose(2, 3)
@@ -136,19 +136,19 @@ class Attention(nn.Module):
         v = v.transpose(1, 2) # 1, 8, 1024, 64
 
         # Compute the correlation between a query q_i and all the keys, for every q_i
-        #attn_scores = (q @ k.permute(0, 1, 3, 2)) * self.dim_k**-0.5  # (bs, n_heads, max_seq_len, max_seq_len)
+        #attn_scores = (q @ k.permute(0, 1, 3, 2)) * self.dim_k**-0.5  # (bs, n_heads, seq_len, seq_len)
         attn_scores = torch.matmul(q, k.transpose(2, 3)) / math.sqrt(self.dim_head)
 
         attn_scores = attn_scores + mask 
 
         # attention scores are used to build a weighted linear combination of values vectors
-        attn_scores = torch.softmax(attn_scores, dim=-1)  # (bs, n_heads, max_seq_len, max_seq_len)
-        out = attn_scores @ v  # (bs, n_heads, max_seq_len, dim_v)
+        attn_scores = torch.softmax(attn_scores, dim=-1)  # (bs, n_heads, seq_len, seq_len)
+        out = attn_scores @ v  # (bs, n_heads, seq_len, dim_v)
 
-        out = out.transpose(2, 3).contiguous().view(bsz, seqlen, self.dim_k)  # (bs, max_seq_len, dim_v)
+        out = out.transpose(2, 3).contiguous().view(bsz, seqlen, self.dim_k)  # (bs, seq_len, dim_v)
 
         # projects to the output space
-        out = self.proj_out(out)  # (bs, max_seq_len, dim_v)
+        out = self.proj_out(out)  # (bs, seq_len, dim_v)
 
         return out
    
@@ -217,7 +217,6 @@ class Transformer(nn.Module):
         self.vocab_size = params.vocab_size
         self.n_layers = params.n_layers
 
-        # TODO: padding_idx should not be hardcoded here
         self.tok_embeddings = torch.nn.Embedding(params.vocab_size, params.dim, padding_idx=params.pad_tok, device=device)
 
         self.layers = torch.nn.ModuleList()
@@ -229,11 +228,9 @@ class Transformer(nn.Module):
         self.output = nn.Linear(params.dim, params.vocab_size, bias=False, device=device)
 
         self.freqs_cis = precompute_freqs_cis(
-            self.params.dim // self.params.n_heads, self.params.max_seq_len * 2
+            self.params.dim // self.params.n_heads, self.params.seq_len * 2
         )
 
-    #TODO: make 2 versions?
-    # @torch.inference_mode()
     def forward(self, tokens: torch.Tensor):
         start_pos = 0
         _bsz, seqlen = tokens.shape
@@ -242,7 +239,6 @@ class Transformer(nn.Module):
         self.freqs_cis = self.freqs_cis.to(h.device)
         freqs_cis = self.freqs_cis[start_pos : start_pos + seqlen]
         
-
         mask = None
         if seqlen > 1:
             mask = torch.full(

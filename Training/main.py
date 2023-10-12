@@ -61,9 +61,8 @@ class LLaMA:
     def build(
         ckpt_dir: str,
         tokenizer_path: str,
-        max_seq_len: int,
         dataset_path: str,
-        max_batch_size: int,
+        train_args: train_config
     ) -> "LLaMA":
      
         start_time = time.time()
@@ -72,14 +71,11 @@ class LLaMA:
         if len(checkpoints) > 0:
             checkpoint = torch.load(ckpt_dir, map_location="cpu")
             with open(Path(ckpt_dir) / "params.json", "r") as f:
-                params = json.loads(f.read())
+                params = json.loads(f.read()) # TODO: what does params actually look like? Look in checkpointing during training
         else:
             params = {}
 
-        # TODO: make it possible to input params to model class
-        train_args = train_config(max_seq_len=max_seq_len,
-            max_batch_size=max_batch_size,
-            **params)
+        train_args(**params)
         
         tokenizer = Tokenizer(model_path=tokenizer_path)  # including this for the special tokens (i.e. pad)
 
@@ -92,7 +88,7 @@ class LLaMA:
             model.load_state_dict(checkpoint, strict=False)
 
         print(f"Loaded in {time.time() - start_time:.2f} seconds")
-        dataset = Rocket_DataSet(dataset_path, pad_tok=tokenizer.pad_id, bos_tok=tokenizer.bos_id, eos_tok=tokenizer.eos_id, sequence_length=train_args.max_seq_len)
+        dataset = Rocket_DataSet(dataset_path, pad_tok=tokenizer.pad_id, bos_tok=tokenizer.bos_id, eos_tok=tokenizer.eos_id, sequence_length=train_args.seq_len)
         return LLaMA(model, tokenizer, dataset, train_args)
 
     def __init__(self, 
@@ -134,31 +130,17 @@ class LLaMA:
 
         return False
     
-    # TODO: change all the stuff being passed in that's part of the class
-    def train_llama_wrapper(self):
-        dataloader = DataLoader(self.dataset, batch_size = self.train_args.max_batch_size, shuffle=True, generator=torch.Generator(device=device))
-        eval_dataloader = DataLoader(self.dataset, batch_size = self.train_args.max_batch_size, shuffle=True, generator=torch.Generator(device=device))
-        optim = torch.optim.Adam(self.model.parameters(), lr=self.train_args.lr)  # model.paramaters = weights tensor
-        criterion = torch.nn.CrossEntropyLoss()
-        lr_scheduler = torch.optim.lr_scheduler.StepLR(optim, 1)  # We'll probably want to change this
-
-        # TODO: This returns a results data structure containing metrics, do something with it
-        self.train(train_dataloader=dataloader, eval_dataloader=eval_dataloader, optimizer=optim, criterion=criterion, lr_scheduler=lr_scheduler, gradient_accumulation_steps=4, fsdp_config=None, local_rank=None, rank=None)
-
-    # TODO: you don't need to pass model in, it's a class member
-    def train(self, train_dataloader, eval_dataloader, optimizer, criterion, lr_scheduler, gradient_accumulation_steps, fsdp_config=None, local_rank=None, rank=None):
+    # TODO: these additional parameters need to be implemented somehow
+    def train(self, fsdp_config=None, local_rank=None, rank=None):
         """
         Trains the model on the given dataloader
     
         Args:
-            model: The model to be trained
             train_dataloader: The dataloader containing the training data
+            eval_dataloader: The dataloader containing the eval data
             optimizer: The optimizer used for training
             lr_scheduler: The learning rate scheduler
-            gradient_accumulation_steps: The number of steps to accumulate gradients before performing a backward/update operation
-            num_epochs: The number of epochs to train for
             local_rank: The rank of the current node in a distributed setting
-            eval_dataloader: The dataloader containing the eval data
         
         Returns: results dictionary containing average training and validation perplexity and loss
         """
@@ -170,6 +152,13 @@ class LLaMA:
         if self.train_args.enable_fsdp:
             world_size = int(os.environ["WORLD_SIZE"])
         autocast = torch.cuda.amp.autocast if self.train_args.use_fp16 else nullcontext
+
+        # Create necessary training modules based on config
+        train_dataloader = DataLoader(self.dataset, batch_size = self.train_args.batch_size, shuffle=True, generator=torch.Generator(device=device))
+        eval_dataloader = DataLoader(self.dataset, batch_size = self.train_args.batch_size, shuffle=True, generator=torch.Generator(device=device))
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.train_args.lr)  # model.paramaters = weights tensor
+        criterion = torch.nn.CrossEntropyLoss()
+        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1)  #TODO: add config param for this
         
         train_prep = []
         train_loss = []
@@ -185,7 +174,7 @@ class LLaMA:
             with MemoryTrace() as memtrace:  # track the memory usage
                 self.model.train()
                 total_loss = 0.0
-                total_length = len(train_dataloader)//gradient_accumulation_steps
+                total_length = len(train_dataloader)//self.train_args.gradient_accumulation_steps
                 pbar = tqdm(colour="blue", desc=f"Training Epoch: {epoch+1}", total=total_length)
                 for step, batch in enumerate(train_dataloader): # batch = (x, y_true)
                     for element in batch:
@@ -200,12 +189,12 @@ class LLaMA:
                         y_hat = self.model(x)
                         loss = criterion(y_hat, y_true)
 
-                    loss = loss/gradient_accumulation_steps
+                    loss = loss/self.train_args.gradient_accumulation_steps
                     total_loss += loss.detach().float()
                     if self.train_args.use_fp16:
                         # if fp16 is enabled, use gradient scaler to handle gradient update
                         scaler.scale(loss).backward()
-                        if (step + 1) % gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
+                        if (step + 1) % self.train_args.gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
                             scaler.step(optimizer)
                             scaler.update()
                             optimizer.zero_grad()
@@ -213,7 +202,7 @@ class LLaMA:
                     else:
                         # regular backpropagation when fp16 is not used
                         loss.backward()
-                        if (step + 1) % gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
+                        if (step + 1) % self.train_args.gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
                             optimizer.step()
                             optimizer.zero_grad()
                             pbar.update(1)
@@ -411,7 +400,7 @@ class LLaMA:
     ) -> List[str]:
         bsz = len(prompts)
         params = self.model.params
-        assert bsz <= params.max_batch_size, (bsz, params.max_batch_size)
+        assert bsz <= params.batch_size, (bsz, params.batch_size)
 
         prompt_tokens = [self.tokenizer.encode(x, bos=True, eos=False) for x in prompts]
         num_input_tokens = [len(t) for t in prompt_tokens]
@@ -419,7 +408,7 @@ class LLaMA:
         min_prompt_size = min([len(t) for t in prompt_tokens])
         max_prompt_size = max([len(t) for t in prompt_tokens])
 
-        total_len = min(params.max_seq_len, max_gen_len + max_prompt_size)
+        total_len = min(params.seq_len, max_gen_len + max_prompt_size)
 
         tokens = torch.full((bsz, total_len), self.tokenizer.pad_id).cuda().long()
         for k, t in enumerate(prompt_tokens):

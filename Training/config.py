@@ -10,7 +10,7 @@ class train_config:
     enable_fsdp: bool=False
     low_cpu_fsdp: bool=False
     run_validation: bool=True
-    batch_size_training: int=4
+    batch_size_training: int=4 # combine this with the other batch size
     gradient_accumulation_steps: int=1
     num_epochs: int=3
     num_workers_dataloader: int=1
@@ -40,8 +40,8 @@ class train_config:
     vocab_size: int = -1  # defined later by tokenizer
     multiple_of: int = 256  # make SwiGLU hidden layer size multiple of large power of 2
     norm_eps: float = 1e-5
-    max_batch_size: int = 32
-    max_seq_len: int = 1024
+    batch_size: int = 32
+    seq_len: int = 1024
     dim_k = None
     dim_v = None
     pad_tok = 32000
