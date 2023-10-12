@@ -44,4 +44,5 @@ class train_config:
     max_seq_len: int = 1024
     dim_k = None
     dim_v = None
+    pad_tok = 32000
     

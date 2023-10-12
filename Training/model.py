@@ -8,7 +8,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-from llama_config import train_config
+from config import train_config
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.set_default_device(device)
 
@@ -111,20 +111,22 @@ class Attention(nn.Module):
     ) -> torch.Tensor:
         bsz, seqlen, _ = x.shape
 
+        #print('x shape: ', x.size())
+
         # projects input to Q, K, V spaces
         q = self.proj_q(x)  # (bs, max_seq_len, dim_k)
         k = self.proj_k(x)  # (bs, max_seq_len, dim_k)
         v = self.proj_v(x)  # (bs, max_seq_len, dim_v)
 
-        #print('q size: ', q.size())
+        #print('q size: ', q.size()) # 1, 1023, 512 NEEDS to be 1, 1023, 512
         #print('bsz: ', bsz) # 1
-        #print('seqlen: ', self.max_seq_len)# 1000
+        #print('seqlen: ', seqlen) # 1024
         #print('n local heads: ', self.n_heads) # 8
-        #print('self.head_dim: ', self.dim_head)# 64
+        #print('self.head_dim: ', self.dim_head) # 64
         # split projections between heads -> (bs, n_heads, max_seq_len, dim_k)
-        q = q.view(bsz, self.max_seq_len, self.n_heads, self.dim_head)#.transpose(2, 3)
-        k = k.view(bsz, self.max_seq_len, self.n_heads, self.dim_head)#.transpose(2, 3)
-        v = v.view(bsz, self.max_seq_len, self.n_heads, self.dim_head)#.transpose(2, 3)
+        q = q.view(bsz, seqlen, self.n_heads, self.dim_head)#.transpose(2, 3)
+        k = k.view(bsz, seqlen, self.n_heads, self.dim_head)#.transpose(2, 3)
+        v = v.view(bsz, seqlen, self.n_heads, self.dim_head)#.transpose(2, 3)
 
         # apply positional encoding to projections, for each heads
         q, k = apply_rotary_emb(q, k, freqs_cis=freqs_cis)
@@ -143,7 +145,7 @@ class Attention(nn.Module):
         attn_scores = torch.softmax(attn_scores, dim=-1)  # (bs, n_heads, max_seq_len, max_seq_len)
         out = attn_scores @ v  # (bs, n_heads, max_seq_len, dim_v)
 
-        out = out.transpose(2, 3).contiguous().view(bsz, self.max_seq_len, self.dim_k)  # (bs, max_seq_len, dim_v)
+        out = out.transpose(2, 3).contiguous().view(bsz, seqlen, self.dim_k)  # (bs, max_seq_len, dim_v)
 
         # projects to the output space
         out = self.proj_out(out)  # (bs, max_seq_len, dim_v)

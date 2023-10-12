@@ -41,8 +41,6 @@ class Tokenizer:
     def decode(self, t: List[int]) -> str:
         return self.sp_model.decode(t)
     
-
-
 def tokenize_data_chunk(tokenizer, chunk, seq_len):  
     '''
     Take some tokenizer object and some dictionary-like(?) data format
@@ -75,6 +73,7 @@ def load_datasets(data_files):
     infs:pd.DataFrame = pd.read_parquet(data_files['train'])
     return infs
 
+# TODO: need to put this into a seperate, more well defined function for it's specific purpose.
 def main():
     tqdm.tqdm.pandas()
     print('\nStarting tokenization...\n')

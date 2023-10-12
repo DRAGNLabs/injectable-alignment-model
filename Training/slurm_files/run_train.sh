@@ -15,4 +15,4 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 nvidia-smi
 mamba activate rocket_training
 #torchrun --nproc_per_node 1 ../llama_generation.py
-python3 ../llama_generation.py -t
+python3 ../run.py -t

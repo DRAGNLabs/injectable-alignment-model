@@ -17,13 +17,13 @@ import pandas as pd
 from pathlib import Path
 from typing import List
 from memory_utils import MemoryTrace
-from sklearn.model_selection import train_test_split  # TODO: different function for test + train + validate?
+from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 import yaml
 
-from tokenizer.llama_tokenizer import Tokenizer
-from llama_config import train_config
-from llama_model import Transformer
+from tokenizer.tokenizer import Tokenizer
+from config import train_config
+from model import Transformer
 from contextlib import nullcontext
 
 from checkpoint_utils import save_model_checkpoint, save_model_and_optimizer_sharded, save_optimizer_checkpoint
@@ -143,7 +143,7 @@ class LLaMA:
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optim, 1)  # We'll probably want to change this
 
         # TODO: This returns a results data structure containing metrics, do something with it
-        self.train(model=self.model, train_dataloader=dataloader, eval_dataloader=eval_dataloader, optimizer=optim, criterion=criterion, lr_scheduler=lr_scheduler, gradient_accumulation_steps=4, fsdp_config=None, local_rank=None, rank=None)
+        self.train(train_dataloader=dataloader, eval_dataloader=eval_dataloader, optimizer=optim, criterion=criterion, lr_scheduler=lr_scheduler, gradient_accumulation_steps=4, fsdp_config=None, local_rank=None, rank=None)
 
     # TODO: you don't need to pass model in, it's a class member
     def train(self, train_dataloader, eval_dataloader, optimizer, criterion, lr_scheduler, gradient_accumulation_steps, fsdp_config=None, local_rank=None, rank=None):
@@ -252,7 +252,7 @@ class LLaMA:
             
             # TODO: All this stuff with checkpointing needs to be implemented
             if self.train_args.run_validation:
-                eval_ppl, eval_epoch_loss = self.evaluation(self.model, criterion, eval_dataloader, local_rank)
+                eval_ppl, eval_epoch_loss = self.evaluation(criterion, eval_dataloader, local_rank)
                 checkpoint_start_time = time.perf_counter()
                 if self.train_args.save_model and eval_epoch_loss < best_val_loss:
                     if self.train_args.enable_fsdp:
@@ -335,7 +335,7 @@ class LLaMA:
         #saving the training params including fsdp setting for reference.
         return results
 
-    def evaluation(self, model, criterion, eval_dataloader, local_rank):
+    def evaluation(self, criterion, eval_dataloader, local_rank):
         """
         Evaluates the model on the given dataloader
         
@@ -349,7 +349,7 @@ class LLaMA:
         """
         if self.train_args.enable_fsdp:
             world_size = int(os.environ["WORLD_SIZE"]) 
-        model.eval()
+        self.model.eval()
         eval_preds = []
         eval_loss = 0.0  # Initialize evaluation loss
         with MemoryTrace() as memtrace:
@@ -363,7 +363,7 @@ class LLaMA:
                 with torch.no_grad():
                     # Forward pass and compute loss
                     (x, y_true) = batch
-                    y_hat = model(x)
+                    y_hat = self.model(x)
                     loss = criterion(y_hat, y_true)
                     eval_loss += loss.detach().float()
                 # Decode predictions and add to evaluation predictions list
@@ -522,31 +522,3 @@ def save_train_params(train_config, fsdp_config, rank):
             f.write(config_yaml)
         if rank==0:
             print(f"training params are saved in {file_name}")
-
-# TODO: put this into seperate script.
-def main():
-    # TODO: Take in cmdline arg for config name
-
-    print(device, '\n')
-    # TODO: fix all file paths
-    path_to_dataset = "../tokenizer/tokenized_files/toy_tokenized_data.pkl"
-    ckpt_dir = ""
-    tokenizer_path = "../../tokenizer.model"
-    max_seq_len = 512
-    #TODO: Check batch size
-    max_batch_size = 1
-
-    Drew_and_Jay_and_Jacksons_Llama = LLaMA.build(
-        ckpt_dir=ckpt_dir,
-        tokenizer_path=tokenizer_path,
-        max_seq_len=max_seq_len,
-        max_batch_size=max_batch_size,
-        dataset_path=path_to_dataset,
-        )
-    
-    Drew_and_Jay_and_Jacksons_Llama.train_llama_wrapper()
-
-    print('\nNo errors!\n')
-
-if __name__ == "__main__":
-    main()
