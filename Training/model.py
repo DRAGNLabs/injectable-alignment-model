@@ -9,25 +9,71 @@ from torch import nn
 import torch.nn.functional as F
 
 from config import train_config
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.set_default_device(device)
 
 #TODO: clean all these classes up, add comments
 class RMSNorm(torch.nn.Module):
+    # TODO: what is this?
     def __init__(self, dim: int, eps: float = 1e-6):
+        """
+        Initialize the RMSNorm normalization layer.
+
+        Args:
+            dim (int): The dimension of the input tensor.
+            eps (float, optional): A small value added to the denominator for numerical stability. Default is 1e-6.
+
+        Attributes:
+            eps (float): A small value added to the denominator for numerical stability.
+            weight (nn.Parameter): Learnable scaling parameter.
+        """
         super().__init__()
         self.eps = eps
         self.weight = nn.Parameter(torch.ones(dim, device=device))
 
     def _norm(self, x):
+        """
+        Apply the RMSNorm normalization to the input tensor.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+
+        Returns:
+            torch.Tensor: The normalized tensor.
+        """
         return x * torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + self.eps)
 
     def forward(self, x):
+        """
+        Forward pass through the RMSNorm layer.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+
+        Returns:
+            torch.Tensor: The output tensor after applying RMSNorm.
+        """
         output = self._norm(x.float()).type_as(x)
         return output * self.weight
 
 
 def precompute_freqs_cis(dim: int, end: int, theta: float = 10000.0):
+    """
+    Precompute the frequency tensor for complex exponentials (cis) with given dimensions.
+
+    This function calculates a frequency tensor with complex exponentials using the given dimension 'dim'
+    and the end index 'end'. The 'theta' parameter scales the frequencies.
+    The returned tensor contains complex values in complex64 data type.
+
+    Args:
+        dim (int): Dimension of the frequency tensor.
+        end (int): End index for precomputing frequencies.
+        theta (float, optional): Scaling factor for frequency computation. Defaults to 10000.0.
+
+    Returns:
+        torch.Tensor: Precomputed frequency tensor with complex exponentials.
+    """
     freqs = 1.0 / (theta ** (torch.arange(0, dim, 2, device=device)[: (dim // 2)].float() / dim))
     t = torch.arange(end, device=freqs.device)  # type: ignore
     freqs = torch.outer(t, freqs).float()  # type: ignore
@@ -36,6 +82,23 @@ def precompute_freqs_cis(dim: int, end: int, theta: float = 10000.0):
 
 
 def reshape_for_broadcast(freqs_cis: torch.Tensor, x: torch.Tensor):
+    """
+    Reshape frequency tensor for broadcasting it with another tensor.
+
+    This function reshapes the frequency tensor to have the same shape as the target tensor 'x'
+    for the purpose of broadcasting the frequency tensor during element-wise operations.
+
+    Args:
+        freqs_cis (torch.Tensor): Frequency tensor to be reshaped.
+        x (torch.Tensor): Target tensor for broadcasting compatibility.
+
+    Returns:
+        torch.Tensor: Reshaped frequency tensor.
+
+    Raises:
+        AssertionError: If the frequency tensor doesn't match the expected shape.
+        AssertionError: If the target tensor 'x' doesn't have the expected number of dimensions.
+    """
     ndim = x.ndim
     assert 0 <= 1 < ndim
     assert freqs_cis.shape == (x.shape[1], x.shape[-1])
@@ -48,6 +111,22 @@ def apply_rotary_emb(
     xk: torch.Tensor,
     freqs_cis: torch.Tensor,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
+    """
+    Apply rotary embeddings to input tensors using the given frequency tensor.
+
+    This function applies rotary embeddings to the given query 'xq' and key 'xk' tensors using the provided
+    frequency tensor 'freqs_cis'. The input tensors are reshaped as complex numbers, and the frequency tensor
+    is reshaped for broadcasting compatibility. The resulting tensors contain rotary embeddings and are
+    returned as real tensors.
+
+    Args:
+        xq (torch.Tensor): Query tensor to apply rotary embeddings.
+        xk (torch.Tensor): Key tensor to apply rotary embeddings.
+        freqs_cis (torch.Tensor): Precomputed frequency tensor for complex exponentials.
+
+    Returns:
+        Tuple[torch.Tensor, torch.Tensor]: Tuple of modified query tensor and key tensor with rotary embeddings.
+    """
     xq_ = torch.view_as_complex(xq.float().reshape(*xq.shape[:-1], -1, 2))
     xk_ = torch.view_as_complex(xk.float().reshape(*xk.shape[:-1], -1, 2))
     freqs_cis = reshape_for_broadcast(freqs_cis, xq_)
@@ -104,8 +183,7 @@ class Attention(nn.Module):
         #self.register_buffer("causal_mask", causal_mask)
 
     def forward(self, 
-        x: torch.Tensor, 
-        start_pos: int,
+        x: torch.Tensor,
         freqs_cis: torch.Tensor,
         mask: Optional[torch.Tensor]
     ) -> torch.Tensor:
@@ -199,60 +277,81 @@ class TransformerBlock(nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        start_pos: int,
         freqs_cis: torch.Tensor,
         mask: Optional[torch.Tensor],
     ):
         h = x + self.attention.forward(
-            self.attention_norm(x), start_pos, freqs_cis, mask
+            self.attention_norm(x), freqs_cis, mask
         )
         out = h + self.feed_forward.forward(self.ffn_norm(h))
         return out
 
 
 class Transformer(nn.Module):
-    def __init__(self, params: train_config):
+    def __init__(self, config: train_config):
         super().__init__()
-        self.params = params
-        self.vocab_size = params.vocab_size
-        self.n_layers = params.n_layers
+        # probably don't need these
+        #self.config = config 
+        #self.vocab_size = config.vocab_size
+        #self.n_layers = config.n_layers
 
-        self.tok_embeddings = torch.nn.Embedding(params.vocab_size, params.dim, padding_idx=params.pad_tok, device=device)
+        self.embedding_encoder = torch.nn.Embedding(config.vocab_size, config.dim, padding_idx=config.pad_tok, device=device)
 
         self.layers = torch.nn.ModuleList()
-        for layer_id in range(params.n_layers):
-            self.layers.append(TransformerBlock(layer_id, params))
+        for layer_id in range(config.n_layers):
+            self.layers.append(TransformerBlock(layer_id, config))
 
-        self.norm = RMSNorm(params.dim, eps=params.norm_eps)
+        self.norm = RMSNorm(config.dim, eps=config.norm_eps)
 
-        self.output = nn.Linear(params.dim, params.vocab_size, bias=False, device=device)
+        self.output = nn.Linear(config.dim, config.vocab_size, bias=False, device=device)
 
         self.freqs_cis = precompute_freqs_cis(
-            self.params.dim // self.params.n_heads, self.params.seq_len * 2
+            # Note that self.params.max_seq_len is multiplied by 2 because the token limit for the Llama 2 generation of models is 4096. 
+            # Adding this multiplier instead of using 4096 directly allows for dynamism of token lengths while training or fine-tuning.
+            config.dim // config.n_heads, config.seq_len * 2
         )
 
     def forward(self, tokens: torch.Tensor):
-        start_pos = 0
+        """
+        Perform a forward pass through the Transformer model.
+
+        Args:
+            tokens (torch.Tensor): Input token indices.
+
+        Returns:
+            torch.Tensor: Output logits after applying the Transformer model.
+
+        """
         _bsz, seqlen = tokens.shape
-        # print(f'tokens dim: {tokens.shape}\n')  # (1, 1000) == batch size x seq. length
-        h = self.tok_embeddings(tokens)
-        self.freqs_cis = self.freqs_cis.to(h.device)
-        freqs_cis = self.freqs_cis[start_pos : start_pos + seqlen]
+
+        # Embed tokens
+        h = self.embedding_encoder(tokens)
+
+        # Grabs necessary precomputed frequencies, used for rotary embeddings during attention, which is used instead of typical positional embedding
+        self.freqs_cis = self.freqs_cis.to(device)
+        freqs_cis = self.freqs_cis[:seqlen]
         
+        # Generate attention mask
         mask = None
         if seqlen > 1:
+            # Fill mask with -inf
             mask = torch.full(
-                (1, 1, seqlen, seqlen), float("-inf"), device=tokens.device
+                (1, 1, seqlen, seqlen), float("-inf"), device=device
             )
-            mask = torch.triu(mask, diagonal=start_pos + 1).type_as(h)
+            
+            # Unmask across diagonal 1, meaning center diagonal is unmasked
+            mask = torch.triu(mask, diagonal=1).type_as(h)
 
+        # Iterate through all layers
         for layer in self.layers:
-            h = h.to(layer.parameters().__next__().device)
-            h = layer(h, start_pos, freqs_cis, mask)
-        h = h.to(self.norm.parameters().__next__().device)
+            #h = h.to(layer.parameters().__next__().device) # TODO: don't think we need these lines? may be important for parallelization
+            h = layer(h, freqs_cis, mask)
+        
+        #h = h.to(self.norm.parameters().__next__().device)
         h = self.norm(h)
 
         output = self.output(h)
-        output = output.transpose(1, 2)
+
+        output = output.transpose(1, 2) # transposes to batch_size, vocab_size, sequence_length
         
         return output.float()

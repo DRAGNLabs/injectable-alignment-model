@@ -54,7 +54,7 @@ class Rocket_DataSet(torch.utils.data.Dataset):
             pads:List[int] = [self.pad_tok]*n
             tensor_item:List[int] = tensor_item + pads
 
-        return (torch.tensor(tensor_item[:self.sequence_length-1]).to(device), torch.tensor(tensor_item[1:self.sequence_length]).to(device))  # handles truncation 
+        return (torch.tensor(tensor_item[:self.sequence_length]).to(device), torch.tensor(tensor_item[1:self.sequence_length+1]).to(device))  # handles truncation 
 
 class LLaMA:
     @staticmethod
@@ -64,7 +64,24 @@ class LLaMA:
         dataset_path: str,
         train_args: train_config
     ) -> "LLaMA":
-     
+        # TODO: this is parellization stuff from llama repo
+        """if not torch.distributed.is_initialized():
+            torch.distributed.init_process_group("nccl")
+        if not model_parallel_is_initialized():
+            if model_parallel_size is None:
+                model_parallel_size = int(os.environ.get("WORLD_SIZE", 1))
+            initialize_model_parallel(model_parallel_size)
+
+        local_rank = int(os.environ.get("LOCAL_RANK", 0))
+        torch.cuda.set_device(local_rank)
+
+        # seed must be the same in all processes
+        torch.manual_seed(seed)
+
+        if local_rank > 0:
+            sys.stdout = open(os.devnull, "w")"""
+
+        
         start_time = time.time()
         # TODO: need to test/implement this
         checkpoints = sorted(Path(ckpt_dir).glob("*.pth"))
@@ -75,7 +92,8 @@ class LLaMA:
         else:
             params = {}
 
-        train_args(**params)
+        # TODO: fix this
+        #train_args(**params)
         
         tokenizer = Tokenizer(model_path=tokenizer_path)  # including this for the special tokens (i.e. pad)
 
@@ -100,35 +118,6 @@ class LLaMA:
         self.tokenizer = tokenizer
         self.dataset = dataset
         self.train_args = train_args
-
-    def _should_stop(self, tokens, prompt_tokens, stop_ids, stop_words):
-        if stop_ids is not None:
-            do_stop = [False for _ in range(len(tokens))]
-            for i, (t, p) in enumerate(zip(tokens, prompt_tokens)):
-                g = t[len(p):].tolist()
-                for stop_id in stop_ids:
-                    if stop_id in g:
-                        do_stop[i] = True
-
-            if all(do_stop):
-                return True
-
-        if stop_words is not None:
-            do_stop = [False for _ in range(len(tokens))]
-            for i, (t, p) in enumerate(zip(tokens, prompt_tokens)):
-                t = t.clone()
-                g = t[len(p):]
-                g[g == self.tokenizer.pad_id] = self.tokenizer.eos_id
-                g = g.tolist()
-                d = self.tokenizer.decode(g)
-                for stop_word in stop_words:
-                    if stop_word in d:
-                        do_stop[i] = True
-
-            if all(do_stop):
-                return True
-
-        return False
     
     # TODO: these additional parameters need to be implemented somehow
     def train(self, fsdp_config=None, local_rank=None, rank=None):
@@ -158,7 +147,7 @@ class LLaMA:
         eval_dataloader = DataLoader(self.dataset, batch_size = self.train_args.batch_size, shuffle=True, generator=torch.Generator(device=device))
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.train_args.lr)  # model.paramaters = weights tensor
         criterion = torch.nn.CrossEntropyLoss()
-        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1)  #TODO: add config param for this
+        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, train_config.gamma)
         
         train_prep = []
         train_loss = []
@@ -180,10 +169,9 @@ class LLaMA:
                     for element in batch:
                         if self.train_args.enable_fsdp:
                             element = element.to(local_rank) # This isn't unnecessary
-                        else:
-                            element = element.to(device) # This is unneccessary, they are being put on device in the dataloader
 
                     (x, y_true) = batch
+                    
 
                     with autocast(): # autocast is torch package for running in mixed precision, which improves performance
                         y_hat = self.model(x)
@@ -319,7 +307,7 @@ class LLaMA:
         #saving the training params including fsdp setting for reference.
         # TODO: why only with enable_fsdp?
         if self.train_args.enable_fsdp and not self.train_args.use_peft:
-            save_train_params(self.train_args, fsdp_config, rank)
+            self.save_train_params(self.train_args, fsdp_config, rank)
         
         #saving the training params including fsdp setting for reference.
         return results
@@ -430,7 +418,7 @@ class LLaMA:
                 logits = logits_new
             if temperature > 0:
                 probs = torch.softmax(logits / temperature, dim=-1)
-                next_token = sample_top_p(probs, top_p)
+                next_token = self.sample_top_p(probs, top_p)
             else:
                 next_token = torch.argmax(logits, dim=-1)
             next_token = next_token.reshape(-1)
@@ -459,55 +447,83 @@ class LLaMA:
                 num_generated_tokens.append(max_gen_len)
             decoded.append(self.tokenizer.decode(t))
         return decoded, dict(num_input_tokens=num_input_tokens, num_generated_tokens=num_generated_tokens)
+    
+    def _should_stop(self, tokens, prompt_tokens, stop_ids, stop_words):
+        if stop_ids is not None:
+            do_stop = [False for _ in range(len(tokens))]
+            for i, (t, p) in enumerate(zip(tokens, prompt_tokens)):
+                g = t[len(p):].tolist()
+                for stop_id in stop_ids:
+                    if stop_id in g:
+                        do_stop[i] = True
 
+            if all(do_stop):
+                return True
 
-def sample_top_p(probs, p):
-    probs_sort, probs_idx = torch.sort(probs, dim=-1, descending=True)
-    probs_sum = torch.cumsum(probs_sort, dim=-1)
-    mask = probs_sum - probs_sort > p
-    probs_sort[mask] = 0.0
-    probs_sort.div_(probs_sort.sum(dim=-1, keepdim=True))
-    next_token = torch.multinomial(probs_sort, num_samples=1)
-    next_token = torch.gather(probs_idx, -1, next_token)
-    return next_token
+        if stop_words is not None:
+            do_stop = [False for _ in range(len(tokens))]
+            for i, (t, p) in enumerate(zip(tokens, prompt_tokens)):
+                t = t.clone()
+                g = t[len(p):]
+                g[g == self.tokenizer.pad_id] = self.tokenizer.eos_id
+                g = g.tolist()
+                d = self.tokenizer.decode(g)
+                for stop_word in stop_words:
+                    if stop_word in d:
+                        do_stop[i] = True
 
-# TODO: This is only being called if FSDP is enabled..why? Maybe split it up, seems useful.
-# TODO: Do we need this? how should we this?
-def save_train_params(train_config, fsdp_config, rank):
-    """
-    This function saves the train_config and FSDP config into a train_params.yaml.
-    This will be used by converter script in the inference folder to fetch the HF model name or path.
-    It also would be hepful as a log for future references.
-    """
-    # Convert the train_config and fsdp_config objects to dictionaries, 
-    # converting all values to strings to ensure they can be serialized into a YAML file
-    train_config_dict = {k: str(v) for k, v in vars(train_config).items() if not k.startswith('__')}
-    fsdp_config_dict = {k: str(v) for k, v in vars(fsdp_config).items() if not k.startswith('__')}
-    # Merge the two dictionaries into one
-    train_params_dict = {**train_config_dict, **fsdp_config_dict}
-    # Construct the folder name (follwoing FSDP checkpointing style) using properties of the train_config object
-    folder_name = (
-    train_config.dist_checkpoint_root_folder
-    + "/"
-    + train_config.dist_checkpoint_folder
-    + "-"
-    + train_config.model_name
-    )
+            if all(do_stop):
+                return True
 
-    save_dir = Path.cwd() / folder_name
-    # If the directory does not exist, create it
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
-    # Convert the dictionary to a YAML string
-    config_yaml = yaml.dump(train_params_dict, indent=4)
-    file_name = os.path.join(save_dir,'train_params.yaml')
+        return False
+    
+    def sample_top_p(self, probs, p):
+        probs_sort, probs_idx = torch.sort(probs, dim=-1, descending=True)
+        probs_sum = torch.cumsum(probs_sort, dim=-1)
+        mask = probs_sum - probs_sort > p
+        probs_sort[mask] = 0.0
+        probs_sort.div_(probs_sort.sum(dim=-1, keepdim=True))
+        next_token = torch.multinomial(probs_sort, num_samples=1)
+        next_token = torch.gather(probs_idx, -1, next_token)
+        return next_token
 
-    # Check if there's a directory with the same name as the file
-    if os.path.isdir(file_name):
-        print(f"Error: {file_name} is a directory, not a file.")
-    else:
-        # Write the YAML string to the file
-        with open(file_name, 'w') as f:
-            f.write(config_yaml)
-        if rank==0:
-            print(f"training params are saved in {file_name}")
+    # TODO: This is only being called if FSDP is enabled..why? Maybe split it up, seems useful.
+    # TODO: Do we need this? how should we this?
+    def save_train_params(self, train_config, fsdp_config, rank):
+        """
+        This function saves the train_config and FSDP config into a train_params.yaml.
+        This will be used by converter script in the inference folder to fetch the HF model name or path.
+        It also would be hepful as a log for future references.
+        """
+        # Convert the train_config and fsdp_config objects to dictionaries, 
+        # converting all values to strings to ensure they can be serialized into a YAML file
+        train_config_dict = {k: str(v) for k, v in vars(train_config).items() if not k.startswith('__')}
+        fsdp_config_dict = {k: str(v) for k, v in vars(fsdp_config).items() if not k.startswith('__')}
+        # Merge the two dictionaries into one
+        train_params_dict = {**train_config_dict, **fsdp_config_dict}
+        # Construct the folder name (follwoing FSDP checkpointing style) using properties of the train_config object
+        folder_name = (
+        train_config.dist_checkpoint_root_folder
+        + "/"
+        + train_config.dist_checkpoint_folder
+        + "-"
+        + train_config.model_name
+        )
+
+        save_dir = Path.cwd() / folder_name
+        # If the directory does not exist, create it
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        # Convert the dictionary to a YAML string
+        config_yaml = yaml.dump(train_params_dict, indent=4)
+        file_name = os.path.join(save_dir,'train_params.yaml')
+
+        # Check if there's a directory with the same name as the file
+        if os.path.isdir(file_name):
+            print(f"Error: {file_name} is a directory, not a file.")
+        else:
+            # Write the YAML string to the file
+            with open(file_name, 'w') as f:
+                f.write(config_yaml)
+            if rank==0:
+                print(f"training params are saved in {file_name}")
