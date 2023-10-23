@@ -29,7 +29,7 @@ class Tokenizer:
         # print(f"\n Pad Token ID: {self.pad_id}\n",f"BOS Token ID: {self.bos_id}\n", f"EOS Token ID: {self.eos_id}\n")
         assert self.sp_model.vocab_size() == self.sp_model.get_piece_size()
 
-    def encode(self, s: str, bos: bool, eos: bool, seq_len: int) -> List[int]:
+    def encode(self, s: str, bos: bool, eos: bool) -> List[int]:
         assert type(s) is str
         t = self.sp_model.encode(s)
         if bos:
@@ -47,7 +47,7 @@ def tokenize_data_chunk(tokenizer, chunk, seq_len):
     ''' 
     # print(chunk)
     to_tokenize:str = chunk['system_prompt'] + '<SEP>' + chunk['question'] + '<SEP>' + chunk['response']
-    chunk['Tokenized_Data'] = tokenizer.encode(to_tokenize, bos=True, eos=True, seq_len=seq_len)
+    chunk['Tokenized_Data'] = tokenizer.encode(to_tokenize, bos=True, eos=True)
     
     # Add padding
     if len(chunk) >= seq_len:
