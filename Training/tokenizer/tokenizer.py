@@ -6,14 +6,18 @@ from logging import getLogger
 from typing import List
 from sentencepiece import SentencePieceProcessor
 import pandas as pd
+from pathlib import Path
 
 logger = getLogger()
 
 class Tokenizer:
-    def __init__(self, model_path: str):
-        # reload tokenizer
-        assert os.path.isfile(model_path), model_path
-        self.sp_model = SentencePieceProcessor(model_file=model_path)
+    def __init__(self, model_name: str):
+        # TODO: Create path from model_name
+        tokenizers_path = Path('../../Tokenizers')
+        model_path = tokenizers_path / model_name
+        assert model_path.exists(), model_path
+
+        self.sp_model = SentencePieceProcessor(model_file=model_path.as_posix())
         
         logger.info(f"Reloaded SentencePiece model from {model_path}")
     

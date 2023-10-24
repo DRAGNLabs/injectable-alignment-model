@@ -10,7 +10,6 @@ from torch.distributed.fsdp.sharded_grad_scaler import ShardedGradScaler
 import torch.nn.functional as F
 
 import time
-import glob
 import json
 import os
 import pandas as pd
@@ -33,6 +32,7 @@ torch.set_default_device(device)
 
 class Rocket_DataSet(torch.utils.data.Dataset):
     def __init__(self, path_to_data, pad_tok, bos_tok, eos_tok, sequence_length):
+        assert os.path.isfile(path_to_data), path_to_data
         self.df:pd.DataFrame = pd.read_pickle(path_to_data)
         self.train, self.test = train_test_split(self.df, test_size=.2)
         self.pad_tok = pad_tok
@@ -59,9 +59,6 @@ class Rocket_DataSet(torch.utils.data.Dataset):
 class LLaMA:
     @staticmethod
     def build(
-        ckpt_dir: str,
-        tokenizer_path: str,
-        dataset_path: str,
         train_args: train_config
     ) -> "LLaMA":
         # TODO: this is parellization stuff from llama repo
@@ -84,29 +81,30 @@ class LLaMA:
         
         start_time = time.time()
         # TODO: need to test/implement this
-        checkpoints = sorted(Path(ckpt_dir).glob("*.pth"))
+        checkpoints = sorted(Path(train_args.ckpt_dir).glob("*.pth"))
         if len(checkpoints) > 0:
-            checkpoint = torch.load(ckpt_dir, map_location="cpu")
-            with open(Path(ckpt_dir) / "params.json", "r") as f:
-                params = json.loads(f.read()) # TODO: what does params actually look like? Look in checkpointing during training
-        else:
-            params = {}
+            checkpoint = torch.load(train_args.ckpt_dir, map_location="cpu")
+            # TODO: I don't think these lines are necessary, but I'm not sure
+            #with open(Path(train_args.ckpt_dir) / "params.json", "r") as f:
+                #params = json.loads(f.read()) # TODO: what does params actually look like? Look in checkpointing during training
+        #else:
+            #params = {}
 
-        # TODO: fix this
         #train_args(**params)
         
-        tokenizer = Tokenizer(model_path=tokenizer_path)  # including this for the special tokens (i.e. pad)
+        tokenizer = Tokenizer(model_name=train_args.tokenizer_name)  # including this for the special tokens (i.e. pad)
 
         train_args.vocab_size = tokenizer.n_words
         torch.set_default_tensor_type(torch.cuda.HalfTensor)  # for using GPU
 
         model = Transformer(train_args)
 
-        if len(checkpoints) > 0:
-            model.load_state_dict(checkpoint, strict=False)
+        # TODO: also probably don't need this, this is HF?
+        #if len(checkpoints) > 0:
+        #    model.load_state_dict(checkpoint, strict=False)
 
         print(f"Loaded in {time.time() - start_time:.2f} seconds")
-        dataset = Rocket_DataSet(dataset_path, pad_tok=tokenizer.pad_id, bos_tok=tokenizer.bos_id, eos_tok=tokenizer.eos_id, sequence_length=train_args.seq_len)
+        dataset = Rocket_DataSet(Path(train_args.dataset_path), pad_tok=tokenizer.pad_id, bos_tok=tokenizer.bos_id, eos_tok=tokenizer.eos_id, sequence_length=train_args.seq_len)
         return LLaMA(model, tokenizer, dataset, train_args)
 
     def __init__(self, 
@@ -305,8 +303,8 @@ class LLaMA:
 
         #saving the training params including fsdp setting for reference.
         # TODO: why only with enable_fsdp?
-        if self.train_args.enable_fsdp and not self.train_args.use_peft:
-            self.save_train_params(self.train_args, fsdp_config, rank)
+        #if self.train_args.enable_fsdp and not self.train_args.use_peft:
+        #    self.save_train_params(self.train_args, fsdp_config, rank)
         
         #saving the training params including fsdp setting for reference.
         return results
@@ -516,41 +514,41 @@ class LLaMA:
 
     # TODO: This is only being called if FSDP is enabled..why? Maybe split it up, seems useful.
     # TODO: Do we need this? how should we this?
-    def save_train_params(self, train_config, fsdp_config, rank):
-        """
-        This function saves the train_config and FSDP config into a train_params.yaml.
-        This will be used by converter script in the inference folder to fetch the HF model name or path.
-        It also would be hepful as a log for future references.
-        """
-        # Convert the train_config and fsdp_config objects to dictionaries, 
-        # converting all values to strings to ensure they can be serialized into a YAML file
-        train_config_dict = {k: str(v) for k, v in vars(train_config).items() if not k.startswith('__')}
-        fsdp_config_dict = {k: str(v) for k, v in vars(fsdp_config).items() if not k.startswith('__')}
-        # Merge the two dictionaries into one
-        train_params_dict = {**train_config_dict, **fsdp_config_dict}
-        # Construct the folder name (follwoing FSDP checkpointing style) using properties of the train_config object
-        folder_name = (
-        train_config.dist_checkpoint_root_folder
-        + "/"
-        + train_config.dist_checkpoint_folder
-        + "-"
-        + train_config.model_name
-        )
+    # def save_train_params(self, train_config, fsdp_config, rank):
+    #     """
+    #     This function saves the train_config and FSDP config into a train_params.yaml.
+    #     This will be used by converter script in the inference folder to fetch the HF model name or path.
+    #     It also would be hepful as a log for future references.
+    #     """
+    #     # Convert the train_config and fsdp_config objects to dictionaries, 
+    #     # converting all values to strings to ensure they can be serialized into a YAML file
+    #     train_config_dict = {k: str(v) for k, v in vars(train_config).items() if not k.startswith('__')}
+    #     fsdp_config_dict = {k: str(v) for k, v in vars(fsdp_config).items() if not k.startswith('__')}
+    #     # Merge the two dictionaries into one
+    #     train_params_dict = {**train_config_dict, **fsdp_config_dict}
+    #     # Construct the folder name (follwoing FSDP checkpointing style) using properties of the train_config object
+    #     folder_name = (
+    #     train_config.dist_checkpoint_root_folder
+    #     + "/"
+    #     + train_config.dist_checkpoint_folder
+    #     + "-"
+    #     + train_config.model_name
+    #     )
 
-        save_dir = Path.cwd() / folder_name
-        # If the directory does not exist, create it
-        if not os.path.exists(save_dir):
-            os.makedirs(save_dir)
-        # Convert the dictionary to a YAML string
-        config_yaml = yaml.dump(train_params_dict, indent=4)
-        file_name = os.path.join(save_dir,'train_params.yaml')
+    #     save_dir = Path.cwd() / folder_name
+    #     # If the directory does not exist, create it
+    #     if not os.path.exists(save_dir):
+    #         os.makedirs(save_dir)
+    #     # Convert the dictionary to a YAML string
+    #     config_yaml = yaml.dump(train_params_dict, indent=4)
+    #     file_name = os.path.join(save_dir,'train_params.yaml')
 
-        # Check if there's a directory with the same name as the file
-        if os.path.isdir(file_name):
-            print(f"Error: {file_name} is a directory, not a file.")
-        else:
-            # Write the YAML string to the file
-            with open(file_name, 'w') as f:
-                f.write(config_yaml)
-            if rank==0:
-                print(f"training params are saved in {file_name}")
+    #     # Check if there's a directory with the same name as the file
+    #     if os.path.isdir(file_name):
+    #         print(f"Error: {file_name} is a directory, not a file.")
+    #     else:
+    #         # Write the YAML string to the file
+    #         with open(file_name, 'w') as f:
+    #             f.write(config_yaml)
+    #         if rank==0:
+    #             print(f"training params are saved in {file_name}")
