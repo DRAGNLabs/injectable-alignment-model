@@ -2,13 +2,14 @@
 # This software may be used and distributed according to the terms of the Llama 2 Community License Agreement.
 
 from dataclasses import dataclass
+from pathlib import Path
 
 # TODO: clean this up, many of these are likely remnants from HF and not needed.
 # Commented out stuff are not being used.
 @dataclass
 class train_config:
-    tokenizer_name: str="tokenizer.model" # Must be in Tokenizers folder
-    dataset_path: str="../../Dataset/tokenized/toy_tokenized_data.pkl"
+    tokenizer_path: Path=Path("../Tokenizers/tokenizer.edited.model").resolve() # Must be in Tokenizers folder
+    dataset_path: Path=Path("../Dataset/tokenized/toy_tokenized_data.pkl").resolve()
     ckpt_dir: str=""
     model_name: str="model_name_here"
     #dataset =  "samsum_dataset"

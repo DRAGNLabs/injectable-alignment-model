@@ -11,17 +11,14 @@ from pathlib import Path
 logger = getLogger()
 
 class Tokenizer:
-    def __init__(self, model_name: str):
+    def __init__(self, model_path: Path):
         # TODO: Create path from model_name
-        tokenizers_path = Path('../../Tokenizers')
-        model_path = tokenizers_path / model_name
         assert model_path.exists(), model_path
 
         self.sp_model = SentencePieceProcessor(model_file=model_path.as_posix())
         
         logger.info(f"Reloaded SentencePiece model from {model_path}")
     
-
         # BOS / EOS token IDs
         self.n_words: int = self.sp_model.vocab_size()
         self.bos_id: int = self.sp_model.bos_id()
@@ -64,9 +61,9 @@ def tokenize_data_chunk(tokenizer, chunk, seq_len):
     # print(chunk.columns)
     return chunk
 
-def generate_tokenized_file(df:pd.DataFrame, path_to_model, seq_len=1024):
+def generate_tokenized_file(df:pd.DataFrame, tokenizer_path, seq_len=1024):
     # Call 'tokenize_data_chunk' over entire file
-    tokenizer = Tokenizer(path_to_model)
+    tokenizer = Tokenizer(tokenizer_path)
     tok_lambda = lambda x: tokenize_data_chunk(tokenizer=tokenizer, chunk=x, seq_len=seq_len)  # 'df.' of line 62 becomes 'x' in this lambda
     print(f'Dataframe: {df}\n\n')
     df1 = df.progress_apply(tok_lambda, axis=1)
@@ -76,35 +73,3 @@ def generate_tokenized_file(df:pd.DataFrame, path_to_model, seq_len=1024):
 def load_datasets(data_files):
     infs:pd.DataFrame = pd.read_parquet(data_files['train'])
     return infs
-
-# TODO: need to put this into a seperate, more well defined function for it's specific purpose.
-def main():
-    tqdm.tqdm.pandas()
-    print('\nStarting tokenization...\n')
-    # load data
-    model_path = "./practice_tokenizer.model"
-    # model_name = 'one_hundred_thousandth'
-    path = '../../dataset/'
-    data_files = {
-        'train': [
-            f'{path}1M-GPT4-Augmented.parquet'
-            # f'{path}3_5M-GPT3_5-Augmented.parquet'
-        ]
-    }
-
-    # Load Dataset into pd.DataFrame
-    training_dataframe:pd.DataFrame = load_datasets(data_files).iloc[:25]
-
-    # Generate tokenized file
-    tokenized_df:pd.DataFrame = generate_tokenized_file(training_dataframe, path_to_model=model_path, seq_len=1024)
-    out_dir = "./tokenized_files/"
-    if not os.path.isdir(out_dir):
-        os.mkdir(out_dir)
-    path_to_file = f'{out_dir}toy_tokenized_data.pkl'
-    tokenized_df.to_pickle(path_to_file)
-    print(f'\033[0;37m Saved as pickle at "{path_to_file}"')    
-    print(f"# of tokenized prompts: {len(tokenized_df)}\n")
-
-
-if __name__== "__main__":
-    main()

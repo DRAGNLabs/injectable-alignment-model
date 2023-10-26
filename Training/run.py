@@ -1,12 +1,11 @@
-from main import LLaMA
-#from config import train_config
-import config
+from llama import LLaMA
+from config import train_config
 
 def main():
     # TODO: Take in cmdline arg for config name?
 
     # Declare desired config
-    train_args = config.train_config() # You can customize this here
+    train_args = train_config() # You can customize this here
 
     # Build model class
     Drew_and_Jay_and_Jacksons_Llama = LLaMA.build(train_args=train_args)

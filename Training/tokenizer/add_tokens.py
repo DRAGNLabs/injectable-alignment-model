@@ -26,7 +26,6 @@ def add_tokens(file_path, new_tokens):
 
 def check_submission(tokens_to_check, path_to_file):
     sp_new = sp.SentencePieceProcessor(model_file=path_to_file)
-    sp
     # Ensure successful addition of special tokens
     if sp_old.get_piece_size() + len(tokens_to_check) == sp_new.get_piece_size():
         for token in tokens_to_check:

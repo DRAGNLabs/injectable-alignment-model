@@ -15,17 +15,16 @@ import os
 import pandas as pd
 from pathlib import Path
 from typing import List
-from memory_utils import MemoryTrace
+from utils.memory_utils import MemoryTrace
 from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 import yaml
 
 from tokenizer.tokenizer import Tokenizer
-from config import train_config
 from model import Transformer
 from contextlib import nullcontext
 
-from checkpoint_utils import save_model_checkpoint, save_model_and_optimizer_sharded, save_optimizer_checkpoint
+from utils.checkpoint_utils import save_model_checkpoint, save_model_and_optimizer_sharded, save_optimizer_checkpoint
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.set_default_device(device)
@@ -59,7 +58,7 @@ class Rocket_DataSet(torch.utils.data.Dataset):
 class LLaMA:
     @staticmethod
     def build(
-        train_args: train_config
+        train_args
     ) -> "LLaMA":
         # TODO: this is parellization stuff from llama repo
         """if not torch.distributed.is_initialized():
@@ -92,10 +91,11 @@ class LLaMA:
 
         #train_args(**params)
         
-        tokenizer = Tokenizer(model_name=train_args.tokenizer_name)  # including this for the special tokens (i.e. pad)
+        tokenizer = Tokenizer(model_path=train_args.tokenizer_path)  # including this for the special tokens (i.e. pad)
 
         train_args.vocab_size = tokenizer.n_words
-        torch.set_default_tensor_type(torch.cuda.HalfTensor)  # for using GPU
+        
+        #torch.set_default_tensor_type(torch.cuda.HalfTensor)  # TODO: this causes the loss to become NaN
 
         model = Transformer(train_args)
 
@@ -104,14 +104,14 @@ class LLaMA:
         #    model.load_state_dict(checkpoint, strict=False)
 
         print(f"Loaded in {time.time() - start_time:.2f} seconds")
-        dataset = Rocket_DataSet(Path(train_args.dataset_path), pad_tok=tokenizer.pad_id, bos_tok=tokenizer.bos_id, eos_tok=tokenizer.eos_id, sequence_length=train_args.seq_len)
+        dataset = Rocket_DataSet(train_args.dataset_path, pad_tok=tokenizer.pad_id, bos_tok=tokenizer.bos_id, eos_tok=tokenizer.eos_id, sequence_length=train_args.seq_len)
         return LLaMA(model, tokenizer, dataset, train_args)
 
     def __init__(self, 
                  model: Transformer, 
                  tokenizer: Tokenizer, 
                  dataset:Rocket_DataSet,
-                 train_args: train_config):
+                 train_args):
         self.model = model
         self.tokenizer = tokenizer
         self.dataset = dataset
@@ -145,7 +145,7 @@ class LLaMA:
         eval_dataloader = DataLoader(self.dataset, batch_size = self.train_args.batch_size, shuffle=True, generator=torch.Generator(device=device))
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.train_args.lr)  # model.paramaters = weights tensor
         criterion = torch.nn.CrossEntropyLoss()
-        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, train_config.gamma)
+        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.train_args.gamma)
         
         train_prep = []
         train_loss = []
