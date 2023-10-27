@@ -53,12 +53,12 @@ def export_vocab(file_path):
             piece = spp.IdToPiece(i)
             outf.write(str(i) + '\t' + piece + '\n')
 
+if __name__ == '__main__':
+    file_path = "../../tokenizer.model"
+    sp_old = sp.SentencePieceProcessor(model_file=file_path)
 
-file_path = "../../tokenizer.model"
-sp_old = sp.SentencePieceProcessor(model_file=file_path)
+    special_tokens: 'list[str]' = ['<pad>']  # Add tokens here; e.g. '<pad>', '<UNK>', etc.
 
-special_tokens: 'list[str]' = ['<pad>']  # Add tokens here; e.g. '<pad>', '<UNK>', etc.
-
-add_tokens(file_path=file_path, new_tokens=special_tokens)
-check_submission(special_tokens, path_to_file=file_path)
-# export_vocab(file_path=file_path)
+    add_tokens(file_path=file_path, new_tokens=special_tokens)
+    check_submission(special_tokens, path_to_file=file_path)
+    # export_vocab(file_path=file_path)

@@ -104,6 +104,9 @@ class LLaMA:
         #    model.load_state_dict(checkpoint, strict=False)
 
         print(f"Loaded in {time.time() - start_time:.2f} seconds")
+        print('tokenizer pad id: ', tokenizer.pad_id)
+        print('tokenizer.bos_id: ', tokenizer.bos_id)
+        train_args.pad_id = tokenizer.pad_id
         dataset = Rocket_DataSet(train_args.dataset_path, pad_tok=tokenizer.pad_id, bos_tok=tokenizer.bos_id, eos_tok=tokenizer.eos_id, sequence_length=train_args.seq_len)
         return LLaMA(model, tokenizer, dataset, train_args)
 

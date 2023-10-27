@@ -23,7 +23,11 @@ class Tokenizer:
         self.n_words: int = self.sp_model.vocab_size()
         self.bos_id: int = self.sp_model.bos_id()
         self.eos_id: int = self.sp_model.eos_id()
-        self.pad_id: int = self.sp_model['<pad>'] # TODO: should not hard code this
+        # NOTE: pad_id is disabled by default with sentencepiece, and the trained llama tokenzier does not use padding
+        # If you would like to have a padding token, you can either A) train you own sentencepiece tokenizer
+        # or B) add a padding token to the tokenizer, via the 'add_tokens.py' script. This is more janky though.
+        self.pad_id: int = self.sp_model.pad_id() # To use modified pad, replace .pad_id() with: ['<pad>'] 
+
         logger.info(
             f"# of words: {self.n_words} - BOS ID: {self.bos_id} - EOS ID: {self.eos_id}"
         )

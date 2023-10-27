@@ -4,7 +4,7 @@ import pandas as pd
 from pathlib import Path
 import os
 from config import train_config
-# TODO: this needs to be tested
+
 def main():
     tqdm.pandas()
 
@@ -28,7 +28,7 @@ def main():
     out_dir = "../Dataset/tokenized/"
     if not os.path.isdir(out_dir):
         os.mkdir(out_dir)
-    path_to_file = f'{out_dir}toy_tokenized_data_og.pkl'
+    path_to_file = f'{out_dir}toy_tokenized_data_2.pkl'
     tokenized_df.to_pickle(path_to_file)
     print(f'\033[0;37m Saved as pickle at "{path_to_file}"')    
     print(f"# of tokenized prompts: {len(tokenized_df)}\n")

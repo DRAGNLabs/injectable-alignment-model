@@ -8,8 +8,8 @@ from pathlib import Path
 # Commented out stuff are not being used.
 @dataclass
 class train_config:
-    tokenizer_path: Path=Path("../Tokenizers/tokenizer.edited.model").resolve() # Must be in Tokenizers folder
-    dataset_path: Path=Path("../Dataset/tokenized/toy_tokenized_data.pkl").resolve()
+    tokenizer_path: Path=Path("../Tokenizers/tokenizer.model").resolve() # Must be in Tokenizers folder
+    dataset_path: Path=Path("../Dataset/tokenized/toy_tokenized_data_2.pkl").resolve()
     ckpt_dir: str=""
     model_name: str="model_name_here"
     #dataset =  "samsum_dataset"
@@ -47,5 +47,5 @@ class train_config:
     seq_len: int = 1024
     dim_k = None
     dim_v = None
-    pad_tok = 32000
+    pad_id: int = -1 # defined later by tokenizer. NOTE: padding is disabled by default, see tokenizer.py
     
