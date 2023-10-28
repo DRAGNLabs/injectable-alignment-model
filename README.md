@@ -17,7 +17,19 @@ Llama is designed to use SentencePiece tokenizer (https://github.com/google/sent
 - Train a new tokenizer from scratch based on your data.
 - Use the original Llama 2 tokenizer trained by Meta.
 
+Begin by installing SentencePiece
+
+```pip install sentencepiece```
+
 ### Training Tokenizer
+
+A SentencePiece tokenizer can be trained by running `train_tokenizer.py`, found in `Training/tokenizer`. This script is simply a wrapper for the SentencePiece python module; it seems easier than building and installing SentencePiece from source. Pass in all arguments in quotations, ex:
+
+```python train_tokenizer.py "--input=../../Dataset/raw/test.txt --model_prefix=test --vocab_size=100"```
+
+You can find further information on training arguments in the SentencePiece documentation: 
+- https://github.com/google/sentencepiece
+- https://github.com/google/sentencepiece/blob/master/doc/options.md
 
 ### Using Original Llama 2 Tokenizer
 
