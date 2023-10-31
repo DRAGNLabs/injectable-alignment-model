@@ -5,7 +5,6 @@ from pathlib import Path
 import os
 import sys
 import yaml
-#from config import train_config
 from utils.data_utils import Struct
 
 def main():
@@ -36,10 +35,8 @@ def main():
     # Generate tokenized file
     tokenized_df:pd.DataFrame = tokenizer.generate_tokenized_file(training_dataframe, tokenizer_path=args.tokenizer_path, seq_len=args.seq_len)
     out_dir = "../Dataset/tokenized/"
-    if not os.path.isdir(out_dir):
-        os.mkdir(out_dir)
     path_to_file = f'{out_dir}toy_tokenized_data_2.pkl'
-    tokenized_df.to_pickle(path_to_file)
+    tokenized_df.to_pickle(path_to_file) # TODO: just save as text?
     print(f'\033[0;37m Saved as pickle at "{path_to_file}"')    
     print(f"# of tokenized prompts: {len(tokenized_df)}\n")
 
