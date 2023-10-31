@@ -3,5 +3,5 @@ datasets
 pytorch
 matplotlib
 sentencepiece
-sci-kit learn
+scikit-learn
 protobuf==3.20.0  # for adding tokens to tokenizer.model
