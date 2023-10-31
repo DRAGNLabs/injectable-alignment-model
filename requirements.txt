@@ -4,4 +4,5 @@ torch
 matplotlib
 sentencepiece
 scikit-learn
+psutil
 protobuf==3.20.0  # for adding tokens to tokenizer.model
