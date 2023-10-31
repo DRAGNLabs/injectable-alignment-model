@@ -1,6 +1,6 @@
 transformers
 datasets
-pytorch
+torch
 matplotlib
 sentencepiece
 scikit-learn
