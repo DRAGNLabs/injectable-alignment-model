@@ -25,7 +25,7 @@ Begin by installing SentencePiece
 
 A SentencePiece tokenizer can be trained by running `train_tokenizer.py`, found in `Training/tokenizer`. This script is simply a wrapper for the SentencePiece python module; it seems easier than building and installing SentencePiece from source. Pass in all arguments in quotations, ex:
 
-```python train_tokenizer.py "--input=../../Dataset/raw/test.txt --model_prefix=test --vocab_size=100"```
+```python train_tokenizer.py "--input=../../Dataset/raw/test.txt --model_prefix=test --vocab_size=5000"```
 
 You can find further information on training arguments in the SentencePiece documentation: 
 - https://github.com/google/sentencepiece
