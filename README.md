@@ -12,7 +12,9 @@ Make a mamba environment with python=3.9 and pip install -r requirements.txt
 
 ## Setting up a Config
 
-To train a new model, you will first want to define a config. In the config folder, you can create a new config dataclass by copying train_config.yaml. Fill out the class parameters accordingly. Or, edit the parameters in train_config.yaml directly. 
+To train a new model, you will first want to define a config. In the config folder, you can create a new config dataclass by copying train_config.yaml. Fill out the class parameters accordingly. Or, edit the parameters in train_config.yaml directly.
+
+Make sure to set your own absolutes path in all your .yaml files. Change tokenizer_path and dataset_path.
 
 ## Preparing Tokenizer
 
