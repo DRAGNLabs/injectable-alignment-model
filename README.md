@@ -6,6 +6,10 @@ There are separate READMEs in [Training](https://github.com/DRAGNLabs/Rocket/blo
 
 # Setting up Rocket Llama
 
+## Environment
+
+Make a mamba environment with python=3.9 and pip install -r requirements.txt
+
 ## Setting up a Config
 
 To train a new model, you will first want to define a config. In the config folder, you can create a new config dataclass by copying train_config.yaml. Fill out the class parameters accordingly. Or, edit the parameters in train_config.yaml directly. 
