@@ -1,14 +1,20 @@
 from llama import LLaMA
-from config import train_config
+import sys
+from utils.data_utils import Struct
+import yaml
 
 def main():
-    # TODO: Take in cmdline arg for config name?
+    args = sys.argv
+    config_path = args[1]
 
-    # Declare desired config
-    train_args = train_config() # You can customize this here
+    with open(config_path, 'r') as f:
+        args = yaml.load(f, Loader=yaml.FullLoader)
+
+    # Convert args dict to object
+    args = Struct(**args)
 
     # Build model class
-    Drew_and_Jay_and_Jacksons_Llama = LLaMA.build(train_args=train_args)
+    Drew_and_Jay_and_Jacksons_Llama = LLaMA.build(train_args=args)
     
     # Train
     Drew_and_Jay_and_Jacksons_Llama.train()

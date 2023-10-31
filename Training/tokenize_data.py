@@ -3,12 +3,22 @@ from tqdm import tqdm
 import pandas as pd
 from pathlib import Path
 import os
-from config import train_config
+import sys
+import yaml
+#from config import train_config
+from utils.data_utils import Struct
 
 def main():
     tqdm.pandas()
+    args = sys.argv
+    config_path = args[1]
 
-    args = train_config()
+    with open(config_path, 'r') as f:
+        args = yaml.load(f, Loader=yaml.FullLoader)
+
+    # Convert args dict to object
+    args = Struct(**args)
+
     print('\nStarting tokenization...\n')
     
     # load data

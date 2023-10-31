@@ -11,11 +11,10 @@ from pathlib import Path
 logger = getLogger()
 
 class Tokenizer:
-    def __init__(self, model_path: Path):
-        # TODO: Create path from model_name
-        assert model_path.exists(), model_path
+    def __init__(self, model_path):
+        assert os.path.exists(model_path), model_path
 
-        self.sp_model = SentencePieceProcessor(model_file=model_path.as_posix())
+        self.sp_model = SentencePieceProcessor(model_file=model_path)
         
         logger.info(f"Reloaded SentencePiece model from {model_path}")
     

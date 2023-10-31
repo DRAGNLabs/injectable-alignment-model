@@ -1,0 +1,55 @@
+# Paths
+tokenizer_path: /home/jo288/repos/Rocket/Tokenizers/tokenizer.model
+ckpt_dir: PATH/to/ckpt/dir
+model_name: model_name_here
+output_dir: PATH/to/save/PEFT/model # used for peft modules
+dist_checkpoint_root_folder: PATH/to/save/FSDP/model # will be used if using FSDP
+
+# Dataset
+dataset_path: /home/jo288/repos/Rocket/Dataset/tokenized/toy_tokenized_data_2.pkl
+
+# GPU
+#num_nodes: 1
+#devices: 1
+#device: gpu
+enable_fsdp: False
+low_cpu_fsdp: False
+#one_gpu: bool = True
+
+# Train
+gradient_accumulation_steps: 1
+num_epochs: 3
+lr: 1.0e-4
+gamma: 0.85
+seed: 42
+#weight_decay: float=0.0
+run_validation: True
+
+# Model
+dim: 512
+n_layers: 8
+n_heads: 8
+vocab_size: -1  # defined later by tokenizer
+multiple_of: 256  # make SwiGLU hidden layer size multiple of large power of 2
+norm_eps: 1.0e-5
+batch_size: 32
+seq_len: 1024
+dim_k: ~
+dim_v: ~
+
+# Misc
+#num_workers_dataloader: int=1
+use_fp16: False
+mixed_precision: True
+#peft_method: str = "lora" # None , llama_adapter, prefix
+use_peft: False #TODO: what is this?
+#freeze_layers: bool = False
+#num_freeze_layers: int = 1
+#quantization: bool = False
+save_model: False
+dist_checkpoint_folder: fine-tuned # will be used if using FSDP
+save_optimizer: False # will be used if using FSDP
+#use_fast_kernels: bool = False # Enable using SDPA from PyTorch Accelerated Transformers, make use Flash Attention and Xformer memory-efficient kernels
+
+pad_id: -1 # defined later by tokenizer. NOTE: padding is disabled by default, see tokenizer.py
+    

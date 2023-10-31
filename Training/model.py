@@ -8,7 +8,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-from config import train_config
+#from config import train_config
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.set_default_device(device)
@@ -136,7 +136,7 @@ def apply_rotary_emb(
 
 class Attention(nn.Module):
     def __init__(
-        self, args: train_config
+        self, args
     ) -> None:
         super().__init__()
 
@@ -261,7 +261,7 @@ class FeedForward(nn.Module):
 
 
 class TransformerBlock(nn.Module):
-    def __init__(self, layer_id: int, args: train_config):
+    def __init__(self, layer_id: int, args):
         super().__init__()
         self.n_heads = args.n_heads
         self.dim = args.dim
@@ -288,7 +288,7 @@ class TransformerBlock(nn.Module):
 
 
 class Transformer(nn.Module):
-    def __init__(self, config: train_config):
+    def __init__(self, config):
         super().__init__()
         # probably don't need these
         #self.config = config 
