@@ -3,7 +3,7 @@ import subprocess
 
 def download_dataset():
     print(f'\n\nDownloading dataset')
-    directory_name = "../dataset"
+    directory_name = "../dataset/raw"
     if not os.path.exists(directory_name):
         os.makedirs(directory_name)
 

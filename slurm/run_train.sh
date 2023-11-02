@@ -13,6 +13,6 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 nvidia-smi
-mamba activate rocket_training
+mamba activate rocket
 #torchrun --nproc_per_node 1 ../llama_generation.py
 srun python3 ../run.py ../configs/train_config.yaml

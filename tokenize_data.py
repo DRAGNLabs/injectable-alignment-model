@@ -21,7 +21,7 @@ def main():
     print('\nStarting tokenization...\n')
     
     # load data
-    path = '../Dataset/raw/'
+    path = 'dataset/raw/'
     data_files = {
         'train': [
             f'{path}1M-GPT4-Augmented.parquet'
@@ -34,7 +34,9 @@ def main():
 
     # Generate tokenized file
     tokenized_df:pd.DataFrame = tokenizer.generate_tokenized_file(training_dataframe, tokenizer_path=args.tokenizer_path, seq_len=args.seq_len)
-    out_dir = "../Dataset/tokenized/"
+    out_dir = "dataset/tokenized/"
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
     path_to_file = f'{out_dir}toy_tokenized_data_2.pkl'
     tokenized_df.to_pickle(path_to_file) # TODO: just save as text?
     print(f'\033[0;37m Saved as pickle at "{path_to_file}"')    
