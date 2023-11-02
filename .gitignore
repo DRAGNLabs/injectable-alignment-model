@@ -2,6 +2,7 @@ Models/**
 Training/dataset
 Training/checkpoints
 __pycache__
+dataset/
 
 # No tokenizer binaries 
 *.model
