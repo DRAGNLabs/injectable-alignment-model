@@ -20,17 +20,17 @@ def main():
 
     print('\nStarting tokenization...\n')
     
-    # load data
-    path = 'dataset/raw/'
-    data_files = {
-        'train': [
-            f'{path}1M-GPT4-Augmented.parquet'
-            # f'{path}3_5M-GPT3_5-Augmented.parquet'
-        ]
-    }
+    # # load data
+    # path = 'dataset/raw/'
+    # data_files = {
+    #     'train': [
+    #         f'{path}1M-GPT4-Augmented.parquet'
+    #         f'{path}3_5M-GPT3_5-Augmented.parquet'
+    #     ]
+    # }
 
-    # Load Dataset into pd.DataFrame
-    training_dataframe:pd.DataFrame = tokenizer.load_datasets(data_files).iloc[:25]
+    # # Load Dataset into pd.DataFrame
+    # training_dataframe:pd.DataFrame = tokenizer.load_datasets(data_files).iloc[:25]
 
     # Generate tokenized file
     tokenized_df:pd.DataFrame = tokenizer.generate_tokenized_file(training_dataframe, tokenizer_path=args.tokenizer_path, seq_len=args.seq_len)
