@@ -13,8 +13,10 @@
             dataset follows it's own claim, assuming your pipeline runs well. But this
             is a key aspect of combining the two methodologies."""
 
-import csv
+import csv, pickle
 import pandas as pd
+from nltk.corpus import stopwords
+
 
 def convert_xlsx_to_csv(input_xlsx_file, output_csv_file):
     # Read the Excel file
@@ -46,7 +48,7 @@ def convert_xlsx_to_csv(input_xlsx_file, output_csv_file):
 
 # 1.
 
-def load_csv_to_dict(file_path):
+def load_csv_to_dict(file_path, pickle_dict=False):
     data_dict = {}
     with open(file_path, newline='') as csvfile:
         reader = csv.reader(csvfile)
@@ -56,11 +58,51 @@ def load_csv_to_dict(file_path):
             key = row[0]
             values = row[1:]
             data_dict[key] = values
+    
+    # Writing the dictionary to a pickle file
+    if pickle_dict:
+        # Make file path to save the pickle file
+        extension = file_path.rfind('.')  # find start of filepath's extension
+        pickle_path = file_path[:extension]+'.pickle' # replace it with pickle extension
+        with open(pickle_path, 'wb') as file:
+            pickle.dump(data_dict, file)
 
     return data_dict
 
-# Replace 'your_file.csv' with the path to your CSV file
-file_path = '/home/dsg2060/Rocket/Training/utils/dataset_mods/4yo_words.csv'
-result_dict = load_csv_to_dict(file_path)
-print(len(result_dict))
+def load_pickle_to_dict(file_path):
+    try:
+        with open(file_path, 'rb') as file:
+            data = pickle.load(file)
+            if isinstance(data, dict):
+                return data
+            else:
+                print("The content of the pickle file is not a dictionary.")
+                return None
+    except FileNotFoundError:
+        print("File not found. Please provide a valid file path.")
+        return None
+    except Exception as e:
+        print(f"An error occurred in opening the pickle file: {e}")
+        return None
+
+
+file_path = '/home/dsg2060/Rocket/Training/utils/dataset_mods/4yo_words.pickle'  # Change this to your pickle file path
+result_dict = load_pickle_to_dict(file_path)
+
+# print(len(result_dict)) # 1,041 unique word forms 
+
+# Get English stopwords
+stop_words = stopwords.words('english')
+
+
+## Caluculate the amount of stop words not included in the 44k words;
+## 97 of 179 are not included (~54%), and many of them are contractions.
+
+# not_included = []
+# for word in stop_words:
+#     try:
+#         result_dict[word]
+#     except KeyError:
+#         not_included.append(word)
+# print(len(not_included), not_included)
 
