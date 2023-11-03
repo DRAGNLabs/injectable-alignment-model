@@ -5,7 +5,7 @@ def load_datasets(file_path):
     return infs
 
 # load data
-path = 'dataset/raw/'
+path = '../dataset/raw/'
 data_files = {
     'train': [
         f'{path}1M-GPT4-Augmented.parquet',
@@ -24,4 +24,4 @@ result = pd.concat(dataframes, ignore_index=True)
 
 
 # Save dataset as csv
-training_dataframe.to_csv('dataset/raw/dataset.csv', index=False)
+training_dataframe.to_csv('../dataset/raw/dataset.csv', index=False)
