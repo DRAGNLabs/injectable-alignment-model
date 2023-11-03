@@ -145,6 +145,8 @@ class LLaMA:
                             element = element.to(local_rank) # This isn't unnecessary
 
                     (x, y_true) = batch
+                    x = x.to(device)
+                    y_true = y_true.to(device)
                     
                     with autocast(): # autocast is torch package for running in mixed precision, which improves performance
                         y_hat = self.model(x)

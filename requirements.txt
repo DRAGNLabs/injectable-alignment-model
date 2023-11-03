@@ -1,6 +1,6 @@
 transformers
 datasets
-torch
+torch==2.0.1
 matplotlib
 sentencepiece
 scikit-learn
