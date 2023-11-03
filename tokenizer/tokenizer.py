@@ -49,7 +49,6 @@ def tokenize_data_chunk(tokenizer, chunk, seq_len):
     '''
     Take some tokenizer object and some dictionary-like(?) data format
     ''' 
-    # print(chunk)
     to_tokenize:str = chunk['system_prompt'] + '<SEP>' + chunk['question'] + '<SEP>' + chunk['response']
     chunk['Tokenized_Data'] = tokenizer.encode(to_tokenize, bos=True, eos=True)
     
@@ -72,7 +71,3 @@ def generate_tokenized_file(df:pd.DataFrame, tokenizer_path, seq_len=1024):
     df1 = df.progress_apply(tok_lambda, axis=1)
     df1 = df1.drop(['system_prompt','question','response'], axis=1)
     return df1
-
-def load_datasets(data_files):
-    infs:pd.DataFrame = pd.read_parquet(data_files['train'])
-    return infs

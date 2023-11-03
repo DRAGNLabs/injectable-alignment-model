@@ -7,6 +7,7 @@ import sys
 import yaml
 from utils.data_utils import Struct
 
+# To use: define raw_dataset_path and tokenized_dataset_path in config
 def main():
     tqdm.pandas()
     args = sys.argv
@@ -20,27 +21,20 @@ def main():
 
     print('\nStarting tokenization...\n')
     
-    # # load data
-    # path = 'dataset/raw/'
-    # data_files = {
-    #     'train': [
-    #         f'{path}1M-GPT4-Augmented.parquet'
-    #         f'{path}3_5M-GPT3_5-Augmented.parquet'
-    #     ]
-    # }
+    raw_data = args.raw_dataset_path
 
-    # # Load Dataset into pd.DataFrame
-    # training_dataframe:pd.DataFrame = tokenizer.load_datasets(data_files).iloc[:25]
+    # Load Dataset into pd.DataFrame
+    training_dataframe:pd.DataFrame = pd.read_csv(raw_data, dtype=str, na_filter=False)#.iloc[:25]
 
     # Generate tokenized file
     tokenized_df:pd.DataFrame = tokenizer.generate_tokenized_file(training_dataframe, tokenizer_path=args.tokenizer_path, seq_len=args.seq_len)
-    out_dir = "dataset/tokenized/"
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
-    path_to_file = f'{out_dir}toy_tokenized_data_2.pkl'
-    tokenized_df.to_pickle(path_to_file) # TODO: just save as text?
-    print(f'\033[0;37m Saved as pickle at "{path_to_file}"')    
+    out_dir = Path(args.tokenized_dataset_path)
+    if not out_dir.parent.exists():
+        out_dir.parent.mkdir(parents=True)
+    tokenized_df.to_pickle(out_dir)
+    print(f'\033[0;37m Saved as pickle at "{out_dir}"')    
     print(f"# of tokenized prompts: {len(tokenized_df)}\n")
+    # TODO: make it possible to do this with multiple datasets: train/eval etc.
 
 
 if __name__== "__main__":

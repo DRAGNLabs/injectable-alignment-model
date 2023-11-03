@@ -14,7 +14,13 @@ Make a mamba environment with python=3.9 and pip install -r requirements.txt
 
 To train a new model, you will first want to define a config. In the config folder, you can create a new config dataclass by copying train_config.yaml. Fill out the class parameters accordingly. Or, edit the parameters in train_config.yaml directly.
 
-Make sure to set your own absolutes path in all your .yaml files. Change tokenizer_path and dataset_path.
+Create a datafolder, ```dataset```, in which you can store all raw/tokenized data, and tokenizers, if you desire.
+
+In your config yaml, put in absolute paths for:
+
+- tokenizer_path
+- raw_dataset_path
+- tokenized_dataset_path
 
 ## Preparing Tokenizer
 
@@ -54,12 +60,10 @@ Move dataset file(s) into `/Dataset/raw`
 The tokenizer being used utilizes sentencepiece. By default, sentencepiece uses -1 as the id for padding tokens, meaning padding is disabled by default. This causes problems if you want to use a padding token. To add a new token representing padding, you can run `add_tokens.py` after putting the string `<pad>` into the special_tokens list; this should already be present. The new tokenizer will have the additional padding token. Then, in `tokenizer.py`, ensure that `pad_id` in the tokenizer class is set to the string you defined for padding, rather than the SentencePieceProcessor `pad_id`.
 
 ## Tokenizing data
-TODO: this part needs to be cleaned up
-
-To tokenize raw data, see `Training/tokenizer/tokenizer.py`. This file can be ran as a script. It will tokenize the given data files defined within.
+To tokenize data, see `Training/tokenizer/tokenizer.py`. This file can be ran as a script. It will tokenize the given data files as defined in the config yaml file, according to the tokenizer path given. There is a slurm script, ```tokenize_data.sh``` that can be run for long jobs.
 
 ## Training a Rocket Llama
 
-In `run.py`, import and use the appropriately defined config. A Llama class can then be built and used.
+The `run.py` takes as an argument a path to a config yaml file. There is a slurm script, ```run_train.sh``` that calls this script. Edit the slurm script to use your config file, and training will begin when ran.
 
 TODO: what if you wanted to load it pretrained?
