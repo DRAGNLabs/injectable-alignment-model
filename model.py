@@ -11,9 +11,10 @@ import torch.nn.functional as F
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.set_default_device(device)
 
-#TODO: clean all these classes up, add comments
 class RMSNorm(torch.nn.Module):
-    # TODO: what is this?
+    """
+    Normalization module. RMSNorm (Root Mean Square Layer Normalization) is a form of normalization that is more computationally efficient than LayerNorm. 
+    """
     def __init__(self, dim: int, eps: float = 1e-6):
         """
         Initialize the RMSNorm normalization layer.
@@ -58,7 +59,7 @@ class RMSNorm(torch.nn.Module):
 
 def precompute_freqs_cis(dim: int, end: int, theta: float = 10000.0):
     """
-    Precompute the frequency tensor for complex exponentials (cis) with given dimensions.
+    Precompute the frequency tensor for complex exponentials (cis) with given dimensions. Used by rotary embeddings, instead of typical positional embeddings.
 
     This function calculates a frequency tensor with complex exponentials using the given dimension 'dim'
     and the end index 'end'. The 'theta' parameter scales the frequencies.
@@ -133,6 +134,9 @@ def apply_rotary_emb(
     return xq_out.type_as(xq), xk_out.type_as(xk)
 
 class Attention(nn.Module):
+    """
+    Multi-head attention module.
+    """
     def __init__(
         self, args
     ) -> None:
@@ -150,10 +154,6 @@ class Attention(nn.Module):
         self.dim_head = args.dim // args.n_heads
         self.dim_k = args.dim_k
         #self.causal = causal
-
-        # positional encoding to be applied to query and key projections
-        # self.positional_encoding = CosinePositionalEncoding(seq_len, dim // n_heads)
-        # self.positional_encoding = RotaryPositionalEncoding(seq_len, dim // n_heads)
 
         # Query, Key and Value projections
         self.proj_q = nn.Linear(args.dim, args.n_heads * self.dim_head, bias=False, device=device)
@@ -187,32 +187,24 @@ class Attention(nn.Module):
     ) -> torch.Tensor:
         bsz, seqlen, _ = x.shape
 
-        #print('x shape: ', x.size())
-
         # projects input to Q, K, V spaces
         q = self.proj_q(x)  # (bs, seq_len, dim_k)
         k = self.proj_k(x)  # (bs, seq_len, dim_k)
         v = self.proj_v(x)  # (bs, seq_len, dim_v)
 
-        #print('q size: ', q.size()) # 1, 1023, 512 NEEDS to be 1, 1023, 512
-        #print('bsz: ', bsz) # 1
-        #print('seqlen: ', seqlen) # 1024
-        #print('n local heads: ', self.n_heads) # 8
-        #print('self.head_dim: ', self.dim_head) # 64
         # split projections between heads -> (bs, n_heads, seq_len, dim_k)
-        q = q.view(bsz, seqlen, self.n_heads, self.dim_head)#.transpose(2, 3)
-        k = k.view(bsz, seqlen, self.n_heads, self.dim_head)#.transpose(2, 3)
-        v = v.view(bsz, seqlen, self.n_heads, self.dim_head)#.transpose(2, 3)
+        q = q.view(bsz, seqlen, self.n_heads, self.dim_head)
+        k = k.view(bsz, seqlen, self.n_heads, self.dim_head)
+        v = v.view(bsz, seqlen, self.n_heads, self.dim_head)
 
         # apply positional encoding to projections, for each heads
         q, k = apply_rotary_emb(q, k, freqs_cis=freqs_cis)
 
-        q = q.transpose(1, 2) # 1, 8, 1024, 64
-        k = k.transpose(1, 2) # 1, 8, 1024, 64
-        v = v.transpose(1, 2) # 1, 8, 1024, 64
+        q = q.transpose(1, 2) 
+        k = k.transpose(1, 2) 
+        v = v.transpose(1, 2) 
 
         # Compute the correlation between a query q_i and all the keys, for every q_i
-        #attn_scores = (q @ k.permute(0, 1, 3, 2)) * self.dim_k**-0.5  # (bs, n_heads, seq_len, seq_len)
         attn_scores = torch.matmul(q, k.transpose(2, 3)) / math.sqrt(self.dim_head)
 
         attn_scores = attn_scores + mask 
@@ -288,10 +280,6 @@ class TransformerBlock(nn.Module):
 class Transformer(nn.Module):
     def __init__(self, config):
         super().__init__()
-        # probably don't need these
-        #self.config = config 
-        #self.vocab_size = config.vocab_size
-        #self.n_layers = config.n_layers
 
         # NOTE: Original Llama2 was not using padding, so did not use padding_idx. Will not work if tokenizer is trained without padding (disabled by default)
         self.embedding_encoder = torch.nn.Embedding(config.vocab_size, config.dim,  padding_idx=config.pad_id, device=device)  #
@@ -323,8 +311,6 @@ class Transformer(nn.Module):
         """
         _bsz, seqlen = tokens.shape
 
-        print('tokens shape: ', tokens.shape)
-        print(tokens)
         # Embed tokens
         h = self.embedding_encoder(tokens)
 
