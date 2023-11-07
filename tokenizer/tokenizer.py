@@ -63,7 +63,7 @@ def tokenize_data_chunk(tokenizer, chunk, seq_len):
     # print(chunk.columns)
     return chunk
 
-def generate_tokenized_file(df:pd.DataFrame, tokenizer_path, seq_len=1024):
+def generate_tokenized_file(df:pd.DataFrame, tokenizer_path, seq_len):
     # Call 'tokenize_data_chunk' over entire file
     tokenizer = Tokenizer(tokenizer_path)
     tok_lambda = lambda x: tokenize_data_chunk(tokenizer=tokenizer, chunk=x, seq_len=seq_len)  # 'df.' of line 62 becomes 'x' in this lambda
