@@ -28,8 +28,10 @@
 
 import csv, pickle
 import pandas as pd
-from nltk.corpus import stopwords
+from re import sub as regex_sub
+# from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize as w_t
+import nltk
 
 
 def convert_xlsx_to_csv(input_xlsx_file, output_csv_file):
@@ -60,19 +62,23 @@ def load_csv_to_dict(file_path, pickle_dict=False):
     
     # Writing the dictionary to a pickle file
     if pickle_dict:
-        # Make file path to save the pickle file
-        extension = file_path.rfind('.')  # find start of filepath's extension
-        pickle_path = file_path[:extension]+'.pickle' # replace it with pickle extension
-        with open(pickle_path, 'wb') as file:
-            pickle.dump(data_dict, file)
+        pickle_dict(file_path, data_dict)
 
     return data_dict
+
+def pickle_dict(file_path, data_dict):
+    # Make file path to save the pickle file
+    extension = file_path.rfind('.')  # find start of filepath's extension
+    pickle_path = file_path[:extension]+'.pickle' # replace it with pickle extension
+    with open(pickle_path, 'wb') as file:
+        pickle.dump(data_dict, file)
 
 def load_pickle_to_dict(file_path):
     try:
         with open(file_path, 'rb') as file:
             data = pickle.load(file)
             if isinstance(data, dict):
+                # Writing the dictionary to a pickle file
                 return data
             else:
                 print("The content of the pickle file is not a dictionary.")
@@ -84,13 +90,19 @@ def load_pickle_to_dict(file_path):
         print(f"An error occurred in opening the pickle file: {e}")
         return None
 
-
-file_path = '/home/dsg2060/Rocket/Training/utils/dataset_mods/4yo_words.pickle'  # Change this to your pickle file path
-result_dict = load_pickle_to_dict(file_path)
+def update_dict(overwrite_file, new_data:list[str]):
+    that_dict = load_pickle_to_dict(overwrite_file)
+    empty_value = ['', '', 'inf']
+    for char in new_data:
+        try:
+            that_dict[char]
+        except KeyError:
+            that_dict[char] = empty_value
+    pickle_dict(overwrite_file, that_dict)
 
 # print(len(result_dict)) # 1,041 unique word forms 
 
-def stop_word_stats(stop_words):
+# def stop_word_stats(stop_words):
     ## Caluculate the amount of stop words not included in the 44k words;
     ## 97 of 179 are not included (~54%), and many of them are contractions.
     
@@ -103,8 +115,10 @@ def stop_word_stats(stop_words):
     # print(len(not_included), not_included)
 
 # Get English stopwords
-# stop_words = stopwords.words('english')
+stop_words = stopwords.words('english')
 # stop_word_stats(stop_words=stop_words)
+for i in stop_words:
+    print(type(i))
 
 def parquet_to_dict(file_path):
     try:
@@ -126,12 +140,7 @@ def parquet_to_dict(file_path):
         print(f"An error occurred: {e}")
         return None  # Return None if an error occurs
 
-file_path = "some_parquet_file.parquet"
-open_orca_dataset = parquet_to_dict(file_path)
-if open_orca_dataset is not None:
-    print("\nWriting to dict successfu!\nl")
-
-nltk.download('punkt')  # Download the 'punkt' tokenizer models (if not already downloaded)
+# nltk.download('punkt')  # Download the 'punkt' tokenizer models (if not already downloaded)
 
 def tokenize_with_penn_treebank(text):
     # Tokenize the input text using the Penn Treebank Word Tokenizer
@@ -150,34 +159,55 @@ def eval_prompt(words_list, vocab_dict):
             flagged = True
     return (flagged, output_data)
 
-def write_to_csv(output_file, output_data):
-    # Write the tuples to a CSV file
+def write_to_csv(output_file, id_keys, prompts_dict):
     with open(output_file, 'a', newline='') as csv_file:
         csv_writer = csv.writer(csv_file)
-        csv_writer.writerows(output_data)
+                
+        # Prepare a row for each key-values pair
+        for key in id_keys:
+            row = [key] + prompts_dict[key]
+            csv_writer.writerow(row)
 
-def flag_prompts(prompts_dict, vocab_dict, output_file, write_every=1000):
+def split_nums_and_symbols(some_string:str)-> str:
+# Regular expression to find non-alphabetic characters and add spaces around them
+    modified_text = regex_sub(r'([^a-zA-Z\'!\.;:,? ])', r' \1 ', some_string)
+    return modified_text 
+
+def flag_prompts(prompts_dict, vocab_dict, flagged_file, clean_file, write_every=1000):
     flagged_data = []
     clean_data = []
+    print
 
-    for prompt in prompts_dict:
-        #todo: Add comments; make this keep prompts and questions together; figure out how to best write out list items to a csv
-        tokenized_prompt = tokenize_with_penn_treebank(prompt)
-        prompt_analyzed = eval_prompt(tokenized_prompt)
-        if prompt_analyzed[0]:
-            flagged_data.append(prompt_analyzed)
+    for id_key in prompts_dict:
+        #todo: Add comments; handle numbers (any number is valid; tokenize as single digits and add 0-9 to vocab dict); 
+        prompt_and_answer = prompts_dict[id_key][-2] + prompts_dict[id_key][-1]  # Concat prompt and GPT-x response
+        prompt_and_answer_2 = split_nums_and_symbols(prompt_and_answer)
+        tokenized_text = tokenize_with_penn_treebank(prompt_and_answer_2)
+        text_evaluated = eval_prompt(tokenized_text, vocab_dict)
+        if text_evaluated[0]:
+            prompts_dict[id_key].append(text_evaluated[1])  # Add tokenized text to dict
+            flagged_data.append(id_key)  # Add key to list of flagged prompts
         else:
-            clean_data.append(prompt_analyzed)
+            clean_data.append(id_key)  # Add key to list of clean prompts
 
-        if len(flagged_data) % write_every == 0:
-            write_to_csv(output_file, flagged_data)
+
+        if len(flagged_data) % write_every == 0 and len(flagged_data) != 0:
+            write_to_csv(flagged_file, flagged_data, prompts_dict)
             flagged_data = []
 
-        if len(clean_data) % write_every == 0:
-            write_to_csv(output_file, clean_data)
+        if len(clean_data) % write_every == 0 and len(flagged_data) != 0:
+            write_to_csv(clean_file, clean_data, prompts_dict)
             clean_data = []
-    
 
+# data_file_path = "./sample_GPT4.parquet"
+# data = parquet_to_dict(data_file_path)
+
+# vocab_file_path = "./4yo_words.pkl"
+# vocab = load_pickle_to_dict(vocab_file_path)
+
+# flagged_file_path = "./flagged.csv"
+# clean_file_path = "./clean.csv"
+# flag_prompts(data, vocab, flagged_file_path, clean_file_path, 1)
 
 
 ## Pseudocode
@@ -193,3 +223,5 @@ def flag_prompts(prompts_dict, vocab_dict, output_file, write_every=1000):
 #           10. append to clear_list
 #       11. if len(clear_list)==N or len(flagged_list)==N: # write out progress every N to 2N prompts
 #           12. Write out to .csvs
+
+# todo: add stopwords to 44k words list and then run a bigger test.
