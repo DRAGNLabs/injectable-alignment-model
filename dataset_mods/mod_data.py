@@ -174,27 +174,38 @@ def split_nums_and_symbols(some_string:str)-> str:
     return modified_text 
 
 def flag_prompts(prompts_dict, vocab_dict, flagged_file, clean_file, write_every=1000):
+    """
+    Flags prompts in a dictionary that contain invalid tokens based on a given vocabulary dictionary.
+    Writes flagged and clean prompts to separate CSV files.
+
+    Args:
+        prompts_dict (dict): A dictionary of prompts with their corresponding GPT-x responses.
+        vocab_dict (dict): A dictionary of valid tokens.
+        flagged_file (str): The filepath to write the flagged prompts to.
+        clean_file (str): The filepath to write the clean prompts to.
+        write_every (int, optional): The number of prompts to write to file at a time. Defaults to 1000.
+    """
     flagged_data = []
     clean_data = []
-    print
 
     for id_key in prompts_dict:
         #todo: Add comments; handle numbers (any number is valid; tokenize as single digits and add 0-9 to vocab dict); 
-        prompt_and_answer = prompts_dict[id_key][-2] + prompts_dict[id_key][-1]  # Concat prompt and GPT-x response
-        prompt_and_answer_2 = split_nums_and_symbols(prompt_and_answer)
-        tokenized_text = tokenize_with_penn_treebank(prompt_and_answer_2)
-        text_evaluated = eval_prompt(tokenized_text, vocab_dict)
+        prompt_and_answer = prompts_dict[id_key][-2] + prompts_dict[id_key][-1]  # Concat prompt
+        prompt_and_answer_2 = split_nums_and_symbols(prompt_and_answer)  # Split numbers and symbols into separate tokens
+        tokenized_text = tokenize_with_penn_treebank(prompt_and_answer_2)  # Tokenize text using Penn Treebank tokenizer
+        text_evaluated = eval_prompt(tokenized_text, vocab_dict)  # Evaluate prompt for invalid tokens
         if text_evaluated[0]:
             prompts_dict[id_key].append(text_evaluated[1])  # Add tokenized text to dict
             flagged_data.append(id_key)  # Add key to list of flagged prompts
         else:
             clean_data.append(id_key)  # Add key to list of clean prompts
 
-
+        # Write flagged prompts to file
         if len(flagged_data) % write_every == 0 and len(flagged_data) != 0:
             write_to_csv(flagged_file, flagged_data, prompts_dict)
             flagged_data = []
 
+        # Write clean prompts to file
         if len(clean_data) % write_every == 0 and len(flagged_data) != 0:
             write_to_csv(clean_file, clean_data, prompts_dict)
             clean_data = []
