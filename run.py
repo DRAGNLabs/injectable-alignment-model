@@ -4,24 +4,32 @@ from utils.data_utils import Struct
 import yaml
 
 from pytorch_lightning import LightningDataModule, LightningModule, Trainer, seed_everything
+from dataset import DataModule
+from tokenizer.tokenizer import Tokenizer
 
 def main():
     args = sys.argv
     config_path = args[1]
 
     with open(config_path, 'r') as f:
-        args = yaml.load(f, Loader=yaml.FullLoader)
+        config = yaml.load(f, Loader=yaml.FullLoader)
 
     # Convert args dict to object
-    args = Struct(**args)
+    config = Struct(**config)
+
+    tokenizer = Tokenizer(model_path=config.tokenizer_path)  # including this for the special tokens (i.e. pad)
+    config.vocab_size = tokenizer.n_words
+    config.pad_id = tokenizer.pad_id
 
     # Build model class
-    Drew_and_Jay_and_Jacksons_Llama = LLaMA.build(train_args=args)
+    Drew_and_Jay_and_Jacksons_Llama = LLaMA.build(config=config)
     
+    dm = DataModule(config.train_path, config.eval_path, tokenizer, config.batch_size, config.sequence_length)
+
     # Train
     #Drew_and_Jay_and_Jacksons_Llama.train()
     trainer = Trainer()
-    trainer.fit(Drew_and_Jay_and_Jacksons_Llama, )
+    trainer.fit(Drew_and_Jay_and_Jacksons_Llama, dm)
 
     # Generate
     prompt = ["test test test"]

@@ -2,6 +2,7 @@
 # This software may be used and distributed according to the terms of the GNU General Public License version 3.
 
 import torch
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import torch.cuda.nccl as nccl
 import torch.distributed as dist
@@ -34,51 +35,35 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.set_default_device(device)
 
 class LLaMA(LightningModule):
-    @staticmethod
-    def build(
-        train_args
-    ) -> "LLaMA":
-        start_time = time.time()
-        # TODO: need to test/implement this
-        checkpoints = sorted(Path(train_args.ckpt_dir).glob("*.pth"))
-        if len(checkpoints) > 0:
-            checkpoint = torch.load(train_args.ckpt_dir, map_location="cpu")
-            # TODO: I don't think these lines are necessary, but I'm not sure
-            #with open(Path(train_args.ckpt_dir) / "params.json", "r") as f:
-                #params = json.loads(f.read()) # TODO: what does params actually look like? Look in checkpointing during training
-        #else:
-            #params = {}
-
-        #train_args(**params)
-        
-        tokenizer = Tokenizer(model_path=train_args.tokenizer_path)  # including this for the special tokens (i.e. pad)
-
-        train_args.vocab_size = tokenizer.n_words
-        
-        #torch.set_default_tensor_type(torch.cuda.HalfTensor)  # TODO: this causes the loss to become NaN
-
-        model = Transformer(train_args)
-
-        # TODO: also probably don't need this, this is HF?
-        #if len(checkpoints) > 0:
-        #    model.load_state_dict(checkpoint, strict=False)
-
-        print(f"Loaded in {time.time() - start_time:.2f} seconds")
-        train_args.pad_id = tokenizer.pad_id
-        
-        return LLaMA(model, tokenizer, dataset, train_args)
-
-    def __init__(self, 
-                 model: Transformer, 
+    def __init__(self,
                  tokenizer: Tokenizer, 
-                 dataset:Rocket_DataSet,
-                 train_args):
-        self.model = model
+                 config: dict):
         self.tokenizer = tokenizer
-        self.dataset = dataset
-        self.train_args = train_args
+        self.config = config
+
+    def forward(self, **inputs):
+        return self.model(**inputs)
     
-    # TODO: these additional parameters need to be implemented somehow
+    def training_step(self, batch, batch_idx):
+        (x, y_true) = batch
+        #with autocast(): # autocast is torch package for running in mixed precision, which improves performance
+        y_hat = self.model(x)
+        loss = F.cross_entropy(y_hat, y_true)
+
+        loss = loss/self.train_args.gradient_accumulation_steps
+
+        # TODO: log here
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        pass
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.config.lr)  # model.paramaters = weights tensor
+        return optimizer
+    
+
+
     def train(self, fsdp_config=None, local_rank=None, rank=None):
         """
         Trains the model on the given dataloader
@@ -92,20 +77,8 @@ class LLaMA(LightningModule):
         
         Returns: results dictionary containing average training and validation perplexity and loss
         """
-        # Create a gradient scaler for fp16
-        if self.train_args.use_fp16 and self.train_args.enable_fsdp:
-            scaler = ShardedGradScaler()
-        elif self.train_args.use_fp16 and not self.train_args.enable_fsdp:
-            scaler = torch.cuda.amp.GradScaler()
-        if self.train_args.enable_fsdp:
-            world_size = int(os.environ["WORLD_SIZE"])
-        autocast = torch.cuda.amp.autocast if self.train_args.use_fp16 else nullcontext
-
         # Create necessary training modules based on config
         
-        
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.train_args.lr)  # model.paramaters = weights tensor
-        criterion = torch.nn.CrossEntropyLoss()
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.train_args.gamma)
         
         train_prep = []
@@ -116,78 +89,11 @@ class LLaMA(LightningModule):
         checkpoint_times = []
         results = {}
         best_val_loss = float("inf")
+        # Update the learning rate as needed
+        lr_scheduler.step()
 
-        for epoch in range(self.train_args.num_epochs):
-            epoch_start_time = time.perf_counter()
-            with MemoryTrace() as memtrace:  # track the memory usage
-                self.model.train()
-                total_loss = 0.0
-                total_length = len(train_dataloader)//self.train_args.gradient_accumulation_steps
-                pbar = tqdm(colour="blue", desc=f"Training Epoch: {epoch+1}", total=total_length)
-                for step, batch in enumerate(train_dataloader): # batch = (x, y_true)
-                    for element in batch:
-                        if self.train_args.enable_fsdp:
-                            element = element.to(local_rank) # This isn't unnecessary
-
-                    (x, y_true) = batch
-                    x = x.to(device)
-                    y_true = y_true.to(device)
-                    
-                    with autocast(): # autocast is torch package for running in mixed precision, which improves performance
-                        y_hat = self.model(x)
-                        loss = criterion(y_hat, y_true)
-
-                    loss = loss/self.train_args.gradient_accumulation_steps
-                    total_loss += loss.detach().float()
-                    if self.train_args.use_fp16:
-                        # if fp16 is enabled, use gradient scaler to handle gradient update
-                        scaler.scale(loss).backward()
-                        if (step + 1) % self.train_args.gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
-                            scaler.step(optimizer)
-                            scaler.update()
-                            optimizer.zero_grad()
-                            pbar.update(1)
-                    else:
-                        # regular backpropagation when fp16 is not used
-                        loss.backward()
-                        if (step + 1) % self.train_args.gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
-                            optimizer.step()
-                            optimizer.zero_grad()
-                            pbar.update(1)
-
-                    pbar.set_description(f"Training Epoch: {epoch+1}/{self.train_args.num_epochs}, step {step}/{len(train_dataloader)} completed (loss: {loss.detach().float()})")
-                pbar.close()
-                    
-            epoch_end_time = time.perf_counter()-epoch_start_time
-            epoch_times.append(epoch_end_time)    
-            # Reducing total_loss across all devices if there's more than one CUDA device
-            if torch.cuda.device_count() > 1 and self.train_args.enable_fsdp:
-                dist.all_reduce(total_loss, op=dist.ReduceOp.SUM)
-            train_epoch_loss = total_loss / len(train_dataloader)
-            if self.train_args.enable_fsdp:
-                train_epoch_loss = train_epoch_loss/world_size
-            train_perplexity = torch.exp(torch.tensor(train_epoch_loss))
-            
-            train_prep.append(train_perplexity)
-            train_loss.append(train_epoch_loss)
-            if self.train_args.enable_fsdp:
-                if rank==0:
-                    print(f"Max CUDA memory allocated was {memtrace.peak} GB")
-                    print(f"Max CUDA memory reserved was {memtrace.max_reserved} GB")
-                    print(f"Peak active CUDA memory was {memtrace.peak_active_gb} GB")
-                    print(f"Cuda Malloc retires : {memtrace.cuda_malloc_retires}")
-                    print(f"CPU Total Peak Memory consumed during the train (max): {memtrace.cpu_peaked + memtrace.cpu_begin} GB")
-            else:
-                print(f"Max CUDA memory allocated was {memtrace.peak} GB")
-                print(f"Max CUDA memory reserved was {memtrace.max_reserved} GB")
-                print(f"Peak active CUDA memory was {memtrace.peak_active_gb} GB")
-                print(f"Cuda Malloc retires : {memtrace.cuda_malloc_retires}")
-                print(f"CPU Total Peak Memory consumed during the train (max): {memtrace.cpu_peaked + memtrace.cpu_begin} GB")
-        
-            # Update the learning rate as needed
-            lr_scheduler.step()
-            
-            # TODO: All this stuff with checkpointing needs to be implemented
+        # TODO: finish deconstructing this function
+    """        
             if self.train_args.run_validation:
                 eval_ppl, eval_epoch_loss = self.evaluation(criterion, eval_dataloader, local_rank)
                 checkpoint_start_time = time.perf_counter()
@@ -247,7 +153,7 @@ class LLaMA(LightningModule):
                     print(f"Epoch {epoch+1}: train_perplexity={train_perplexity:.4f}, train_epoch_loss={train_epoch_loss:.4f}, epoch time {epoch_end_time}s")
             else:
                 print(f"Epoch {epoch+1}: train_perplexity={train_perplexity:.4f}, train_epoch_loss={train_epoch_loss:.4f}, epoch time {epoch_end_time}s")
-        
+
         avg_epoch_time = sum(epoch_times)/ len(epoch_times)
         avg_checkpoint_time = sum(checkpoint_times)/ len(checkpoint_times) if len(checkpoint_times) > 0 else 0
         avg_train_prep = sum(train_prep)/len(train_prep)
@@ -268,10 +174,10 @@ class LLaMA(LightningModule):
         # TODO: why only with enable_fsdp?
         #if self.train_args.enable_fsdp and not self.train_args.use_peft:
         #    self.save_train_params(self.train_args, fsdp_config, rank)
-        
+
         #saving the training params including fsdp setting for reference.
         return results
-
+"""
     def evaluation(self, criterion, eval_dataloader, local_rank):
         """
         Evaluates the model on the given dataloader

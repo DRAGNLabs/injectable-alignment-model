@@ -10,22 +10,22 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.set_default_device(device)
 
 class DataModule(LightningDataModule):
-    def __init__(self, train_src, val_src, tokenizer, batch_size, sequence_length, num_workers=0):
+    def __init__(self, train_path, val_path, tokenizer, batch_size, sequence_length, num_workers=0):
         super().__init__()
-        self.train = train_src
-        self.val = val_src
+        self.train_path = train_path
+        self.val_path = val_path
         self.tokenizer = tokenizer
         self.batch_size = batch_size
         self.sequence_length = sequence_length
         self.num_workers = num_workers
     
     def setup(self):
-        self.train_dataset = Rocket_DataSet(self.train, 
+        self.train_dataset = Rocket_DataSet(self.train_path, 
                                             pad_tok=self.tokenizer.pad_id, 
                                             bos_tok=self.tokenizer.bos_id, 
                                             eos_tok=self.tokenizer.eos_id, 
                                             sequence_length=self.sequence_length)
-        self.val_dataset = Rocket_DataSet(self.val, 
+        self.val_dataset = Rocket_DataSet(self.val_path, 
                                             pad_tok=self.tokenizer.pad_id, 
                                             bos_tok=self.tokenizer.bos_id, 
                                             eos_tok=self.tokenizer.eos_id, 
