@@ -3,6 +3,8 @@ import sys
 from utils.data_utils import Struct
 import yaml
 
+from pytorch_lightning import LightningDataModule, LightningModule, Trainer, seed_everything
+
 def main():
     args = sys.argv
     config_path = args[1]
@@ -17,7 +19,9 @@ def main():
     Drew_and_Jay_and_Jacksons_Llama = LLaMA.build(train_args=args)
     
     # Train
-    Drew_and_Jay_and_Jacksons_Llama.train()
+    #Drew_and_Jay_and_Jacksons_Llama.train()
+    trainer = Trainer()
+    trainer.fit(Drew_and_Jay_and_Jacksons_Llama, )
 
     # Generate
     prompt = ["test test test"]

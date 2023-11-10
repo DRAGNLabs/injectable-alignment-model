@@ -11,6 +11,10 @@ raw_dataset_path: /home/jo288/repos/Rocket/dataset/raw/dataset.csv
 # Must be .pkl file
 tokenized_dataset_path: /home/jo288/repos/Rocket/dataset/tokenized/full_tokenized.pkl
 
+# Dataset split
+train_tokenized_data:
+eval_tokenized_data:
+
 # GPU
 #num_nodes: 1
 #devices: 1

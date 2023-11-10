@@ -7,7 +7,10 @@ import torch.cuda.nccl as nccl
 import torch.distributed as dist
 from torch.distributed.fsdp import StateDictType
 from torch.distributed.fsdp.sharded_grad_scaler import ShardedGradScaler
-import torch.nn.functional as F
+from pytorch_lightning import LightningDataModule, LightningModule, Trainer, seed_everything
+from pytorch_lightning.plugins.environments import SLURMEnvironment
+from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint, Callback
+from pytorch_lightning.loggers import CSVLogger
 
 import time
 import json
@@ -30,29 +33,11 @@ from utils.checkpoint_utils import save_model_checkpoint, save_model_and_optimiz
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.set_default_device(device)
 
-class LLaMA:
+class LLaMA(LightningModule):
     @staticmethod
     def build(
         train_args
     ) -> "LLaMA":
-        # TODO: this is parellization stuff from llama repo
-        """if not torch.distributed.is_initialized():
-            torch.distributed.init_process_group("nccl")
-        if not model_parallel_is_initialized():
-            if model_parallel_size is None:
-                model_parallel_size = int(os.environ.get("WORLD_SIZE", 1))
-            initialize_model_parallel(model_parallel_size)
-
-        local_rank = int(os.environ.get("LOCAL_RANK", 0))
-        torch.cuda.set_device(local_rank)
-
-        # seed must be the same in all processes
-        torch.manual_seed(seed)
-
-        if local_rank > 0:
-            sys.stdout = open(os.devnull, "w")"""
-
-        
         start_time = time.time()
         # TODO: need to test/implement this
         checkpoints = sorted(Path(train_args.ckpt_dir).glob("*.pth"))
@@ -80,7 +65,7 @@ class LLaMA:
 
         print(f"Loaded in {time.time() - start_time:.2f} seconds")
         train_args.pad_id = tokenizer.pad_id
-        dataset = Rocket_DataSet(train_args.dataset_path, pad_tok=tokenizer.pad_id, bos_tok=tokenizer.bos_id, eos_tok=tokenizer.eos_id, sequence_length=train_args.seq_len)
+        
         return LLaMA(model, tokenizer, dataset, train_args)
 
     def __init__(self, 
@@ -117,8 +102,8 @@ class LLaMA:
         autocast = torch.cuda.amp.autocast if self.train_args.use_fp16 else nullcontext
 
         # Create necessary training modules based on config
-        train_dataloader = DataLoader(self.dataset, batch_size = self.train_args.batch_size, shuffle=True, generator=torch.Generator(device=device))
-        eval_dataloader = DataLoader(self.dataset, batch_size = self.train_args.batch_size, shuffle=True, generator=torch.Generator(device=device))
+        
+        
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.train_args.lr)  # model.paramaters = weights tensor
         criterion = torch.nn.CrossEntropyLoss()
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.train_args.gamma)
