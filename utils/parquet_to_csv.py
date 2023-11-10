@@ -20,8 +20,7 @@ for file_path in data_files['train']:
     dataframes.append(training_dataframe)
 
 # Concat them together
-result = pd.concat(dataframes, ignore_index=True)
-
+result = pd.concat(dataframes, ignore_index=True) 
 
 # Save dataset as csv
-training_dataframe.to_csv('../dataset/raw/dataset.csv', index=False)
+result.to_csv('../dataset/raw/datasettest.csv', index=False)

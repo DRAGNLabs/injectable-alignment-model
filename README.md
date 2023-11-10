@@ -1,10 +1,10 @@
-TODO: instructions for getting data for orca?
-
 # Rocket
 
 There are separate READMEs in [Training](https://github.com/DRAGNLabs/Rocket/blob/main/Training/readme.md) and [Evaluation](https://github.com/DRAGNLabs/Rocket/blob/main/Evaluation/README_Eval.md) for their respective setups.
 
 # Setting up Rocket Llama
+
+## Getting Data
 
 ## Environment
 
