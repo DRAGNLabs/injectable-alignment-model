@@ -38,8 +38,10 @@ class LLaMA(LightningModule):
     def __init__(self,
                  tokenizer: Tokenizer, 
                  config: dict):
+        super().__init__()
         self.tokenizer = tokenizer
         self.config = config
+        self.model = Transformer(config)
 
     def forward(self, **inputs):
         return self.model(**inputs)
@@ -52,194 +54,33 @@ class LLaMA(LightningModule):
 
         loss = loss/self.train_args.gradient_accumulation_steps
 
-        # TODO: log here
+        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
-        pass
+        (x, y_true) = batch
+        y_hat = self.model(x)
+        eval_loss = F.cross_entropy(y_hat, y_true)
+
+        # Decode predictions and add to evaluation predictions list
+        preds = torch.argmax(y_hat, 1).detach().cpu().tolist()
+
+        # Uncomment to view predictions throughout training
+        #print('preds: ', preds)
+        #print('preds shape: ', len(preds))
+        decoded = self.tokenizer.decode(preds)
+
+        #eval_epoch_loss = eval_loss / len(eval_dataloader)
+        #eval_ppl = torch.exp(eval_epoch_loss)
+        self.log('val_loss', eval_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        # TODO: log perplexity?
+        
+        return eval_loss
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.config.lr)  # model.paramaters = weights tensor
-        return optimizer
-    
-
-
-    def train(self, fsdp_config=None, local_rank=None, rank=None):
-        """
-        Trains the model on the given dataloader
-    
-        Args:
-            train_dataloader: The dataloader containing the training data
-            eval_dataloader: The dataloader containing the eval data
-            optimizer: The optimizer used for training
-            lr_scheduler: The learning rate scheduler
-            local_rank: The rank of the current node in a distributed setting
-        
-        Returns: results dictionary containing average training and validation perplexity and loss
-        """
-        # Create necessary training modules based on config
-        
-        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.train_args.gamma)
-        
-        train_prep = []
-        train_loss = []
-        val_prep = []
-        val_loss =[]
-        epoch_times = []
-        checkpoint_times = []
-        results = {}
-        best_val_loss = float("inf")
-        # Update the learning rate as needed
-        lr_scheduler.step()
-
-        # TODO: finish deconstructing this function
-    """        
-            if self.train_args.run_validation:
-                eval_ppl, eval_epoch_loss = self.evaluation(criterion, eval_dataloader, local_rank)
-                checkpoint_start_time = time.perf_counter()
-                if self.train_args.save_model and eval_epoch_loss < best_val_loss:
-                    if self.train_args.enable_fsdp:
-                        dist.barrier()
-                    if self.train_args.use_peft:
-                        if self.train_args.enable_fsdp:
-                            if rank==0:
-                                print(f"we are about to save the PEFT modules")
-                        else:
-                            print(f"we are about to save the PEFT modules")
-                        self.model.save_pretrained(self.train_args.output_dir)  
-                        if self.train_args.enable_fsdp:
-                            if rank==0: 
-                                print(f"PEFT modules are saved in {self.train_args.output_dir} directory")
-                        else:
-                            print(f"PEFT modules are saved in {self.train_args.output_dir} directory")
-                            
-                    else:
-                        if not self.train_args.use_peft and fsdp_config.checkpoint_type == StateDictType.FULL_STATE_DICT:
-                            
-                            save_model_checkpoint(
-                                self.model, optimizer, rank, self.train_args, epoch=epoch
-                            )
-                        elif not self.train_args.use_peft and fsdp_config.checkpoint_type == StateDictType.SHARDED_STATE_DICT:
-                            print(" Saving the FSDP model checkpoints using SHARDED_STATE_DICT")
-                            print("=====================================================")
-                            
-                            save_model_and_optimizer_sharded(self.model, rank, self.train_args)
-                            if self.train_args.save_optimizer:
-                                save_model_and_optimizer_sharded(self.model, rank, self.train_args, optim=optimizer)
-                                print(" Saving the FSDP model checkpoints and optimizer using SHARDED_STATE_DICT")
-                                print("=====================================================")
-
-                        if not self.train_args.use_peft and  self.train_args.save_optimizer:
-                            save_optimizer_checkpoint(
-                                self.model, optimizer, rank, self.train_args, epoch=epoch
-                            )
-                            print(" Saving the FSDP model checkpoints and optimizer using FULL_STATE_DICT")
-                            print("=====================================================")                     
-                    if self.train_args.enable_fsdp:
-                        dist.barrier()
-                checkpoint_end_time = time.perf_counter() - checkpoint_start_time
-                checkpoint_times.append(checkpoint_end_time)
-                if eval_epoch_loss < best_val_loss:
-                    best_val_loss = eval_epoch_loss
-                    if self.train_args.enable_fsdp:
-                        if rank==0:
-                            print(f"best eval loss on epoch {epoch+1} is {best_val_loss}")
-                    else:
-                        print(f"best eval loss on epoch {epoch+1} is {best_val_loss}")
-                val_loss.append(best_val_loss)
-                val_prep.append(eval_ppl)
-            if self.train_args.enable_fsdp:
-                if rank==0:
-                    print(f"Epoch {epoch+1}: train_perplexity={train_perplexity:.4f}, train_epoch_loss={train_epoch_loss:.4f}, epoch time {epoch_end_time}s")
-            else:
-                print(f"Epoch {epoch+1}: train_perplexity={train_perplexity:.4f}, train_epoch_loss={train_epoch_loss:.4f}, epoch time {epoch_end_time}s")
-
-        avg_epoch_time = sum(epoch_times)/ len(epoch_times)
-        avg_checkpoint_time = sum(checkpoint_times)/ len(checkpoint_times) if len(checkpoint_times) > 0 else 0
-        avg_train_prep = sum(train_prep)/len(train_prep)
-        avg_train_loss = sum(train_loss)/len(train_loss)
-        if self.train_args.run_validation:
-            avg_eval_prep = sum(val_prep)/len(val_prep) 
-            avg_eval_loss = sum(val_loss)/len(val_loss) 
-
-        results['avg_train_prep'] = avg_train_prep
-        results['avg_train_loss'] = avg_train_loss
-        if self.train_args.run_validation:
-            results['avg_eval_prep'] = avg_eval_prep
-            results['avg_eval_loss'] = avg_eval_loss
-        results["avg_epoch_time"] = avg_epoch_time
-        results["avg_checkpoint_time"] = avg_checkpoint_time
-
-        #saving the training params including fsdp setting for reference.
-        # TODO: why only with enable_fsdp?
-        #if self.train_args.enable_fsdp and not self.train_args.use_peft:
-        #    self.save_train_params(self.train_args, fsdp_config, rank)
-
-        #saving the training params including fsdp setting for reference.
-        return results
-"""
-    def evaluation(self, criterion, eval_dataloader, local_rank):
-        """
-        Evaluates the model on the given dataloader
-        
-        Args:
-            model: The model to evaluate
-            eval_dataloader: The dataloader containing the evaluation data
-            local_rank: The rank of the current node in a distributed setting
-            tokenizer: The tokenizer used to decode predictions
-        
-        Returns: eval_ppl, eval_epoch_loss
-        """
-        if self.train_args.enable_fsdp:
-            world_size = int(os.environ["WORLD_SIZE"]) 
-        self.model.eval()
-        eval_preds = []
-        eval_loss = 0.0  # Initialize evaluation loss
-        with MemoryTrace() as memtrace:
-            for step, batch in enumerate(tqdm(eval_dataloader,colour="green", desc="evaluating Epoch", dynamic_ncols=True)):
-                for element in batch:
-                    if self.train_args.enable_fsdp:
-                        element = element.to(local_rank)
-                    else:
-                        element = element.to(device) # Might want this to be 'cuda:0'
-                # Ensure no gradients are computed for this scope to save memory
-                with torch.no_grad():
-                    # Forward pass and compute loss
-                    (x, y_true) = batch
-                    y_hat = self.model(x)
-                    loss = criterion(y_hat, y_true)
-                    eval_loss += loss.detach().float()
-                # Decode predictions and add to evaluation predictions list
-                preds = torch.argmax(y_hat, 1).detach().cpu().tolist()
-
-                # Uncomment to view predictions throughout training
-                #print('preds: ', preds)
-                #print('preds shape: ', len(preds))
-                decoded = self.tokenizer.decode(preds)
-
-                # Nothing is being done with this list currently
-                eval_preds.extend( 
-                    decoded
-                )
-        
-        # If there's more than one CUDA device, reduce evaluation loss across all devices
-        if torch.cuda.device_count() > 1 and self.train_args.enable_fsdp:
-            dist.all_reduce(eval_loss, op=dist.ReduceOp.SUM)
-        
-        # Compute average loss and perplexity
-        eval_epoch_loss = eval_loss / len(eval_dataloader)
-        if self.train_args.enable_fsdp:
-            eval_epoch_loss = eval_epoch_loss/world_size
-        eval_ppl = torch.exp(eval_epoch_loss)
-        
-        # Print evaluation metrics
-        if self.train_args.enable_fsdp:
-            if local_rank==0:
-                print(f" {eval_ppl=} {eval_epoch_loss=}")
-        else:
-            print(f" {eval_ppl=} {eval_epoch_loss=}")
-            
-        return eval_ppl, eval_epoch_loss
+        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma)
+        return optimizer, lr_scheduler
 
     def generate(
         self,
@@ -380,44 +221,3 @@ class LLaMA(LightningModule):
         # Pull token out from probs_idx
         next_token = torch.gather(probs_idx, -1, next_token)
         return next_token
-
-    # TODO: This is only being called if FSDP is enabled..why? Maybe split it up, seems useful.
-    # TODO: Do we need this? how should we this?
-    # def save_train_params(self, train_config, fsdp_config, rank):
-    #     """
-    #     This function saves the train_config and FSDP config into a train_params.yaml.
-    #     This will be used by converter script in the inference folder to fetch the HF model name or path.
-    #     It also would be hepful as a log for future references.
-    #     """
-    #     # Convert the train_config and fsdp_config objects to dictionaries, 
-    #     # converting all values to strings to ensure they can be serialized into a YAML file
-    #     train_config_dict = {k: str(v) for k, v in vars(train_config).items() if not k.startswith('__')}
-    #     fsdp_config_dict = {k: str(v) for k, v in vars(fsdp_config).items() if not k.startswith('__')}
-    #     # Merge the two dictionaries into one
-    #     train_params_dict = {**train_config_dict, **fsdp_config_dict}
-    #     # Construct the folder name (follwoing FSDP checkpointing style) using properties of the train_config object
-    #     folder_name = (
-    #     train_config.dist_checkpoint_root_folder
-    #     + "/"
-    #     + train_config.dist_checkpoint_folder
-    #     + "-"
-    #     + train_config.model_name
-    #     )
-
-    #     save_dir = Path.cwd() / folder_name
-    #     # If the directory does not exist, create it
-    #     if not os.path.exists(save_dir):
-    #         os.makedirs(save_dir)
-    #     # Convert the dictionary to a YAML string
-    #     config_yaml = yaml.dump(train_params_dict, indent=4)
-    #     file_name = os.path.join(save_dir,'train_params.yaml')
-
-    #     # Check if there's a directory with the same name as the file
-    #     if os.path.isdir(file_name):
-    #         print(f"Error: {file_name} is a directory, not a file.")
-    #     else:
-    #         # Write the YAML string to the file
-    #         with open(file_name, 'w') as f:
-    #             f.write(config_yaml)
-    #         if rank==0:
-    #             print(f"training params are saved in {file_name}")

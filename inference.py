@@ -22,15 +22,11 @@ def main():
     config.pad_id = tokenizer.pad_id
 
     # Build model class
-    Drew_and_Jay_and_Jacksons_Llama = LLaMA.build(config=config)
+    Drew_and_Jay_and_Jacksons_Llama = LLaMA(tokenizer=tokenizer, config=config)
     
     dm = DataModule(config.train_path, config.eval_path, tokenizer, config.batch_size, config.sequence_length)
 
-    # Train
-    #Drew_and_Jay_and_Jacksons_Llama.train()
-    trainer = Trainer()
-    trainer.fit(Drew_and_Jay_and_Jacksons_Llama, dm)
-
+    # TODO: set this up
     # Generate
     prompt = ["test test test"]
     max_gen_len = 10

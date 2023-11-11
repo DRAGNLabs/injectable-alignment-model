@@ -149,7 +149,7 @@ class Attention(nn.Module):
         if args.dim_v is None:
             args.dim_v = args.dim
 
-        self.seq_len = args.seq_len
+        self.sequence_length = args.sequence_length
         self.n_heads = args.n_heads
         self.dim_head = args.dim // args.n_heads
         self.dim_k = args.dim_k
@@ -295,7 +295,7 @@ class Transformer(nn.Module):
         self.freqs_cis = precompute_freqs_cis(
             # Note that self.params.max_seq_len is multiplied by 2 because the token limit for the Llama 2 generation of models is 4096. 
             # Adding this multiplier instead of using 4096 directly allows for dynamism of token lengths while training or fine-tuning.
-            config.dim // config.n_heads, config.seq_len * 2
+            config.dim // config.n_heads, config.sequence_length * 2
         )
 
     def forward(self, tokens: torch.Tensor):
