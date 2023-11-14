@@ -2,10 +2,14 @@
 tokenizer_path: /home/jo288/repos/Rocket/dataset/tokenizers/tokenizer.edited.model
 model_name: model_name_here
 default_root_dir: /home/jo288/repos/Rocket/runs
+tokenizer_path: /home/jo288/repos/Rocket/dataset/tokenizers/testest.model
+ckpt_dir: PATH/to/ckpt/dir
+output_dir: PATH/to/save/PEFT/model # used for peft modules
+dist_checkpoint_root_folder: PATH/to/save/FSDP/model # will be used if using FSDP
 
 # Dataset
 # Tokenizer expects CSV file
-raw_dataset_path: /home/jo288/repos/Rocket/dataset/raw/dataset.csv
+raw_dataset_path: /home/jo288/repos/Rocket/dataset/raw/openorca_combined.parquet
 # Must be .pkl file
 tokenized_dataset_path: /home/jo288/repos/Rocket/dataset/tokenized/full_tokenized.pkl
 
