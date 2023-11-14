@@ -1,13 +1,11 @@
 import torch
-from torch.utils.data import DataLoader
-from pytorch_lightning import LightningDataModule
 import os
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from typing import List
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-torch.set_default_device(device)
+from typing import List, Optional
+from torch.utils.data import DataLoader
+from pytorch_lightning import LightningDataModule
+from typing import List, Optional
 
 class DataModule(LightningDataModule):
     def __init__(self, train_path, val_path, tokenizer, batch_size, sequence_length, num_workers=0):
@@ -18,8 +16,9 @@ class DataModule(LightningDataModule):
         self.batch_size = batch_size
         self.sequence_length = sequence_length
         self.num_workers = num_workers
+        print('num_workers: ', self.num_workers)
     
-    def setup(self):
+    def setup(self, stage: Optional[str] = None):
         self.train_dataset = Rocket_DataSet(self.train_path, 
                                             pad_tok=self.tokenizer.pad_id, 
                                             bos_tok=self.tokenizer.bos_id, 

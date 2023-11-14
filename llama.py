@@ -3,7 +3,6 @@
 
 import torch
 import torch.nn.functional as F
-from torch.utils.data import DataLoader
 import torch.cuda.nccl as nccl
 import torch.distributed as dist
 from torch.distributed.fsdp import StateDictType
@@ -31,8 +30,7 @@ from contextlib import nullcontext
 
 from utils.checkpoint_utils import save_model_checkpoint, save_model_and_optimizer_sharded, save_optimizer_checkpoint
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-torch.set_default_device(device)
+torch.set_float32_matmul_precision('medium')
 
 class LLaMA(LightningModule):
     def __init__(self,
@@ -52,7 +50,7 @@ class LLaMA(LightningModule):
         y_hat = self.model(x)
         loss = F.cross_entropy(y_hat, y_true)
 
-        loss = loss/self.train_args.gradient_accumulation_steps
+        loss = loss/self.config.gradient_accumulation_steps
 
         self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return loss
@@ -80,7 +78,7 @@ class LLaMA(LightningModule):
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.config.lr)  # model.paramaters = weights tensor
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma)
-        return optimizer, lr_scheduler
+        return [optimizer], [lr_scheduler]
 
     def generate(
         self,

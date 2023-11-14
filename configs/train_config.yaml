@@ -2,10 +2,7 @@
 tokenizer_path: /home/jo288/repos/Rocket/dataset/tokenizers/tokenizer.edited.model
 model_name: model_name_here
 default_root_dir: /home/jo288/repos/Rocket/runs
-tokenizer_path: /home/jo288/repos/Rocket/dataset/tokenizers/testest.model
-ckpt_dir: PATH/to/ckpt/dir
-output_dir: PATH/to/save/PEFT/model # used for peft modules
-dist_checkpoint_root_folder: PATH/to/save/FSDP/model # will be used if using FSDP
+ckpt_dir: /home/jo288/repos/Rocket/runs
 
 # Dataset
 # Tokenizer expects CSV file
@@ -14,8 +11,8 @@ raw_dataset_path: /home/jo288/repos/Rocket/dataset/raw/openorca_combined.parquet
 tokenized_dataset_path: /home/jo288/repos/Rocket/dataset/tokenized/full_tokenized.pkl
 
 # Dataset split
-train_path: /home/jo288/repos/Rocket/dataset/tokenized/toy_tokenized_data_2.pkl
-eval_path: /home/jo288/repos/Rocket/dataset/tokenized/toy_tokenized_data_2.pkl
+train_path: /home/jo288/repos/Rocket/dataset/tokenized/toy_tokenized_data_edited.pkl
+eval_path: /home/jo288/repos/Rocket/dataset/tokenized/toy_tokenized_data_edited.pkl
 
 # GPU
 accelerator: gpu

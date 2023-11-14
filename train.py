@@ -4,12 +4,15 @@ import signal
 from utils.data_utils import Struct
 import yaml
 
+import torch
 from pytorch_lightning import LightningDataModule, LightningModule, Trainer, seed_everything
 from pytorch_lightning.plugins.environments import SLURMEnvironment
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint, Callback
 from pytorch_lightning.loggers import CSVLogger
 from dataset import DataModule
 from tokenizer.tokenizer import Tokenizer
+
+torch.set_float32_matmul_precision('medium')
 
 class CustomCSVLogger(CSVLogger):
     def __init__(self, *args, **kwargs):
@@ -70,7 +73,7 @@ def main():
         callbacks=[early_stopping, print_callback, model_checkpoint],
         logger=logger
         )
-    trainer.fit(Drew_and_Jay_and_Jacksons_Llama, dm)
+    trainer.fit(Drew_and_Jay_and_Jacksons_Llama, datamodule=dm)
 
     print('\nNo errors!\n')
 
