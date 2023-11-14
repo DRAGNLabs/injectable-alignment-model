@@ -29,16 +29,7 @@ class PrintCallback(Callback):
     def on_train_end(self, trainer, pl_module):
         print("Training ended")
 
-def main():
-    args = sys.argv
-    config_path = args[1]
-
-    with open(config_path, 'r') as f:
-        config = yaml.load(f, Loader=yaml.FullLoader)
-
-    # Convert args dict to object
-    config = Struct(**config)
-
+def train(config):
     tokenizer = Tokenizer(model_path=config.tokenizer_path)  # including this for the special tokens (i.e. pad)
     config.vocab_size = tokenizer.n_words
     config.pad_id = tokenizer.pad_id
@@ -76,6 +67,18 @@ def main():
     trainer.fit(Drew_and_Jay_and_Jacksons_Llama, datamodule=dm)
 
     print('\nNo errors!\n')
+
+def main():
+    args = sys.argv
+    config_path = args[1]
+
+    with open(config_path, 'r') as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+
+    # Convert args dict to object
+    config = Struct(**config)
+
+    train(config)
 
 if __name__ == "__main__":
     main()

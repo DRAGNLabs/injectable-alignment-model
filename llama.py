@@ -1,34 +1,11 @@
-# Copyright (c) Meta Platforms, Inc. and affiliates.
-# This software may be used and distributed according to the terms of the GNU General Public License version 3.
-
 import torch
 import torch.nn.functional as F
-import torch.cuda.nccl as nccl
-import torch.distributed as dist
-from torch.distributed.fsdp import StateDictType
-from torch.distributed.fsdp.sharded_grad_scaler import ShardedGradScaler
-from pytorch_lightning import LightningDataModule, LightningModule, Trainer, seed_everything
-from pytorch_lightning.plugins.environments import SLURMEnvironment
-from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint, Callback
-from pytorch_lightning.loggers import CSVLogger
+from pytorch_lightning import LightningModule
 
-import time
-import json
-import os
-import pandas as pd
-from pathlib import Path
 from typing import List
-from utils.memory_utils import MemoryTrace
-
-from tqdm import tqdm
-import yaml
 
 from tokenizer.tokenizer import Tokenizer
 from model import Transformer
-from dataset import Rocket_DataSet
-from contextlib import nullcontext
-
-from utils.checkpoint_utils import save_model_checkpoint, save_model_and_optimizer_sharded, save_optimizer_checkpoint
 
 torch.set_float32_matmul_precision('medium')
 
@@ -45,6 +22,7 @@ class LLaMA(LightningModule):
         return self.model(**inputs)
     
     def training_step(self, batch, batch_idx):
+        # TODO: verify it's training on all of the data?
         (x, y_true) = batch
         #with autocast(): # autocast is torch package for running in mixed precision, which improves performance
         y_hat = self.model(x)
@@ -80,7 +58,7 @@ class LLaMA(LightningModule):
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma)
         return [optimizer], [lr_scheduler]
 
-    def generate(
+    """def generate(
         self,
         prompts: List[str],
         max_gen_len: int,
@@ -218,4 +196,4 @@ class LLaMA(LightningModule):
         next_token = torch.multinomial(probs_sort, num_samples=1)
         # Pull token out from probs_idx
         next_token = torch.gather(probs_idx, -1, next_token)
-        return next_token
+        return next_token"""
