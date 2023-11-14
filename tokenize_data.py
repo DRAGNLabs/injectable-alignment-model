@@ -6,6 +6,7 @@ import os
 import sys
 import yaml
 from utils.data_utils import Struct
+import os
 
 # To use: define raw_dataset_path and tokenized_dataset_path in config
 def main():
@@ -24,7 +25,8 @@ def main():
     raw_data = args.raw_dataset_path
 
     # Load Dataset into pd.DataFrame
-    training_dataframe:pd.DataFrame = pd.read_csv(raw_data, dtype=str, na_filter=False)#.iloc[:25]
+    #training_dataframe:pd.DataFrame = pd.read_csv(raw_data, dtype=str, na_filter=False)#.iloc[:25]
+    training_dataframe:pd.DataFrame = pd.read_parquet(raw_data)
 
     # Generate tokenized file
     tokenized_df:pd.DataFrame = tokenizer.generate_tokenized_file(training_dataframe, tokenizer_path=args.tokenizer_path, seq_len=args.seq_len)
@@ -35,6 +37,7 @@ def main():
     print(f'\033[0;37m Saved as pickle at "{out_dir}"')    
     print(f"# of tokenized prompts: {len(tokenized_df)}\n")
     # TODO: make it possible to do this with multiple datasets: train/eval etc.
+
 
 
 if __name__== "__main__":
