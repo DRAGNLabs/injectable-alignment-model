@@ -5,9 +5,8 @@ from typing import List, Optional
 from torch.utils.data import DataLoader
 from pytorch_lightning import LightningDataModule
 
-# TODO: setting num_workers greater than 0?
 class DataModule(LightningDataModule):
-    def __init__(self, train_path, val_path, tokenizer, batch_size, sequence_length, num_workers=0):
+    def __init__(self, train_path, val_path, tokenizer, batch_size, sequence_length, num_workers=1):
         super().__init__()
         self.train_path = train_path
         self.val_path = val_path
@@ -32,7 +31,7 @@ class DataModule(LightningDataModule):
         return DataLoader(self.train_dataset, batch_size = self.batch_size, shuffle=True, num_workers=self.num_workers)
     
     def val_dataloader(self):
-        return DataLoader(self.val_dataset, batch_size = self.batch_size, shuffle=True, num_workers=self.num_workers)
+        return DataLoader(self.val_dataset, batch_size = self.batch_size, shuffle=False, num_workers=self.num_workers)
 
 class DataSet(torch.utils.data.Dataset):
     def __init__(self, path_to_data, pad_tok, bos_tok, eos_tok, sequence_length):

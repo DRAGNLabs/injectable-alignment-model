@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
 from pytorch_lightning import LightningModule
+from pathlib import Path
 
 from tokenizer.tokenizer import Tokenizer
 from model import Transformer
@@ -27,10 +28,8 @@ class LLaMA(LightningModule):
         y_hat = self.model(x)
         loss = F.cross_entropy(y_hat, y_true)
 
-        # TODO: is this necessary?
         loss = loss/self.config.gradient_accumulation_steps
 
-        # TODO: log settings?
         self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
         return loss
 
@@ -39,26 +38,33 @@ class LLaMA(LightningModule):
         y_hat = self.model(x)
         eval_loss = F.cross_entropy(y_hat, y_true)
 
-        # Decode predictions and add to evaluation predictions list
-        preds = torch.argmax(y_hat, 1).detach().cpu().tolist()
+        if self.config.save_predictions_during_training:
+            # Decode predictions and add to evaluation predictions list
+            preds = torch.argmax(y_hat, 1).detach().cpu().tolist()
 
-        decoded = self.tokenizer.decode(preds)
+            decoded = self.tokenizer.decode(preds)
 
-        self.validation_step_outputs.append(decoded)
+            self.validation_step_outputs.append(decoded)
 
-        # TODO: do you need to get eval loss for entire epoch?
         perplexity = torch.exp(eval_loss)
-        self.log('val_loss', eval_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
-        self.log('val_perplexity', perplexity, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('val_loss', eval_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+        self.log('val_perplexity', perplexity, on_step=True, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
         
         return eval_loss
 
     def on_validation_epoch_end(self) -> None:
-        all_preds = torch.stack(self.validation_step_outputs)
-        
-        # TODO: do something with predictions, like save them to a file
+        if self.config.save_predictions_during_training == True: # TODO: this needs to be tested
+            dir_path = Path(self.config.default_root_dir)
+            file_path = dir_path / 'validation_predictions.txt'
 
-        self.validation_step_outputs.clear()
+            # Check if the directory exists. If not, create it
+            dir_path.mkdir(parents=True, exist_ok=True)
+
+            # Check if the file exists. If not, create it and append the outputs
+            with file_path.open('a') as f:
+                f.write(str(self.validation_step_outputs))
+
+            self.validation_step_outputs.clear()
     
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.config.lr)  # model.paramaters = weights tensor

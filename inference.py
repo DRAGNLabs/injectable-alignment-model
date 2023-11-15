@@ -1,11 +1,12 @@
-from llama import LLaMA
 import sys
-from utils.data_utils import Struct
 import yaml
 import os
 import torch
-from tokenizer.tokenizer import Tokenizer
 from typing import List
+
+from llama import LLaMA
+from tokenizer.tokenizer import Tokenizer
+from utils.data_utils import Struct
 
 device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
 
@@ -185,15 +186,16 @@ def inference(config):
     #                                    config.sequence_length)
 
     # Generate
-    prompt = ["You are an AI assistant. You will be given a task. You must generate a detailed and long answer.	Generate an approximately fifteen-word sentence that describes all this data: Midsummer House eatType restaurant; Midsummer House food Chinese; Midsummer House priceRange moderate; Midsummer House customer rating 3 out of 5; Midsummer House near All Bar One"] # Load data here
-    max_gen_len = 50
-    
+    #prompt = ["You are an AI assistant. You will be given a task. You must generate a detailed and long answer.	Generate an approximately fifteen-word sentence that describes all this data: Midsummer House eatType restaurant; Midsummer House food Chinese; Midsummer House priceRange moderate; Midsummer House customer rating 3 out of 5; Midsummer House near All Bar One"] # Load data here
+    with open(config.inference_dataset_path, 'r') as f:
+        prompts = f.readlines()
+
     decoded, dictionary = generate(model,
                                    tokenizer,
-                                   prompt,
+                                   prompts,
                                    sequence_length=config.sequence_length,
                                    batch_size=config.batch_size,
-                                   max_gen_len = max_gen_len,
+                                   max_gen_len = config.max_gen_len,
                                    repetition_penalty=9.0)
 
     print('decoded: ', decoded)

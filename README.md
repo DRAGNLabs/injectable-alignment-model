@@ -26,6 +26,9 @@ In your config yaml, put in absolute paths for:
 - raw_dataset_path
 - tokenized_dataset_path
 
+## Setup slurm scripts
+
+
 ## Preparing Tokenizer
 
 Llama is designed to use SentencePiece tokenizer (https://github.com/google/sentencepiece). To prepare the tokenizer, you can either:

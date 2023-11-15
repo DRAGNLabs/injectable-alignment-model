@@ -1,7 +1,5 @@
-from llama import LLaMA
 import sys
 import signal
-from utils.data_utils import Struct
 import yaml
 
 import torch
@@ -9,20 +7,13 @@ from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.plugins.environments import SLURMEnvironment
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint, Callback
 from pytorch_lightning.loggers import CSVLogger
+
 from dataset import DataModule
 from tokenizer.tokenizer import Tokenizer
+from llama import LLaMA
+from utils.data_utils import Struct
 
 torch.set_float32_matmul_precision('medium')
-
-# TODO: other metrics?
-class CustomCSVLogger(CSVLogger):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-    
-    def log_metrics(self, metrics, step=None):
-        if 'val_loss' in metrics:
-            self.experiment.log_metrics(metrics, step=step)
-        super().log_metrics(metrics, step=step)
 
 class PrintCallback(Callback):
     def on_train_start(self, trainer, pl_module):
