@@ -1,8 +1,11 @@
-# Paths
+# Tokenizer
 tokenizer_path: /home/jo288/repos/Rocket/dataset/tokenizers/tokenizer.edited.model
-model_name: model_name_here
-default_root_dir: /home/jo288/repos/Rocket/runs/11-14
-checkpoint_path: /home/jo288/repos/Rocket/runs/11-14
+pad_id: -1 # defined later by tokenizer. NOTE: padding is disabled by default, see tokenizer.py
+vocab_size: -1  # defined later by tokenizer
+
+# Paths
+default_root_dir: /home/jo288/repos/Rocket/runs/11-14-2
+checkpoint_path: /home/jo288/repos/Rocket/runs/11-14-2/checkpoints/model-epoch=2-val_loss=0.02.ckpt
 
 # Dataset
 # Tokenizer expects parquet...
@@ -15,7 +18,7 @@ train_path: /home/jo288/repos/Rocket/dataset/tokenized/full_tokenized.pkl
 eval_path: /home/jo288/repos/Rocket/dataset/tokenized/full_tokenized.pkl
 
 # Inference data
-inference_dataset_path: /home/jo288/repos/Rocket/dataset/raw/inference_text.txt
+inference_path: /home/jo288/repos/Rocket/dataset/raw/inference_text.txt
 
 # GPU
 accelerator: gpu
@@ -25,11 +28,10 @@ devices: 8
 # Train
 gradient_accumulation_steps: 1
 num_epochs: 10
-lr: 1.0e-4
+lr: 1.0e-4 
 gamma: 0.85
 seed: 42
 #weight_decay: float=0.0
-run_validation: True
 early_stopping: 5
 save_top_k: 3
 
@@ -37,18 +39,9 @@ save_top_k: 3
 dim: 512
 n_layers: 8
 n_heads: 8
-vocab_size: -1  # defined later by tokenizer
 multiple_of: 256  # make SwiGLU hidden layer size multiple of large power of 2
 norm_eps: 1.0e-5
 batch_size: 32
 sequence_length: 1024
 dim_k: ~
 dim_v: ~
-
-# Misc TODO: these are unnecessary
-use_fp16: False
-mixed_precision: True
-save_model: False
-
-pad_id: -1 # defined later by tokenizer. NOTE: padding is disabled by default, see tokenizer.py
-    

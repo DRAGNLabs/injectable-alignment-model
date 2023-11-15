@@ -4,8 +4,8 @@ import pandas as pd
 from typing import List, Optional
 from torch.utils.data import DataLoader
 from pytorch_lightning import LightningDataModule
-from typing import List, Optional
 
+# TODO: setting num_workers greater than 0?
 class DataModule(LightningDataModule):
     def __init__(self, train_path, val_path, tokenizer, batch_size, sequence_length, num_workers=0):
         super().__init__()
@@ -38,6 +38,7 @@ class DataSet(torch.utils.data.Dataset):
     def __init__(self, path_to_data, pad_tok, bos_tok, eos_tok, sequence_length):
         assert os.path.isfile(path_to_data), path_to_data
         self.data:pd.DataFrame = pd.read_pickle(path_to_data)
+        print('dataset df shape: ', self.data.shape)
         self.pad_tok = pad_tok
         self.bos_tok = bos_tok
         self.eos_tok = eos_tok

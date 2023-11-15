@@ -1,12 +1,8 @@
-# Copyright (c) Meta Platforms, Inc. and affiliates.
-# This software may be used and distributed according to the terms of the Llama 2 Community License Agreement.
-import tqdm
 import os
 from logging import getLogger
 from typing import List
 from sentencepiece import SentencePieceProcessor
 import pandas as pd
-from pathlib import Path
 
 logger = getLogger()
 
@@ -45,6 +41,7 @@ class Tokenizer:
     def decode(self, t: List[int]) -> str:
         return self.sp_model.decode(t)
     
+#TODO: generalize this?
 def tokenize_data_chunk(tokenizer, chunk, seq_len):  
     '''
     Take some tokenizer object and some dictionary-like(?) data format
@@ -69,5 +66,5 @@ def generate_tokenized_file(df:pd.DataFrame, tokenizer_path, seq_len):
     tok_lambda = lambda x: tokenize_data_chunk(tokenizer=tokenizer, chunk=x, seq_len=seq_len)  # 'df.' of line 62 becomes 'x' in this lambda
     print(f'Dataframe: {df}\n\n')
     df1 = df.progress_apply(tok_lambda, axis=1)
-    df1 = df1.drop(['system_prompt','question','response'], axis=1)
+    df1 = df1.drop(['system_prompt','question','response'], axis=1) # Drop everything but id and tokenized_data
     return df1

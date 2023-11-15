@@ -4,9 +4,8 @@ from utils.data_utils import Struct
 import yaml
 import os
 import torch
-from dataset import DataSet
 from tokenizer.tokenizer import Tokenizer
-from types import List
+from typing import List
 
 device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
 
@@ -14,7 +13,7 @@ def generate(
     model,
     tokenizer,
     prompts: List[str], 
-    #dataset: DataSet, TODO: could be nice to use a dataloader, but this function generates for all prompts simultaneously, so it would have to be modified
+    #dataset: DataSet, #TODO: could be nice to use a dataloader, but this function generates for all prompts simultaneously, so it would have to be modified
     sequence_length: int,
     batch_size: int,
     max_gen_len: int,
@@ -53,7 +52,8 @@ def generate(
     for cur_pos in range(start_pos, total_len):
         #logits = self.model.forward(tokens[:, prev_pos:cur_pos], prev_pos)
         # Logits is of shape [bsz, vocab_size, sequence_length]. Here, we grab the last token in the sequence to process only it's probabilities.
-        logits = model(tokens[:, prev_pos:cur_pos])[:, :, -1] #TODO: not having prev_pos for attention may cause problems in this generation script, may have to rework
+        input = tokens[:, prev_pos:cur_pos].to(device)
+        logits = model(input)[:, :, -1] #TODO: not having prev_pos for attention may cause problems in this generation script, may have to rework
         if repetition_penalty != 1.0:
             logits_new = logits.clone()
             batch_size = len(tokens)
@@ -167,10 +167,11 @@ def inference(config):
 
     print(f"Using checkpoint: {checkpoint_path}")
 
-    """checkpoint = torch.load(checkpoint_path)
+    checkpoint = torch.load(checkpoint_path)
 
-    model.load_state_dict(checkpoint['state_dict'])"""
-    model.load_from_checkpoint(checkpoint_path)
+    model.load_state_dict(checkpoint['state_dict'])
+
+    model.cuda()
     model.eval()
     
     #dm = DataModule(config.train_path, config.eval_path, tokenizer, config.batch_size, config.sequence_length)
@@ -184,8 +185,8 @@ def inference(config):
     #                                    config.sequence_length)
 
     # Generate
-    prompt = ["test test test"] # Load data here
-    max_gen_len = 10
+    prompt = ["You are an AI assistant. You will be given a task. You must generate a detailed and long answer.	Generate an approximately fifteen-word sentence that describes all this data: Midsummer House eatType restaurant; Midsummer House food Chinese; Midsummer House priceRange moderate; Midsummer House customer rating 3 out of 5; Midsummer House near All Bar One"] # Load data here
+    max_gen_len = 50
     
     decoded, dictionary = generate(model,
                                    tokenizer,
