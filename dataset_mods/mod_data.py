@@ -6,10 +6,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from datetime import datetime
+from collections import Counter
 from re import sub as regex_sub
 from nltk.tokenize import word_tokenize as w_t
 # from nltk.corpus import stopwords
-
 
 def convert_xlsx_to_csv(input_xlsx_file, output_csv_file):
     # Read the Excel file
@@ -59,6 +59,13 @@ def load_pickle_to_dict(file_path):
         print(f"An error occurred in opening the pickle file: {e}")
         return None
 
+def get_length_of_pickle(file_path):
+    # Load a Pickle file
+    with open(file_path, 'rb') as f:
+        data = pickle.load(f)
+    # Return the length of the loaded data
+    return len(data)
+
 def parquet_to_dict(file_path):
     try:
         # Read the Parquet file using pandas
@@ -82,6 +89,13 @@ def parquet_to_dict(file_path):
 def read_parquet_to_df(file_path):
     # Read a Parquet file into a DataFrame
     df = pd.read_parquet(file_path)
+    return df
+
+def read_pickle_to_df(file_path):
+    # Read a Pickle file into a DataFrame
+    with open(file_path, 'rb') as f:
+        data = pickle.load(f)
+    df = pd.DataFrame(data)
     return df
 
 def stopword_stats(stop_words):
@@ -192,26 +206,17 @@ vocab_file_path = "4yo_words.pickle"
 # print(f"Flagged prompts: {len(flags)}, Clean Prompts: {len([])}")
 
 ## Update the vocabulary dictionary/file
-some_list = [] # Add words to this list to add them to the vocab dict
+# some_list = [] # Add words to this list to add them to the vocab dict
 # update_vocab(vocab_file_path, some_list)
 ## A list of words marking prompts we want flagged: bad_list = ['de', 'о', 'e']
-print('  '.join(["'s", "n't", "'m", "'re", "'ve", "'ll", "'d", "'em", "'cause", "'til", "'till", "'bout", "'round", "'nuff", "'cept", "'less", "'fore", "'tween", "'tis", "'twas", "'twill", "'t", "'n'", "'er", "'em"]))
 
 # gpt4_df = read_parquet_to_df('1M-GPT4-Augmented.parquet')
 # sub_gpt4_df = gpt4_df.iloc[0:10000, :]
 # sub_gpt4_list = sub_gpt4_df.values.tolist()
 # flag_prompts(sub_gpt4_list, vocab, flagged_file_path, clean_file_path)
 
-def read_pickle_to_df(file_path):
-    # Read a Pickle file into a DataFrame
-    with open(file_path, 'rb') as f:
-        data = pickle.load(f)
-    df = pd.DataFrame(data)
-    return df
-
 # new_sub_gpt4_df = read_pickle_to_df(flagged_file_path).iloc[:, 4]
 # print(new_sub_gpt4_df.head())
-from collections import Counter
 def count_words(df):
     counter = Counter()
     for row in df:
@@ -228,28 +233,25 @@ def count_words(df):
 # print(counter.most_common(100))  
 
 
-def search_in_pickle(file_path, search_string):
+def search_str_in_pickle(file_path, search_string):
     # Load a Pickle file into a DataFrame
     with open(file_path, 'rb') as f:
         data = pickle.load(f)
     df = pd.DataFrame(data)
 
-    # Get the last column's name
-    last_column = df.columns[-1]
+    last_column = df.columns[-1]  # Get last column's name
+    
     collector = []
     for col in df[last_column]:
         for i in col:
             if i[0] == search_string:
                 collector.append(col)
-    # Find rows where the last column contains the search string
-
     # Convert matching rows to a list and print it
     print(collector)
 
-# Usage
+## Find examples of a flagged word's usage in data
 # search_string = 'e'
-# matching_rows = search_in_pickle('flagged.pickle', search_string)
-
+# matching_rows = search_str_in_pickle('flagged.pickle', search_string)
 
 def get_pickle_distribution(file_path):
     # Load a Pickle file into a DataFrame
@@ -288,23 +290,7 @@ def plot_distribution(tup_list, filename, normalize=False):
     plt.title('Histogram of Integers')
     plt.savefig(filename)
 
+
+## Calculate and plot the distribution of flagged prompts
 # dist = get_pickle_distribution('flagged.pickle')
 # plot_distribution(dist, filename='Distribution_of_Flags.png')
-
-# update_vocab(vocab_file_path, [])
-
-
-
-
-
-
-
-def get_length_of_pickle(file_path):
-    # Load a Pickle file
-    with open(file_path, 'rb') as f:
-        data = pickle.load(f)
-    # Return the length of the loaded data
-    return len(data)
-# Usage
-# length = get_length_of_pickle('flagged.pickle')
-# print(length)
