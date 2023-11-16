@@ -13,5 +13,5 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 nvidia-smi
-mamba activate rocket_training
+mamba activate rocket
 python3 ../inference.py ../configs/train_config.yaml
