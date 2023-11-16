@@ -114,6 +114,7 @@ def update_vocab(file_to_update, new_data:list[str]):
     that_dict = load_pickle_to_dict(file_to_update)
     empty_value = ['', '', 'inf']  # Fill in values for new words' extra columns
     for char in new_data:
+        print(char)
         try:  # skip words already in the dict
             that_dict[char]
         except KeyError:  # else add them
@@ -249,10 +250,10 @@ def plot_distribution(tup_list, filename, normalize=False):
     plt.title('Histogram of Integers')
     plt.savefig(filename)
 
-flagged_file_path = "flagged.pickle"
-clean_file_path = "clean.pickle"
+flagged_file_path = "flagged_tiny_stories.pickle"
+clean_file_path = "clean_tiny_stories.pickle"
 data_file_path = '1M-GPT4-Augmented.parquet' #"./sample_GPT4.parquet"
-vocab_file_path = "4yo_words.pickle"
+vocab_file_path = "7yo_words.pickle"
 
 ## Load in data and vocab
 # data = parquet_to_dict(data_file_path)
@@ -262,14 +263,14 @@ vocab_file_path = "4yo_words.pickle"
 # flag_prompts(data, vocab, flagged_file_path, clean_file_path)
 
 ## Check the number of flagged vs clean prompts
-# flags = load_csv_to_dict(flagged_file_path, pickle_dict=False)
-# cleans = load_csv_to_dict(clean_file_path, pickle_dict=False)
-# print(f"Flagged prompts: {len(flags)}, Clean Prompts: {len([])}")
+flags = load_pickle_to_dict(flagged_file_path)
+cleans = load_pickle_to_dict(clean_file_path)
+print(f"Flagged prompts: {len(flags)}, Clean Prompts: {len(cleans)}")
 
-## Update the vocabulary dictionary/file
+# Update the vocabulary dict/file
 # some_list = [] # Add words to this list to add them to the vocab dict
 # update_vocab(vocab_file_path, some_list)
-## A list of words marking prompts we want flagged: bad_list = ['de', 'о', 'e']
+# A list of words marking prompts we want flagged: bad_list = ['de', 'о', 'e']
 
 ## Create a test data set and flag it
 # gpt4_df = read_parquet_to_df('1M-GPT4-Augmented.parquet')
@@ -277,18 +278,55 @@ vocab_file_path = "4yo_words.pickle"
 # sub_gpt4_list = sub_gpt4_df.values.tolist()
 # flag_prompts(sub_gpt4_list, vocab, flagged_file_path, clean_file_path)
 
-##
-# new_sub_gpt4_df = read_pickle_to_df(flagged_file_path).iloc[:, 4]
-# print(new_sub_gpt4_df.head())
-
 ## Get the most common flagged words in data set
-# counter = count_words(new_sub_gpt4_df)
+# flagged_words_df = read_pickle_to_df(flagged_file_path).iloc[:, 4]
+# counter = count_words(flagged_words_df)
 # print(counter.most_common(100))
 
 ## Find examples of a flagged word's usage in data
 # search_string = 'th'
 # matching_rows = search_str_in_pickle('flagged.pickle', search_string)
 
-## Calculate and plot the distribution of flagged prompts
-# dist = get_pickle_distribution('flagged.pickle')
-# plot_distribution(dist, filename='Distribution_of_Flags.png')
+
+# with open(data_file_path, mode='r', encoding='utf8') as inf:
+#     txt = inf.readlines()
+#     print(len(txt))
+
+def flag_prompts_from_tiny(prompts_list, vocab_dict, flagged_file, clean_file):
+    """
+    Flags prompts in a dictionary that contain invalid tokens based on a given vocabulary dictionary.
+    Writes flagged and clean prompts to separate CSV files.
+
+    Args:
+        prompts_list (list): A list of prompts with their corresponding GPT-x responses.
+        vocab_dict (dict): A dictionary of valid tokens.
+        flagged_file (str): The filepath to write the flagged prompts to.
+        clean_file (str): The filepath to write the clean prompts to.
+        write_every (int, optional): The number of prompts to write to file at a time. Defaults to 1000.
+    """
+    flagged_data = []
+    clean_data = []
+
+    for prompt in tqdm(prompts_list):
+        #todo: Add comments; handle numbers (any number is valid; tokenize as single digits and add 0-9 to vocab dict); 
+        prompt_and_answer_2 = split_nums_and_symbols(prompt)  # Split numbers and symbols into separate tokens
+        tokenized_text = tokenize_with_penn_treebank(prompt_and_answer_2)  # Tokenize text using Penn Treebank tokenizer
+        text_evaluated = eval_prompt(tokenized_text, vocab_dict)  # Evaluate prompt for invalid tokens
+        if text_evaluated[0]:
+            flagged_data.append(text_evaluated[1])  # Add prompt to list of flagged prompts
+        else:
+            clean_data.append(prompt)  # Add prompt to list of clean prompts
+
+    # Write flagged prompts to file
+    pickle_data(flagged_file, flagged_data)
+
+    # Write clean prompts to file
+    pickle_data(clean_file, clean_data)
+    print("Prompts Flagged.")
+
+# flag_prompts_from_tiny(txt[:10000], vocab, flagged_file_path, clean_file_path)
+
+# Calculate and plot the distribution of flagged prompts
+# dist = get_pickle_distribution(flagged_file_path)
+# plot_distribution(dist, filename='Distribution_of_7_yo_Flags.png')
+

@@ -11,3 +11,4 @@ test.py
 *.out
 *.parquet
 Training/llama2v2/tokenized_files/gpt3-2_tokenized_data.pkl
+dataset_mods/TinyStoriesV2-GPT4-train.txt
