@@ -10,7 +10,7 @@ This repository consists of:
 - **dataset**: the dataset folder should store all raw and tokenized data, as well as tokenizers.
 - **runs**: contains all results from training and evaluation jobs/
 - **slurm**: slurm scripts for various tasks/
-- **tokenizer**: various scripts pertaining to tokenization, as well as the core tokenizer class in [tokenizer.py](tokenizer.py).
+- **tokenizer**: various scripts pertaining to tokenization, as well as the core tokenizer class in [tokenizer.py](./tokenizer/tokenizer.py).
 - **utils**: various utils.
 - **dataset.py**: containing PyTorch Lightning DataModule class and DataSet class. These classes should be modified for specific use cases.
 - **inference.py**: Script for running inference, given a configuration.
@@ -34,14 +34,14 @@ Configuration YAML (Yet Another Markdown Language) files are used to define all 
 
 In your config yaml, enter the necessary information in the absolute paths for datasets, the tokenizer, and the root directory. The default names for the tokenizer and dataset will work with the setup script.
 
-#### Running Setup Script
+### Running Setup Script
 
 This repo was developed to use data from [OpenOrca](https://huggingface.co/datasets/Open-Orca/OpenOrca). If using other data, it is up to the user to prepare the data correctly. Ultimately, the paths for training and evaluation must point to pickle files containing the data.
 
 After putting in all of the necessary paths in the config file, you can run ```setup.sh``` in the slurm folder. This script will:
 
 - Download the OpenOrca data.
-- Train a tokenizer on the data. You can adjust the vocabularly size in [train_tokenizer.sh](train_tokenizer.sh)
+- Train a tokenizer on the data. You can adjust the vocabularly size in [train_tokenizer.sh](./slurm/train_tokenizer.sh)
 - Tokenize all of the data, storing the results in the dataset folder.
 
 Outlined below are the steps accomplished by this script in more detail:
@@ -52,7 +52,7 @@ To obtain the OpenOrca data, run ```setup.py```. This will download two parquet 
 
 ##### Preparing Tokenizer
 
-Llama is designed to use SentencePiece tokenizer (https://github.com/google/sentencepiece). To prepare the tokenizer, you can either:
+Llama is designed to use [SentencePiece](https://github.com/google/sentencepiece). To prepare the tokenizer, you can either:
 
 - Train a new tokenizer from scratch based on your data.
 - Use the original Llama 2 tokenizer trained by Meta.
@@ -64,14 +64,14 @@ A SentencePiece tokenizer can be trained by running `train_tokenizer.py`, found 
 ```python train_tokenizer.py "--input=../dataset/raw/openorca_combined.csv --model_prefix=tokenizer --vocab_size=32000 --shuffle_input_sentence=true --pad_id=3"```
 
 You can find further information on training arguments in the SentencePiece documentation: 
-- https://github.com/google/sentencepiece
-- https://github.com/google/sentencepiece/blob/master/doc/options.md
+- [SentencePiece Repository](https://github.com/google/sentencepiece)
+- [Training options](https://github.com/google/sentencepiece/blob/master/doc/options.md)
 
 ##### Using Original Llama 2 Tokenizer
 
-Request access for Llama 2 from https://ai.meta.com/resources/models-and-libraries/llama-downloads/
+[Request access for Llama 2](https://ai.meta.com/resources/models-and-libraries/llama-downloads/)
 
-Clone repo from https://github.com/facebookresearch/llama
+Clone the [repository](https://github.com/facebookresearch/llama)
 
 When download link has been obtained via email, run `./download.sh` in repo.
 
