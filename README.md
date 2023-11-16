@@ -61,7 +61,7 @@ Llama is designed to use [SentencePiece](https://github.com/google/sentencepiece
 
 A SentencePiece tokenizer can be trained by running `train_tokenizer.py`, found in `Training/tokenizer`. This script is simply a wrapper for the SentencePiece python module; it seems easier than building and installing SentencePiece from source. Pass in all arguments in quotations, ex:
 
-```python train_tokenizer.py "--input=../dataset/raw/openorca_combined.csv --model_prefix=tokenizer --vocab_size=32000 --shuffle_input_sentence=true --pad_id=3"```
+```python3 train_tokenizer.py "--input=../dataset/raw/openorca_combined.csv --input_format=text --input_sentence_size=1000000 --train_extremely_large_corpus=true --model_prefix=tokenizer --vocab_size=32000 --shuffle_input_sentence=true --pad_id=3""```
 
 You can find further information on training arguments in the SentencePiece documentation: 
 - [SentencePiece Repository](https://github.com/google/sentencepiece)

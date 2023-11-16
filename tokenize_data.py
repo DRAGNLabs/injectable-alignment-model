@@ -30,6 +30,7 @@ def main():
 
     # Generate tokenized file
     tokenized_df:pd.DataFrame = tokenizer.generate_tokenized_file(training_dataframe, tokenizer_path=args.tokenizer_path, seq_len=args.seq_len)
+
     out_dir = Path(args.tokenized_dataset_path)
     if not out_dir.parent.exists():
         out_dir.parent.mkdir(parents=True)
