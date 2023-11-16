@@ -30,7 +30,7 @@ class LLaMA(LightningModule):
 
         loss = loss/self.config.gradient_accumulation_steps
 
-        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -53,7 +53,7 @@ class LLaMA(LightningModule):
         return eval_loss
 
     def on_validation_epoch_end(self) -> None:
-        if self.config.save_predictions_during_training == True: # TODO: this needs to be tested
+        if self.config.save_predictions_during_training == True:
             dir_path = Path(self.config.default_root_dir)
             file_path = dir_path / 'validation_predictions.txt'
 
@@ -62,7 +62,7 @@ class LLaMA(LightningModule):
 
             # Check if the file exists. If not, create it and append the outputs
             with file_path.open('a') as f:
-                f.write(str(self.validation_step_outputs))
+                f.write(str(self.validation_step_outputs) + '\n')
 
             self.validation_step_outputs.clear()
     
