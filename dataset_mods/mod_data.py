@@ -160,7 +160,7 @@ def flag_prompts(prompts_list, vocab_dict, flagged_file, clean_file):
     Writes flagged and clean prompts to separate CSV files.
 
     Args:
-        prompts_dict (dict): A dictionary of prompts with their corresponding GPT-x responses.
+        prompts_list (list): A list of prompts with their corresponding GPT-x responses.
         vocab_dict (dict): A dictionary of valid tokens.
         flagged_file (str): The filepath to write the flagged prompts to.
         clean_file (str): The filepath to write the clean prompts to.
@@ -188,51 +188,6 @@ def flag_prompts(prompts_list, vocab_dict, flagged_file, clean_file):
     pickle_data(clean_file, clean_data)
     print("Prompts Flagged.")
 
-flagged_file_path = "flagged.pickle"
-clean_file_path = "clean.pickle"
-data_file_path = '1M-GPT4-Augmented.parquet' #"./sample_GPT4.parquet"
-vocab_file_path = "4yo_words.pickle"
-
-## Load in data and vocab
-# data = parquet_to_dict(data_file_path)
-# vocab = load_pickle_to_dict(vocab_file_path)
-
-## Flag prompts on a data set
-# flag_prompts(data, vocab, flagged_file_path, clean_file_path)
-
-## Check the number of flagged vs clean prompts
-# flags = load_csv_to_dict(flagged_file_path, pickle_dict=False)
-# cleans = load_csv_to_dict(clean_file_path, pickle_dict=False)
-# print(f"Flagged prompts: {len(flags)}, Clean Prompts: {len([])}")
-
-## Update the vocabulary dictionary/file
-# some_list = [] # Add words to this list to add them to the vocab dict
-# update_vocab(vocab_file_path, some_list)
-## A list of words marking prompts we want flagged: bad_list = ['de', 'о', 'e']
-
-# gpt4_df = read_parquet_to_df('1M-GPT4-Augmented.parquet')
-# sub_gpt4_df = gpt4_df.iloc[0:10000, :]
-# sub_gpt4_list = sub_gpt4_df.values.tolist()
-# flag_prompts(sub_gpt4_list, vocab, flagged_file_path, clean_file_path)
-
-# new_sub_gpt4_df = read_pickle_to_df(flagged_file_path).iloc[:, 4]
-# print(new_sub_gpt4_df.head())
-def count_words(df):
-    counter = Counter()
-    for row in df:
-        for word_tuple in row:
-            if word_tuple[1]:
-                counter[word_tuple[0]] += 1
-    return counter
-
-# Usage
-# counter = count_words(new_sub_gpt4_df)
-# pickle_data('flagged_counter.pickle', counter)
-
-# counter = load_pickle_to_dict('flagged_counter.pickle')
-# print(counter.most_common(100))  
-
-
 def search_str_in_pickle(file_path, search_string):
     # Load a Pickle file into a DataFrame
     with open(file_path, 'rb') as f:
@@ -249,9 +204,13 @@ def search_str_in_pickle(file_path, search_string):
     # Convert matching rows to a list and print it
     print(collector)
 
-## Find examples of a flagged word's usage in data
-# search_string = 'e'
-# matching_rows = search_str_in_pickle('flagged.pickle', search_string)
+def count_words(df):
+    counter = Counter()
+    for row in df:
+        for word_tuple in row:
+            if word_tuple[1]:
+                counter[word_tuple[0]] += 1
+    return counter
 
 def get_pickle_distribution(file_path):
     # Load a Pickle file into a DataFrame
@@ -290,6 +249,45 @@ def plot_distribution(tup_list, filename, normalize=False):
     plt.title('Histogram of Integers')
     plt.savefig(filename)
 
+flagged_file_path = "flagged.pickle"
+clean_file_path = "clean.pickle"
+data_file_path = '1M-GPT4-Augmented.parquet' #"./sample_GPT4.parquet"
+vocab_file_path = "4yo_words.pickle"
+
+## Load in data and vocab
+# data = parquet_to_dict(data_file_path)
+# vocab = load_pickle_to_dict(vocab_file_path)
+
+## Flag prompts on a data set
+# flag_prompts(data, vocab, flagged_file_path, clean_file_path)
+
+## Check the number of flagged vs clean prompts
+# flags = load_csv_to_dict(flagged_file_path, pickle_dict=False)
+# cleans = load_csv_to_dict(clean_file_path, pickle_dict=False)
+# print(f"Flagged prompts: {len(flags)}, Clean Prompts: {len([])}")
+
+## Update the vocabulary dictionary/file
+# some_list = [] # Add words to this list to add them to the vocab dict
+# update_vocab(vocab_file_path, some_list)
+## A list of words marking prompts we want flagged: bad_list = ['de', 'о', 'e']
+
+## Create a test data set and flag it
+# gpt4_df = read_parquet_to_df('1M-GPT4-Augmented.parquet')
+# sub_gpt4_df = gpt4_df.iloc[0:10000, :]
+# sub_gpt4_list = sub_gpt4_df.values.tolist()
+# flag_prompts(sub_gpt4_list, vocab, flagged_file_path, clean_file_path)
+
+##
+# new_sub_gpt4_df = read_pickle_to_df(flagged_file_path).iloc[:, 4]
+# print(new_sub_gpt4_df.head())
+
+## Get the most common flagged words in data set
+# counter = count_words(new_sub_gpt4_df)
+# print(counter.most_common(100))
+
+## Find examples of a flagged word's usage in data
+# search_string = 'th'
+# matching_rows = search_str_in_pickle('flagged.pickle', search_string)
 
 ## Calculate and plot the distribution of flagged prompts
 # dist = get_pickle_distribution('flagged.pickle')
