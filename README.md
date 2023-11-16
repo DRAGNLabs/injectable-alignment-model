@@ -1,7 +1,3 @@
-TODO:
-- Refactor generate function in llama.py to seperate script, or put in predict lightning function..
-- define paths in config for datasets
-
 # Rocket
 
 There are separate READMEs in [Training](https://github.com/DRAGNLabs/Rocket/blob/main/Training/readme.md) and [Evaluation](https://github.com/DRAGNLabs/Rocket/blob/main/Evaluation/README_Eval.md) for their respective setups.
