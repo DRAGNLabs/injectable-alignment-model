@@ -2,12 +2,9 @@ Models/**
 Training/dataset
 Training/checkpoints
 __pycache__
-dataset/
 test.py
 
 # No tokenizer binaries 
 *.model
 # No slurm files
 *.out
-
-Training/llama2v2/tokenized_files/gpt3-2_tokenized_data.pkl

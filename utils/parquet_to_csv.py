@@ -23,4 +23,4 @@ for file_path in data_files['train']:
 result = pd.concat(dataframes, ignore_index=True) 
 
 # Save dataset as csv
-result.to_csv('../dataset/raw/datasettest.csv', index=False)
+result.to_csv('../dataset/raw/dataset_combined.csv', index=False)
