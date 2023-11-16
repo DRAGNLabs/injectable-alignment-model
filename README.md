@@ -6,10 +6,10 @@ Rocket is a modified version of the Llama 2 architecture, implemented through Py
 
 This repository consists of:
 
-- **configs**: the configuration folder holding all configs for use in training, data preparation, and evaluation/
+- **configs**: the configuration folder holding all configs for use in training, data preparation, and evaluation.
 - **dataset**: the dataset folder should store all raw and tokenized data, as well as tokenizers.
-- **runs**: contains all results from training and evaluation jobs/
-- **slurm**: slurm scripts for various tasks/
+- **runs**: contains all results from training and evaluation jobs.
+- **slurm**: slurm scripts for various tasks/=.
 - **tokenizer**: various scripts pertaining to tokenization, as well as the core tokenizer class in [tokenizer.py](./tokenizer/tokenizer.py).
 - **utils**: various utils.
 - **dataset.py**: containing PyTorch Lightning DataModule class and DataSet class. These classes should be modified for specific use cases.
