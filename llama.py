@@ -1,532 +1,72 @@
-# Copyright (c) Meta Platforms, Inc. and affiliates.
-# This software may be used and distributed according to the terms of the GNU General Public License version 3.
-
 import torch
-from torch.utils.data import DataLoader
-import torch.cuda.nccl as nccl
-import torch.distributed as dist
-from torch.distributed.fsdp import StateDictType
-from torch.distributed.fsdp.sharded_grad_scaler import ShardedGradScaler
 import torch.nn.functional as F
-
-import time
-import json
-import os
-import pandas as pd
+from pytorch_lightning import LightningModule
 from pathlib import Path
-from typing import List
-from utils.memory_utils import MemoryTrace
-
-from tqdm import tqdm
-import yaml
 
 from tokenizer.tokenizer import Tokenizer
 from model import Transformer
-from dataset import Rocket_DataSet
-from contextlib import nullcontext
 
-from utils.checkpoint_utils import save_model_checkpoint, save_model_and_optimizer_sharded, save_optimizer_checkpoint
+# Use a lower precision for better performance
+torch.set_float32_matmul_precision('medium')
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-torch.set_default_device(device)
-
-class LLaMA:
-    @staticmethod
-    def build(
-        train_args
-    ) -> "LLaMA":
-        # TODO: this is parellization stuff from llama repo
-        """if not torch.distributed.is_initialized():
-            torch.distributed.init_process_group("nccl")
-        if not model_parallel_is_initialized():
-            if model_parallel_size is None:
-                model_parallel_size = int(os.environ.get("WORLD_SIZE", 1))
-            initialize_model_parallel(model_parallel_size)
-
-        local_rank = int(os.environ.get("LOCAL_RANK", 0))
-        torch.cuda.set_device(local_rank)
-
-        # seed must be the same in all processes
-        torch.manual_seed(seed)
-
-        if local_rank > 0:
-            sys.stdout = open(os.devnull, "w")"""
-
-        
-        start_time = time.time()
-        # TODO: need to test/implement this
-        checkpoints = sorted(Path(train_args.ckpt_dir).glob("*.pth"))
-        if len(checkpoints) > 0:
-            checkpoint = torch.load(train_args.ckpt_dir, map_location="cpu")
-            # TODO: I don't think these lines are necessary, but I'm not sure
-            #with open(Path(train_args.ckpt_dir) / "params.json", "r") as f:
-                #params = json.loads(f.read()) # TODO: what does params actually look like? Look in checkpointing during training
-        #else:
-            #params = {}
-
-        #train_args(**params)
-        
-        tokenizer = Tokenizer(model_path=train_args.tokenizer_path)  # including this for the special tokens (i.e. pad)
-
-        train_args.vocab_size = tokenizer.n_words
-        
-        #torch.set_default_tensor_type(torch.cuda.HalfTensor)  # TODO: this causes the loss to become NaN
-
-        model = Transformer(train_args)
-
-        # TODO: also probably don't need this, this is HF?
-        #if len(checkpoints) > 0:
-        #    model.load_state_dict(checkpoint, strict=False)
-
-        print(f"Loaded in {time.time() - start_time:.2f} seconds")
-        train_args.pad_id = tokenizer.pad_id
-        dataset = Rocket_DataSet(train_args.dataset_path, pad_tok=tokenizer.pad_id, bos_tok=tokenizer.bos_id, eos_tok=tokenizer.eos_id, sequence_length=train_args.seq_len)
-        return LLaMA(model, tokenizer, dataset, train_args)
-
-    def __init__(self, 
-                 model: Transformer, 
+class LLaMA(LightningModule):
+    def __init__(self,
                  tokenizer: Tokenizer, 
-                 dataset:Rocket_DataSet,
-                 train_args):
-        self.model = model
+                 config: dict):
+        super().__init__()
         self.tokenizer = tokenizer
-        self.dataset = dataset
-        self.train_args = train_args
+        self.config = config
+        self.model = Transformer(config)
+        self.validation_step_outputs = [] # Used for saving predictions throughout training
+
+    def forward(self, inputs):
+        return self.model(inputs)
     
-    # TODO: these additional parameters need to be implemented somehow
-    def train(self, fsdp_config=None, local_rank=None, rank=None):
-        """
-        Trains the model on the given dataloader
+    def training_step(self, batch, batch_idx):
+        (x, y_true) = batch
+        #with autocast(): # autocast is torch package for running in mixed precision, which improves performance
+        y_hat = self.model(x)
+        loss = F.cross_entropy(y_hat, y_true)
+
+        loss = loss/self.config.gradient_accumulation_steps
+
+        self.log('train_loss', loss, on_step=True, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+        return loss
+
+    def validation_step(self, batch, batch_idx):
+        (x, y_true) = batch
+        y_hat = self.model(x)
+        eval_loss = F.cross_entropy(y_hat, y_true)
+
+        if self.config.save_predictions_during_training:
+            # Decode predictions and add to evaluation predictions list
+            preds = torch.argmax(y_hat, 1).detach().cpu().tolist()
+
+            decoded = self.tokenizer.decode(preds)
+
+            self.validation_step_outputs.append(decoded)
+
+        perplexity = torch.exp(eval_loss)
+        self.log('val_loss', eval_loss, on_step=True, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+        self.log('val_perplexity', perplexity, on_step=True, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+        
+        return eval_loss
+
+    def on_validation_epoch_end(self) -> None:
+        if self.config.save_predictions_during_training == True:
+            dir_path = Path(self.config.default_root_dir)
+            file_path = dir_path / 'validation_predictions.txt'
+
+            # Check if the directory exists. If not, create it
+            dir_path.mkdir(parents=True, exist_ok=True)
+
+            # Check if the file exists. If not, create it and append the outputs
+            with file_path.open('a') as f:
+                f.write(str(self.validation_step_outputs) + '\n')
+
+            self.validation_step_outputs.clear()
     
-        Args:
-            train_dataloader: The dataloader containing the training data
-            eval_dataloader: The dataloader containing the eval data
-            optimizer: The optimizer used for training
-            lr_scheduler: The learning rate scheduler
-            local_rank: The rank of the current node in a distributed setting
-        
-        Returns: results dictionary containing average training and validation perplexity and loss
-        """
-        # Create a gradient scaler for fp16
-        if self.train_args.use_fp16 and self.train_args.enable_fsdp:
-            scaler = ShardedGradScaler()
-        elif self.train_args.use_fp16 and not self.train_args.enable_fsdp:
-            scaler = torch.cuda.amp.GradScaler()
-        if self.train_args.enable_fsdp:
-            world_size = int(os.environ["WORLD_SIZE"])
-        autocast = torch.cuda.amp.autocast if self.train_args.use_fp16 else nullcontext
-
-        # Create necessary training modules based on config
-        train_dataloader = DataLoader(self.dataset, batch_size = self.train_args.batch_size, shuffle=True, generator=torch.Generator(device=device))
-        eval_dataloader = DataLoader(self.dataset, batch_size = self.train_args.batch_size, shuffle=True, generator=torch.Generator(device=device))
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.train_args.lr)  # model.paramaters = weights tensor
-        criterion = torch.nn.CrossEntropyLoss()
-        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.train_args.gamma)
-        
-        train_prep = []
-        train_loss = []
-        val_prep = []
-        val_loss =[]
-        epoch_times = []
-        checkpoint_times = []
-        results = {}
-        best_val_loss = float("inf")
-
-        for epoch in range(self.train_args.num_epochs):
-            epoch_start_time = time.perf_counter()
-            with MemoryTrace() as memtrace:  # track the memory usage
-                self.model.train()
-                total_loss = 0.0
-                total_length = len(train_dataloader)//self.train_args.gradient_accumulation_steps
-                pbar = tqdm(colour="blue", desc=f"Training Epoch: {epoch+1}", total=total_length)
-                for step, batch in enumerate(train_dataloader): # batch = (x, y_true)
-                    for element in batch:
-                        if self.train_args.enable_fsdp:
-                            element = element.to(local_rank) # This isn't unnecessary
-
-                    (x, y_true) = batch
-                    x = x.to(device)
-                    y_true = y_true.to(device)
-                    
-                    with autocast(): # autocast is torch package for running in mixed precision, which improves performance
-                        y_hat = self.model(x)
-                        loss = criterion(y_hat, y_true)
-
-                    loss = loss/self.train_args.gradient_accumulation_steps
-                    total_loss += loss.detach().float()
-                    if self.train_args.use_fp16:
-                        # if fp16 is enabled, use gradient scaler to handle gradient update
-                        scaler.scale(loss).backward()
-                        if (step + 1) % self.train_args.gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
-                            scaler.step(optimizer)
-                            scaler.update()
-                            optimizer.zero_grad()
-                            pbar.update(1)
-                    else:
-                        # regular backpropagation when fp16 is not used
-                        loss.backward()
-                        if (step + 1) % self.train_args.gradient_accumulation_steps == 0 or step == len(train_dataloader) - 1:
-                            optimizer.step()
-                            optimizer.zero_grad()
-                            pbar.update(1)
-
-                    pbar.set_description(f"Training Epoch: {epoch+1}/{self.train_args.num_epochs}, step {step}/{len(train_dataloader)} completed (loss: {loss.detach().float()})")
-                pbar.close()
-                    
-            epoch_end_time = time.perf_counter()-epoch_start_time
-            epoch_times.append(epoch_end_time)    
-            # Reducing total_loss across all devices if there's more than one CUDA device
-            if torch.cuda.device_count() > 1 and self.train_args.enable_fsdp:
-                dist.all_reduce(total_loss, op=dist.ReduceOp.SUM)
-            train_epoch_loss = total_loss / len(train_dataloader)
-            if self.train_args.enable_fsdp:
-                train_epoch_loss = train_epoch_loss/world_size
-            train_perplexity = torch.exp(torch.tensor(train_epoch_loss))
-            
-            train_prep.append(train_perplexity)
-            train_loss.append(train_epoch_loss)
-            if self.train_args.enable_fsdp:
-                if rank==0:
-                    print(f"Max CUDA memory allocated was {memtrace.peak} GB")
-                    print(f"Max CUDA memory reserved was {memtrace.max_reserved} GB")
-                    print(f"Peak active CUDA memory was {memtrace.peak_active_gb} GB")
-                    print(f"Cuda Malloc retires : {memtrace.cuda_malloc_retires}")
-                    print(f"CPU Total Peak Memory consumed during the train (max): {memtrace.cpu_peaked + memtrace.cpu_begin} GB")
-            else:
-                print(f"Max CUDA memory allocated was {memtrace.peak} GB")
-                print(f"Max CUDA memory reserved was {memtrace.max_reserved} GB")
-                print(f"Peak active CUDA memory was {memtrace.peak_active_gb} GB")
-                print(f"Cuda Malloc retires : {memtrace.cuda_malloc_retires}")
-                print(f"CPU Total Peak Memory consumed during the train (max): {memtrace.cpu_peaked + memtrace.cpu_begin} GB")
-        
-            # Update the learning rate as needed
-            lr_scheduler.step()
-            
-            # TODO: All this stuff with checkpointing needs to be implemented
-            if self.train_args.run_validation:
-                eval_ppl, eval_epoch_loss = self.evaluation(criterion, eval_dataloader, local_rank)
-                checkpoint_start_time = time.perf_counter()
-                if self.train_args.save_model and eval_epoch_loss < best_val_loss:
-                    if self.train_args.enable_fsdp:
-                        dist.barrier()
-                    if self.train_args.use_peft:
-                        if self.train_args.enable_fsdp:
-                            if rank==0:
-                                print(f"we are about to save the PEFT modules")
-                        else:
-                            print(f"we are about to save the PEFT modules")
-                        self.model.save_pretrained(self.train_args.output_dir)  
-                        if self.train_args.enable_fsdp:
-                            if rank==0: 
-                                print(f"PEFT modules are saved in {self.train_args.output_dir} directory")
-                        else:
-                            print(f"PEFT modules are saved in {self.train_args.output_dir} directory")
-                            
-                    else:
-                        if not self.train_args.use_peft and fsdp_config.checkpoint_type == StateDictType.FULL_STATE_DICT:
-                            
-                            save_model_checkpoint(
-                                self.model, optimizer, rank, self.train_args, epoch=epoch
-                            )
-                        elif not self.train_args.use_peft and fsdp_config.checkpoint_type == StateDictType.SHARDED_STATE_DICT:
-                            print(" Saving the FSDP model checkpoints using SHARDED_STATE_DICT")
-                            print("=====================================================")
-                            
-                            save_model_and_optimizer_sharded(self.model, rank, self.train_args)
-                            if self.train_args.save_optimizer:
-                                save_model_and_optimizer_sharded(self.model, rank, self.train_args, optim=optimizer)
-                                print(" Saving the FSDP model checkpoints and optimizer using SHARDED_STATE_DICT")
-                                print("=====================================================")
-
-                        if not self.train_args.use_peft and  self.train_args.save_optimizer:
-                            save_optimizer_checkpoint(
-                                self.model, optimizer, rank, self.train_args, epoch=epoch
-                            )
-                            print(" Saving the FSDP model checkpoints and optimizer using FULL_STATE_DICT")
-                            print("=====================================================")                     
-                    if self.train_args.enable_fsdp:
-                        dist.barrier()
-                checkpoint_end_time = time.perf_counter() - checkpoint_start_time
-                checkpoint_times.append(checkpoint_end_time)
-                if eval_epoch_loss < best_val_loss:
-                    best_val_loss = eval_epoch_loss
-                    if self.train_args.enable_fsdp:
-                        if rank==0:
-                            print(f"best eval loss on epoch {epoch+1} is {best_val_loss}")
-                    else:
-                        print(f"best eval loss on epoch {epoch+1} is {best_val_loss}")
-                val_loss.append(best_val_loss)
-                val_prep.append(eval_ppl)
-            if self.train_args.enable_fsdp:
-                if rank==0:
-                    print(f"Epoch {epoch+1}: train_perplexity={train_perplexity:.4f}, train_epoch_loss={train_epoch_loss:.4f}, epoch time {epoch_end_time}s")
-            else:
-                print(f"Epoch {epoch+1}: train_perplexity={train_perplexity:.4f}, train_epoch_loss={train_epoch_loss:.4f}, epoch time {epoch_end_time}s")
-        
-        avg_epoch_time = sum(epoch_times)/ len(epoch_times)
-        avg_checkpoint_time = sum(checkpoint_times)/ len(checkpoint_times) if len(checkpoint_times) > 0 else 0
-        avg_train_prep = sum(train_prep)/len(train_prep)
-        avg_train_loss = sum(train_loss)/len(train_loss)
-        if self.train_args.run_validation:
-            avg_eval_prep = sum(val_prep)/len(val_prep) 
-            avg_eval_loss = sum(val_loss)/len(val_loss) 
-
-        results['avg_train_prep'] = avg_train_prep
-        results['avg_train_loss'] = avg_train_loss
-        if self.train_args.run_validation:
-            results['avg_eval_prep'] = avg_eval_prep
-            results['avg_eval_loss'] = avg_eval_loss
-        results["avg_epoch_time"] = avg_epoch_time
-        results["avg_checkpoint_time"] = avg_checkpoint_time
-
-        #saving the training params including fsdp setting for reference.
-        # TODO: why only with enable_fsdp?
-        #if self.train_args.enable_fsdp and not self.train_args.use_peft:
-        #    self.save_train_params(self.train_args, fsdp_config, rank)
-        
-        #saving the training params including fsdp setting for reference.
-        return results
-
-    def evaluation(self, criterion, eval_dataloader, local_rank):
-        """
-        Evaluates the model on the given dataloader
-        
-        Args:
-            model: The model to evaluate
-            eval_dataloader: The dataloader containing the evaluation data
-            local_rank: The rank of the current node in a distributed setting
-            tokenizer: The tokenizer used to decode predictions
-        
-        Returns: eval_ppl, eval_epoch_loss
-        """
-        if self.train_args.enable_fsdp:
-            world_size = int(os.environ["WORLD_SIZE"]) 
-        self.model.eval()
-        eval_preds = []
-        eval_loss = 0.0  # Initialize evaluation loss
-        with MemoryTrace() as memtrace:
-            for step, batch in enumerate(tqdm(eval_dataloader,colour="green", desc="evaluating Epoch", dynamic_ncols=True)):
-                for element in batch:
-                    if self.train_args.enable_fsdp:
-                        element = element.to(local_rank)
-                    else:
-                        element = element.to(device) # Might want this to be 'cuda:0'
-                # Ensure no gradients are computed for this scope to save memory
-                with torch.no_grad():
-                    # Forward pass and compute loss
-                    (x, y_true) = batch
-                    y_hat = self.model(x)
-                    loss = criterion(y_hat, y_true)
-                    eval_loss += loss.detach().float()
-                # Decode predictions and add to evaluation predictions list
-                preds = torch.argmax(y_hat, 1).detach().cpu().tolist()
-
-                # Uncomment to view predictions throughout training
-                #print('preds: ', preds)
-                #print('preds shape: ', len(preds))
-                decoded = self.tokenizer.decode(preds)
-
-                # Nothing is being done with this list currently
-                eval_preds.extend( 
-                    decoded
-                )
-        
-        # If there's more than one CUDA device, reduce evaluation loss across all devices
-        if torch.cuda.device_count() > 1 and self.train_args.enable_fsdp:
-            dist.all_reduce(eval_loss, op=dist.ReduceOp.SUM)
-        
-        # Compute average loss and perplexity
-        eval_epoch_loss = eval_loss / len(eval_dataloader)
-        if self.train_args.enable_fsdp:
-            eval_epoch_loss = eval_epoch_loss/world_size
-        eval_ppl = torch.exp(eval_epoch_loss)
-        
-        # Print evaluation metrics
-        if self.train_args.enable_fsdp:
-            if local_rank==0:
-                print(f" {eval_ppl=} {eval_epoch_loss=}")
-        else:
-            print(f" {eval_ppl=} {eval_epoch_loss=}")
-            
-        return eval_ppl, eval_epoch_loss
-
-    def generate(
-        self,
-        prompts: List[str],
-        max_gen_len: int,
-        temperature: float = 0.8,
-        top_p: float = 0.95,
-        stop_ids: List[int] = None,
-        stop_words: List[str] = None,
-        repetition_penalty: float = 1.0,
-    ) -> List[str]:
-        bsz = len(prompts)
-        assert bsz <= self.train_args.batch_size, (bsz, self.train_args.batch_size)
-
-        # Encode all prompts
-        prompt_tokens = [self.tokenizer.encode(x, bos=True, eos=False) for x in prompts]
-        num_input_tokens = [len(t) for t in prompt_tokens]
-
-        min_prompt_size = min([len(t) for t in prompt_tokens])
-        max_prompt_size = max([len(t) for t in prompt_tokens])
-
-        # This is how far it will generate, including prompts tokens
-        total_len = min(self.train_args.seq_len, max_gen_len + max_prompt_size)
-
-        # Initialize (bsz, total_len) sized tensor with padding tokens
-        tokens = torch.full((bsz, total_len), self.tokenizer.pad_id).cuda().long()
-
-        # For each prompt, input into tokens matrix
-        for k, t in enumerate(prompt_tokens):
-            tokens[k, : len(t)] = torch.tensor(t).long()
-
-        # Creates a mask where every position that is a padding token is false
-        input_text_mask = tokens != self.tokenizer.pad_id
-        start_pos = min_prompt_size
-        prev_pos = 0
-        
-        # For positions in range start_pos(position after prompt) to total_len(prompt length + max generation length)
-        for cur_pos in range(start_pos, total_len):
-            #logits = self.model.forward(tokens[:, prev_pos:cur_pos], prev_pos)
-            # Logits is of shape [bsz, vocab_size, sequence_length]. Here, we grab the last token in the sequence to process only it's probabilities.
-            logits = self.model(tokens[:, prev_pos:cur_pos])[:, :, -1] #TODO: not having prev_pos for attention may cause problems in this generation script, may have to rework
-            if repetition_penalty != 1.0:
-                logits_new = logits.clone()
-                batch_size = len(tokens)
-                for i in range(batch_size):
-                    for token in set(tokens[i].tolist()):
-                        if logits[i, token] < 0:
-                            logits_new[i, token] = logits[i, token] * repetition_penalty
-                        else:
-                            logits_new[i, token] = logits[i, token] / repetition_penalty
-                logits = logits_new
-            if temperature > 0:
-                # Take softmax on logits/temperature, which evens out the probabilities, allowing more variation
-                probs = torch.softmax(logits / temperature, dim=1)
-                # Sample
-                next_token = self.sample_top_p(probs, top_p) # shape [1,1], bsz, pred
-            else:
-                # Just grab top logit
-                next_token = torch.argmax(logits, dim=1)
-
-            # Reshape to simplify tensor; remove unnecessary dimensions basically.
-            next_token = next_token.reshape(-1)
-
-            # if input_text_mask at the cur_pos is true, then next_token is tokens at that position.
-            # Or, if cur_pos is part of the original prompt, then next token is whatever token is in the prompt. Otherwise, it's the prediction.
-            next_token = torch.where(
-                input_text_mask[:, cur_pos], tokens[:, cur_pos], next_token
-            )
-
-            # Put predicition into tokens
-            tokens[:, cur_pos] = next_token
-
-            # Rather than updating the start position, which is what was done for grouped attention, we pass in the entire sequence each time
-            #prev_pos = cur_pos
-
-            # Check if generation should be stopped (if a stop token was generated, for example)
-            if self._should_stop(tokens, prompt_tokens, stop_ids, stop_words):
-                break
-        
-        # Turn all padding tokens into eos tokens
-        tokens[tokens == self.tokenizer.pad_id] = self.tokenizer.eos_id
-        decoded = []
-        num_generated_tokens = []
-
-        # Decode all generated tokens
-        for i, t in enumerate(tokens.tolist()):
-            # cut to max gen len
-            t = t[: len(prompt_tokens[i]) + max_gen_len]
-            # cut to eos tok if any
-            try:
-                num_generated_tokens.append(t.index(self.tokenizer.eos_id) - len(prompt_tokens[i]))
-                t = t[: t.index(self.tokenizer.eos_id)]
-            except ValueError:
-                num_generated_tokens.append(max_gen_len)
-            decoded.append(self.tokenizer.decode(t))
-        return decoded, dict(num_input_tokens=num_input_tokens, num_generated_tokens=num_generated_tokens)
-    
-    def _should_stop(self, tokens, prompt_tokens, stop_ids, stop_words):
-        if stop_ids is not None:
-            do_stop = [False for _ in range(len(tokens))]
-            for i, (t, p) in enumerate(zip(tokens, prompt_tokens)):
-                g = t[len(p):].tolist()
-                for stop_id in stop_ids:
-                    if stop_id in g:
-                        do_stop[i] = True
-
-            if all(do_stop):
-                return True
-
-        if stop_words is not None:
-            do_stop = [False for _ in range(len(tokens))]
-            for i, (t, p) in enumerate(zip(tokens, prompt_tokens)):
-                t = t.clone()
-                g = t[len(p):]
-                g[g == self.tokenizer.pad_id] = self.tokenizer.eos_id
-                g = g.tolist()
-                d = self.tokenizer.decode(g)
-                for stop_word in stop_words:
-                    if stop_word in d:
-                        do_stop[i] = True
-
-            if all(do_stop):
-                return True
-
-        return False
-    
-    def sample_top_p(self, probs, p):
-        # sort probs in ascending order
-        probs_sort, probs_idx = torch.sort(probs, dim=1, descending=True) # NOTE: I changed dim from -1 to 1
-        probs_sum = torch.cumsum(probs_sort, dim=1)
-        # Mask out values below p in the cumulative sum
-        mask = probs_sum - probs_sort > p
-        probs_sort[mask] = 0.0
-        # Divide each element by the sum
-        probs_sort.div_(probs_sort.sum(dim=1, keepdim=True))
-        # Sample once from probability dist
-        next_token = torch.multinomial(probs_sort, num_samples=1)
-        # Pull token out from probs_idx
-        next_token = torch.gather(probs_idx, -1, next_token)
-        return next_token
-
-    # TODO: This is only being called if FSDP is enabled..why? Maybe split it up, seems useful.
-    # TODO: Do we need this? how should we this?
-    # def save_train_params(self, train_config, fsdp_config, rank):
-    #     """
-    #     This function saves the train_config and FSDP config into a train_params.yaml.
-    #     This will be used by converter script in the inference folder to fetch the HF model name or path.
-    #     It also would be hepful as a log for future references.
-    #     """
-    #     # Convert the train_config and fsdp_config objects to dictionaries, 
-    #     # converting all values to strings to ensure they can be serialized into a YAML file
-    #     train_config_dict = {k: str(v) for k, v in vars(train_config).items() if not k.startswith('__')}
-    #     fsdp_config_dict = {k: str(v) for k, v in vars(fsdp_config).items() if not k.startswith('__')}
-    #     # Merge the two dictionaries into one
-    #     train_params_dict = {**train_config_dict, **fsdp_config_dict}
-    #     # Construct the folder name (follwoing FSDP checkpointing style) using properties of the train_config object
-    #     folder_name = (
-    #     train_config.dist_checkpoint_root_folder
-    #     + "/"
-    #     + train_config.dist_checkpoint_folder
-    #     + "-"
-    #     + train_config.model_name
-    #     )
-
-    #     save_dir = Path.cwd() / folder_name
-    #     # If the directory does not exist, create it
-    #     if not os.path.exists(save_dir):
-    #         os.makedirs(save_dir)
-    #     # Convert the dictionary to a YAML string
-    #     config_yaml = yaml.dump(train_params_dict, indent=4)
-    #     file_name = os.path.join(save_dir,'train_params.yaml')
-
-    #     # Check if there's a directory with the same name as the file
-    #     if os.path.isdir(file_name):
-    #         print(f"Error: {file_name} is a directory, not a file.")
-    #     else:
-    #         # Write the YAML string to the file
-    #         with open(file_name, 'w') as f:
-    #             f.write(config_yaml)
-    #         if rank==0:
-    #             print(f"training params are saved in {file_name}")
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.config.lr)  # model.paramaters = weights tensor
+        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma)
+        return [optimizer], [lr_scheduler]

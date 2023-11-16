@@ -1,15 +1,11 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # This software may be used and distributed according to the terms of the GNU General Public License version 3.
-from typing import Optional, Tuple, Type
-from dataclasses import dataclass
+from typing import Optional, Tuple
 import math
 
 import torch
 from torch import nn
 import torch.nn.functional as F
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-torch.set_default_device(device)
 
 class RMSNorm(torch.nn.Module):
     """
@@ -29,7 +25,7 @@ class RMSNorm(torch.nn.Module):
         """
         super().__init__()
         self.eps = eps
-        self.weight = nn.Parameter(torch.ones(dim, device=device))
+        self.weight = nn.Parameter(torch.ones(dim))
 
     def _norm(self, x):
         """
@@ -73,7 +69,7 @@ def precompute_freqs_cis(dim: int, end: int, theta: float = 10000.0):
     Returns:
         torch.Tensor: Precomputed frequency tensor with complex exponentials.
     """
-    freqs = 1.0 / (theta ** (torch.arange(0, dim, 2, device=device)[: (dim // 2)].float() / dim))
+    freqs = 1.0 / (theta ** (torch.arange(0, dim, 2)[: (dim // 2)].float() / dim))
     t = torch.arange(end, device=freqs.device)  # type: ignore
     freqs = torch.outer(t, freqs).float()  # type: ignore
     freqs_cis = torch.polar(torch.ones_like(freqs), freqs)  # complex64
@@ -149,31 +145,28 @@ class Attention(nn.Module):
         if args.dim_v is None:
             args.dim_v = args.dim
 
-        self.seq_len = args.seq_len
+        self.sequence_length = args.sequence_length
         self.n_heads = args.n_heads
         self.dim_head = args.dim // args.n_heads
         self.dim_k = args.dim_k
         #self.causal = causal
 
         # Query, Key and Value projections
-        self.proj_q = nn.Linear(args.dim, args.n_heads * self.dim_head, bias=False, device=device)
+        self.proj_q = nn.Linear(args.dim, args.n_heads * self.dim_head, bias=False)
         self.proj_k = nn.Linear(
             args.dim,
             args.n_heads * self.dim_head,
-            bias=False,
-            device=device
+            bias=False
         )
         self.proj_v = nn.Linear(
             args.dim,
             args.n_heads * self.dim_head,
-            bias=False,
-            device=device
+            bias=False
         )
         self.proj_out = nn.Linear(
             args.dim,
             args.n_heads * self.dim_head,
-            bias=False,
-            device=device
+            bias=False
         )
 
         # Build the causal mask, masking upper triangular part of attention scores
@@ -232,18 +225,16 @@ class FeedForward(nn.Module):
         hidden_dim = int(2 * hidden_dim / 3)
         hidden_dim = multiple_of * ((hidden_dim + multiple_of - 1) // multiple_of)
 
-        self.w1 = nn.Linear(dim, hidden_dim, bias=False, device=device)
+        self.w1 = nn.Linear(dim, hidden_dim, bias=False)
         self.w2 = nn.Linear(
             hidden_dim,
             dim,
-            bias=False,
-            device=device
+            bias=False
         )
         self.w3 = nn.Linear(
             dim,
             hidden_dim,
-            bias=False,
-            device=device
+            bias=False
         )
 
     def forward(self, x):
@@ -282,7 +273,7 @@ class Transformer(nn.Module):
         super().__init__()
 
         # NOTE: Original Llama2 was not using padding, so did not use padding_idx. Will not work if tokenizer is trained without padding (disabled by default)
-        self.embedding_encoder = torch.nn.Embedding(config.vocab_size, config.dim,  padding_idx=config.pad_id, device=device)  #
+        self.embedding_encoder = torch.nn.Embedding(config.vocab_size, config.dim,  padding_idx=config.pad_id)  #
 
         self.layers = torch.nn.ModuleList()
         for layer_id in range(config.n_layers):
@@ -290,12 +281,12 @@ class Transformer(nn.Module):
 
         self.norm = RMSNorm(config.dim, eps=config.norm_eps)
 
-        self.output = nn.Linear(config.dim, config.vocab_size, bias=False, device=device)
+        self.output = nn.Linear(config.dim, config.vocab_size, bias=False)
 
         self.freqs_cis = precompute_freqs_cis(
             # Note that self.params.max_seq_len is multiplied by 2 because the token limit for the Llama 2 generation of models is 4096. 
             # Adding this multiplier instead of using 4096 directly allows for dynamism of token lengths while training or fine-tuning.
-            config.dim // config.n_heads, config.seq_len * 2
+            config.dim // config.n_heads, config.sequence_length * 2
         )
 
     def forward(self, tokens: torch.Tensor):
@@ -310,12 +301,11 @@ class Transformer(nn.Module):
 
         """
         _bsz, seqlen = tokens.shape
-
         # Embed tokens
         h = self.embedding_encoder(tokens)
 
         # Grabs necessary precomputed frequencies, used for rotary embeddings during attention, which is used instead of typical positional embedding
-        self.freqs_cis = self.freqs_cis.to(device)
+        self.freqs_cis = self.freqs_cis.to(tokens.device)
         freqs_cis = self.freqs_cis[:seqlen]
         
         # Generate attention mask
@@ -323,7 +313,7 @@ class Transformer(nn.Module):
         if seqlen > 1:
             # Fill mask with -inf
             mask = torch.full(
-                (1, 1, seqlen, seqlen), float("-inf"), device=device
+                (1, 1, seqlen, seqlen), float("-inf")
             )
             
             # Unmask across diagonal 1, meaning center diagonal is unmasked

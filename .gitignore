@@ -1,6 +1,3 @@
-Models/**
-Training/dataset
-Training/checkpoints
 __pycache__
 test.py
 test/

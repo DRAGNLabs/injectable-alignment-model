@@ -1,23 +1,23 @@
 # Tokenizer
-tokenizer_path: /home/jo288/repos/Rocket/dataset/tokenizers/tokenizer.edited.model
+tokenizer_path: PATH/TO/REPO/Rocket/dataset/tokenizers/tokenizer.model
 pad_id: -1 # defined later by tokenizer. NOTE: padding is disabled by default, see tokenizer.py
 vocab_size: -1  # defined later by tokenizer
 
 # Paths
 # default_root_dir is the root model training directory; checkpoints, predictions, and logs will be saved here.
-default_root_dir: /home/jo288/repos/Rocket/runs/11-14-2
+default_root_dir: PATH/TO/REPO/Rocket/runs/RUN/NAME/HERE
 # which checkpoint to use, if any, for resuming training or inference
-checkpoint_path: /home/jo288/repos/Rocket/runs/11-14-2/checkpoints/model-epoch=2-val_loss=0.02.ckpt
+checkpoint_path: ~
 
 # Dataset
 # Raw data file. Tokenizer expects parquet, could be changed.
-raw_dataset_path: /home/jo288/repos/Rocket/dataset/raw/openorca_combined.parquet
+raw_dataset_path: PATH/TO/REPO/Rocket/dataset/raw/openorca_combined.parquet
 # Full tokenized data file, not necessary. Must be .pkl file
-tokenized_dataset_path: /home/jo288/repos/Rocket/dataset/tokenized/full_tokenized.pkl
+tokenized_dataset_path: PATH/TO/REPO/Rocket/dataset/tokenized/full_tokenized.pkl
 
 # Dataset split, must be .pkl file
-train_path: /home/jo288/repos/Rocket/dataset/tokenized/toy_tokenized_data_2.pkl # full_tokenized.pkl
-eval_path: /home/jo288/repos/Rocket/dataset/tokenized/toy_tokenized_data_2.pkl #full_tokenized.pkl
+train_path: PATH/TO/REPO/Rocket/dataset/tokenized/full_tokenized.pkl
+eval_path: PATH/TO/REPO/Rocket/dataset/tokenized/full_tokenized.pkl
 
 # GPU
 accelerator: gpu
@@ -35,7 +35,7 @@ save_top_k: 3
 save_predictions_during_training: true
 
 # Inference
-inference_path: /home/jo288/repos/Rocket/dataset/raw/inference_text.txt
+inference_path: PATH/TO/REPO/Rocket/dataset/raw/inference_text.txt
 max_gen_len: 20
 
 # Model
