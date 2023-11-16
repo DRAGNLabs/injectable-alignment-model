@@ -1,37 +1,14 @@
-""" TODO: Why are we doing this? Let's review the value of this part of the project:
+# 1,041 unique word forms 
 
-            Q: This would be a more principled excecution of their claimed methodology,
-            but if we don't do what they did, are we actually weakening our claim 
-            that we outperform them in some way? We could always run it with both to 
-            see the effect of using GPT-4 simplified vs science-simplified dataset,
-            and to see how far off GPT4 was, but maybe those aren't central to the 
-            nature of this project, and that needs to be discussed before undertaking 
-            this task.
-            
-            A: Remember, we will simplify the Orca dataset so we can combine reasoning 
-            with a simplified vocab. Afterward, we can check to see how well the TinyStories
-            dataset follows it's own claim, assuming your pipeline runs well. But this
-            is a key aspect of combining the two methodologies."""
-## Pseudocode
-# 1. Load vocab csv into dict and load prompts into pandas df
-# 2. for prompt in prompts
-#   3. tokenize prompt
-#   4. for word in prompt:
-#       5. if word not in prompt:
-#           6. Append word to trouble_list
-#       7. if len(trouble_list)!=0:
-#           8. append to flagged_list
-#       9. else:
-#           10. append to clear_list
-#       11. if len(clear_list)==N or len(flagged_list)==N: # write out progress every N to 2N prompts
-#           12. Write out to .csvs
-
-import csv, pickle
+import csv, pickle, nltk
+import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+from datetime import datetime
 from re import sub as regex_sub
-# from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize as w_t
-import nltk
+# from nltk.corpus import stopwords
 
 
 def convert_xlsx_to_csv(input_xlsx_file, output_csv_file):
@@ -41,19 +18,11 @@ def convert_xlsx_to_csv(input_xlsx_file, output_csv_file):
     # Write the data to a CSV file
     data.to_csv(output_csv_file, index=False)
 
-# # Replace 'input_file.xlsx' and 'output_file.csv' with your file paths
-# input_file_path = '4_year_old_words.xlsx'
-# output_file_path = '4yo_words.csv'
-
-# convert_xlsx_to_csv(input_file_path, output_file_path)
-
-
-# 1.
 def load_csv_to_dict(file_path, pickle_dict=False):
     data_dict = {}
     with open(file_path, newline='') as csvfile:
         reader = csv.reader(csvfile)
-        headers = next(reader)  # Read the headers assuming they are the keys
+        # headers = next(reader)  # Read the headers assuming they are the keys
 
         for row in reader:
             key = row[0]
@@ -62,16 +31,16 @@ def load_csv_to_dict(file_path, pickle_dict=False):
     
     # Writing the dictionary to a pickle file
     if pickle_dict:
-        pickle_dict(file_path, data_dict)
+        pickle_data(file_path, data_dict)
 
     return data_dict
 
-def pickle_dict(file_path, data_dict):
+def pickle_data(file_path, data):
     # Make file path to save the pickle file
     extension = file_path.rfind('.')  # find start of filepath's extension
     pickle_path = file_path[:extension]+'.pickle' # replace it with pickle extension
     with open(pickle_path, 'wb') as file:
-        pickle.dump(data_dict, file)
+        pickle.dump(data, file)
 
 def load_pickle_to_dict(file_path):
     try:
@@ -89,36 +58,6 @@ def load_pickle_to_dict(file_path):
     except Exception as e:
         print(f"An error occurred in opening the pickle file: {e}")
         return None
-
-def update_dict(overwrite_file, new_data:list[str]):
-    that_dict = load_pickle_to_dict(overwrite_file)
-    empty_value = ['', '', 'inf']
-    for char in new_data:
-        try:
-            that_dict[char]
-        except KeyError:
-            that_dict[char] = empty_value
-    pickle_dict(overwrite_file, that_dict)
-
-# print(len(result_dict)) # 1,041 unique word forms 
-
-# def stop_word_stats(stop_words):
-    ## Caluculate the amount of stop words not included in the 44k words;
-    ## 97 of 179 are not included (~54%), and many of them are contractions.
-    
-    # not_included = []
-    # for word in stop_words:
-    #     try:
-    #         result_dict[word]
-    #     except KeyError:
-    #         not_included.append(word)
-    # print(len(not_included), not_included)
-
-# Get English stopwords
-stop_words = stopwords.words('english')
-# stop_word_stats(stop_words=stop_words)
-for i in stop_words:
-    print(type(i))
 
 def parquet_to_dict(file_path):
     try:
@@ -140,9 +79,46 @@ def parquet_to_dict(file_path):
         print(f"An error occurred: {e}")
         return None  # Return None if an error occurs
 
-# nltk.download('punkt')  # Download the 'punkt' tokenizer models (if not already downloaded)
+def read_parquet_to_df(file_path):
+    # Read a Parquet file into a DataFrame
+    df = pd.read_parquet(file_path)
+    return df
+
+def stopword_stats(stop_words):
+    ## Caluculate the amount of stop words not included in the 44k words;
+    ## 97 of 179 are not included (~54%), and many of them are contractions.
+    
+    not_included = []
+    for word in stop_words:
+        try:
+            result_dict[word]
+        except KeyError:
+            not_included.append(word)
+    print(len(not_included), not_included)
+
+def update_vocab(file_to_update, new_data:list[str]):
+    that_dict = load_pickle_to_dict(file_to_update)
+    empty_value = ['', '', 'inf']  # Fill in values for new words' extra columns
+    for char in new_data:
+        try:  # skip words already in the dict
+            that_dict[char]
+        except KeyError:  # else add them
+            that_dict[char] = empty_value
+    pickle_data(file_to_update, that_dict)
+
+    # Get and format the current date and time
+    formatted_datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    # Log the new additions
+    log_message = ''
+    while log_message == '':
+        log_message = input(f"\nThe following were added to the vocab dict: {new_data}\nPlease enter the reason for each new addition: ")
+    log_file = "vocab_log.txt"
+    with open(log_file, 'a') as f:
+        f.write(f"\n\nDate: {formatted_datetime}\nNew additions: {''.join(new_data)}\nLog Message: {log_message}")
 
 def tokenize_with_penn_treebank(text):
+    text = text.lower() # Convert text to lowercase
     # Tokenize the input text using the Penn Treebank Word Tokenizer
     tokens = w_t(text, language='english', preserve_line=False)  # nltk.word_tokenize
     return tokens
@@ -159,21 +135,12 @@ def eval_prompt(words_list, vocab_dict):
             flagged = True
     return (flagged, output_data)
 
-def write_to_csv(output_file, id_keys, prompts_dict):
-    with open(output_file, 'a', newline='') as csv_file:
-        csv_writer = csv.writer(csv_file)
-                
-        # Prepare a row for each key-values pair
-        for key in id_keys:
-            row = [key] + prompts_dict[key]
-            csv_writer.writerow(row)
-
 def split_nums_and_symbols(some_string:str)-> str:
 # Regular expression to find non-alphabetic characters and add spaces around them
     modified_text = regex_sub(r'([^a-zA-Z\'!\.;:,? ])', r' \1 ', some_string)
     return modified_text 
 
-def flag_prompts(prompts_dict, vocab_dict, flagged_file, clean_file, write_every=1000):
+def flag_prompts(prompts_list, vocab_dict, flagged_file, clean_file):
     """
     Flags prompts in a dictionary that contain invalid tokens based on a given vocabulary dictionary.
     Writes flagged and clean prompts to separate CSV files.
@@ -188,51 +155,156 @@ def flag_prompts(prompts_dict, vocab_dict, flagged_file, clean_file, write_every
     flagged_data = []
     clean_data = []
 
-    for id_key in prompts_dict:
+    for prompt in tqdm(prompts_list):
         #todo: Add comments; handle numbers (any number is valid; tokenize as single digits and add 0-9 to vocab dict); 
-        prompt_and_answer = prompts_dict[id_key][-2] + prompts_dict[id_key][-1]  # Concat prompt
+        prompt_and_answer = prompt[-2] + prompt[-1]  # Concat prompt
         prompt_and_answer_2 = split_nums_and_symbols(prompt_and_answer)  # Split numbers and symbols into separate tokens
         tokenized_text = tokenize_with_penn_treebank(prompt_and_answer_2)  # Tokenize text using Penn Treebank tokenizer
         text_evaluated = eval_prompt(tokenized_text, vocab_dict)  # Evaluate prompt for invalid tokens
         if text_evaluated[0]:
-            prompts_dict[id_key].append(text_evaluated[1])  # Add tokenized text to dict
-            flagged_data.append(id_key)  # Add key to list of flagged prompts
+            prompt.append(text_evaluated[1])  # Add tokenized text to dict
+            flagged_data.append(prompt)  # Add prompt to list of flagged prompts
         else:
-            clean_data.append(id_key)  # Add key to list of clean prompts
+            clean_data.append(prompt)  # Add prompt to list of clean prompts
 
-        # Write flagged prompts to file
-        if len(flagged_data) % write_every == 0 and len(flagged_data) != 0:
-            write_to_csv(flagged_file, flagged_data, prompts_dict)
-            flagged_data = []
+    # Write flagged prompts to file
+    pickle_data(flagged_file, flagged_data)
 
-        # Write clean prompts to file
-        if len(clean_data) % write_every == 0 and len(flagged_data) != 0:
-            write_to_csv(clean_file, clean_data, prompts_dict)
-            clean_data = []
+    # Write clean prompts to file
+    pickle_data(clean_file, clean_data)
+    print("Prompts Flagged.")
 
-# data_file_path = "./sample_GPT4.parquet"
+flagged_file_path = "flagged.pickle"
+clean_file_path = "clean.pickle"
+data_file_path = '1M-GPT4-Augmented.parquet' #"./sample_GPT4.parquet"
+vocab_file_path = "4yo_words.pickle"
+
+## Load in data and vocab
 # data = parquet_to_dict(data_file_path)
-
-# vocab_file_path = "./4yo_words.pkl"
 # vocab = load_pickle_to_dict(vocab_file_path)
 
-# flagged_file_path = "./flagged.csv"
-# clean_file_path = "./clean.csv"
-# flag_prompts(data, vocab, flagged_file_path, clean_file_path, 1)
+## Flag prompts on a data set
+# flag_prompts(data, vocab, flagged_file_path, clean_file_path)
+
+## Check the number of flagged vs clean prompts
+# flags = load_csv_to_dict(flagged_file_path, pickle_dict=False)
+# cleans = load_csv_to_dict(clean_file_path, pickle_dict=False)
+# print(f"Flagged prompts: {len(flags)}, Clean Prompts: {len([])}")
+
+## Update the vocabulary dictionary/file
+some_list = [] # Add words to this list to add them to the vocab dict
+# update_vocab(vocab_file_path, some_list)
+## A list of words marking prompts we want flagged: bad_list = ['de', 'о', 'e']
+print('  '.join(["'s", "n't", "'m", "'re", "'ve", "'ll", "'d", "'em", "'cause", "'til", "'till", "'bout", "'round", "'nuff", "'cept", "'less", "'fore", "'tween", "'tis", "'twas", "'twill", "'t", "'n'", "'er", "'em"]))
+
+# gpt4_df = read_parquet_to_df('1M-GPT4-Augmented.parquet')
+# sub_gpt4_df = gpt4_df.iloc[0:10000, :]
+# sub_gpt4_list = sub_gpt4_df.values.tolist()
+# flag_prompts(sub_gpt4_list, vocab, flagged_file_path, clean_file_path)
+
+def read_pickle_to_df(file_path):
+    # Read a Pickle file into a DataFrame
+    with open(file_path, 'rb') as f:
+        data = pickle.load(f)
+    df = pd.DataFrame(data)
+    return df
+
+# new_sub_gpt4_df = read_pickle_to_df(flagged_file_path).iloc[:, 4]
+# print(new_sub_gpt4_df.head())
+from collections import Counter
+def count_words(df):
+    counter = Counter()
+    for row in df:
+        for word_tuple in row:
+            if word_tuple[1]:
+                counter[word_tuple[0]] += 1
+    return counter
+
+# Usage
+# counter = count_words(new_sub_gpt4_df)
+# pickle_data('flagged_counter.pickle', counter)
+
+# counter = load_pickle_to_dict('flagged_counter.pickle')
+# print(counter.most_common(100))  
 
 
-## Pseudocode
-# 1. Load vocab csv into dict and load prompts into pandas df
-# 2. for prompt in prompts
-#   3. tokenize prompt
-#   4. for word in prompt:
-#       5. if word not in prompt:
-#           6. Append word to trouble_list
-#       7. if len(trouble_list)!=0:
-#           8. append to flagged_list
-#       9. else:
-#           10. append to clear_list
-#       11. if len(clear_list)==N or len(flagged_list)==N: # write out progress every N to 2N prompts
-#           12. Write out to .csvs
+def search_in_pickle(file_path, search_string):
+    # Load a Pickle file into a DataFrame
+    with open(file_path, 'rb') as f:
+        data = pickle.load(f)
+    df = pd.DataFrame(data)
 
-# todo: add stopwords to 44k words list and then run a bigger test.
+    # Get the last column's name
+    last_column = df.columns[-1]
+    collector = []
+    for col in df[last_column]:
+        for i in col:
+            if i[0] == search_string:
+                collector.append(col)
+    # Find rows where the last column contains the search string
+
+    # Convert matching rows to a list and print it
+    print(collector)
+
+# Usage
+# search_string = 'e'
+# matching_rows = search_in_pickle('flagged.pickle', search_string)
+
+
+def get_pickle_distribution(file_path):
+    # Load a Pickle file into a DataFrame
+    with open(file_path, 'rb') as f:
+        data = pickle.load(f)
+    df = pd.DataFrame(data)
+
+    # Get the last column's name
+    last_column = df.columns[-1]
+    collector = []
+    for col in df[last_column]:
+        counter = 0
+        for i in col:
+            if i[1]:
+                counter+=1
+        collector.append((counter, len(col)))                         
+    return collector
+
+def plot_distribution(tup_list, filename, normalize=False):
+    # Get the distribution of the integers
+    if normalize:
+        int_list = [i[0]/i[1] for i in tup_list]
+    else:
+        int_list = [i[0] for i in tup_list]
+
+    lower = np.percentile(int_list, 5)
+    upper = np.percentile(int_list, 95)
+
+    # Filter the list to include only the central 90% of the data
+    filtered_list = [x for x in int_list if lower <= x <= upper]
+
+    # Create a histogram with buckets of size 5
+    plt.hist(filtered_list, bins=range(min(filtered_list), max(filtered_list) + 5, 5))
+    plt.xlabel('Integer')
+    plt.ylabel('Frequency')
+    plt.title('Histogram of Integers')
+    plt.savefig(filename)
+
+# dist = get_pickle_distribution('flagged.pickle')
+# plot_distribution(dist, filename='Distribution_of_Flags.png')
+
+# update_vocab(vocab_file_path, [])
+
+
+
+
+
+
+
+def get_length_of_pickle(file_path):
+    # Load a Pickle file
+    with open(file_path, 'rb') as f:
+        data = pickle.load(f)
+    # Return the length of the loaded data
+    return len(data)
+# Usage
+# length = get_length_of_pickle('flagged.pickle')
+# print(length)

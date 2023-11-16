@@ -1,0 +1,20 @@
+Date: 2023-11-14 22:30:47
+New Additions: 0 1 2 3 4 5 6 7 8 9
+Log Message: These numbers were in the vocab as type int, not str *eyeroll*
+
+
+Date: 2023-11-14 22:32:56
+New Additions: ``
+Log Message: '``' was some sort of weird stand in for double quotes, e.g. 'William ``Bill`` Johnson' 
+
+Date: 2023-11-14 22:40:18
+New Additions: th
+Log Message: 'th' was bc of ranks e.g., '9 th', '6 th'
+
+Date: 2023-11-14 22:42:38
+New Additions: ...
+Log Message: The tokenizer left '...' alone, like it should. We just need to account for it.
+
+Date: 2023-11-15 21:15:03
+New Additions: 's  n't  'm  're  've  'll  'd  'em  'cause  'til  'till  'bout  'round  'nuff  'cept  'less  'fore  'tween  'tis  'twas  'twill  't  'n'  'er  'em
+Log Message: These common contractions we decided fit our wants. This was just a choice.
