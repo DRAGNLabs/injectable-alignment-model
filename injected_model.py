@@ -265,10 +265,11 @@ class TransformerBlock(nn.Module):
         h = x + self.attention.forward(
             self.attention_norm(x), freqs_cis, mask
         )
+      
+        out = h + self.feed_forward.forward(self.ffn_norm(h))
         if self.layer_id == 8:
             irm_output = NPI.forward(x)
-            h = h + irm_output
-        out = h + self.feed_forward.forward(self.ffn_norm(h))
+            out += irm_output
         return out
 
 
