@@ -6,6 +6,7 @@ import math
 import torch
 from torch import nn
 import torch.nn.functional as F
+from irm import NPI; 
 
 class RMSNorm(torch.nn.Module):
     """
@@ -264,6 +265,9 @@ class TransformerBlock(nn.Module):
         h = x + self.attention.forward(
             self.attention_norm(x), freqs_cis, mask
         )
+        if self.layer_id == 8:
+            irm_output = NPI.forward(x)
+            h = h + irm_output
         out = h + self.feed_forward.forward(self.ffn_norm(h))
         return out
 
