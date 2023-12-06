@@ -272,7 +272,7 @@ class TransformerBlock(nn.Module):
         )
       
         out = h + self.feed_forward.forward(self.ffn_norm(h))
-        if self.layer_id == 8:
+        if self.layer_id == 2:
             irm_output = NPI.forward(x)
             out += irm_output
         return out
