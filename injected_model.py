@@ -257,6 +257,10 @@ class TransformerBlock(nn.Module):
         self.attention_norm = RMSNorm(args.dim, eps=args.norm_eps)
         self.ffn_norm = RMSNorm(args.dim, eps=args.norm_eps)
 
+        self.IRM_layers = []
+        if self.layer_id in self.IRM_layers:
+            self.IRM = NPI()
+            
     def forward(
         self,
         x: torch.Tensor,
@@ -278,7 +282,7 @@ class Transformer(nn.Module):
     def __init__(self, config):
         super().__init__()
 
-        self.IRM = NPI()
+
 
         # NOTE: Original Llama2 was not using padding, so did not use padding_idx. Will not work if tokenizer is trained without padding (disabled by default)
         self.embedding_encoder = torch.nn.Embedding(config.vocab_size, config.dim,  padding_idx=config.pad_id)  #
