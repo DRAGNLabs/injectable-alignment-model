@@ -1,9 +1,9 @@
 import torch.nn as nn
 import torch
 
-INPUT_SIZE = 4#4096
-OUTPUT_SIZE = 3
-BATCH_SIZE = 2
+INPUT_SIZE = 1024
+OUTPUT_SIZE = 512
+BATCH_SIZE = 32
 
 class IRM(nn.Module):
     def __init__(self, vocab_size = OUTPUT_SIZE, sequence_size = INPUT_SIZE, batch_size = BATCH_SIZE, size_modifier = 1):
