@@ -17,8 +17,6 @@ class LLaMAI(LightningModule):
         self.tokenizer = tokenizer
         self.config = config
         self.model = Transformer(config)
-        #checkpoint = torch.load(PATH)
-        self.model.load_state_dict(checkpoint['state_dict'])
         self.validation_step_outputs = [] # Used for saving predictions throughout training
 
     def forward(self, inputs):
