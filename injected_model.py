@@ -6,7 +6,7 @@ import math
 import torch
 from torch import nn
 import torch.nn.functional as F
-from irm import NPI
+from irm import NPI ## TODO: PULL AND CHANGE TO IRM
 
 class RMSNorm(torch.nn.Module):
     """
@@ -259,7 +259,7 @@ class TransformerBlock(nn.Module):
 
         self.IRM_layers = []
         if self.layer_id in self.IRM_layers:
-            self.IRM = NPI()
+            self.IRM = NPI() ## TODO: CHANGE TO IRM()
             
     def forward(
         self,
