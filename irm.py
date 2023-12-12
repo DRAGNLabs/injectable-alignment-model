@@ -15,6 +15,8 @@ class IRM(nn.Module):
         
         self.flatten = nn.Flatten()
         self.relu = nn.ReLU()
+
+        self.device = torch.device('cuda')
         
         self.basic_forward = nn.Sequential(
             nn.Linear(vocab_size, 50*size_modifier),
@@ -22,12 +24,13 @@ class IRM(nn.Module):
             nn.Linear(50*size_modifier, 50*size_modifier),
             nn.ReLU(),
             nn.Linear(50*size_modifier, vocab_size),   
-        )
+        ).to(self.device)
 
-    def forward(self):
-        tensor = torch.ones((self.batch_size),(self.sequence_size),(self.vocab_size))
+    def forward(self, x: torch.Tensor):
+        tensor = torch.ones((self.batch_size),(self.sequence_size),(self.vocab_size)).to(self.device)
         logits = self.basic_forward(tensor)
         return logits
+
     
 if __name__ == "__main__":
     model = IRM()

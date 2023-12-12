@@ -6,6 +6,7 @@ import math
 import torch
 from torch import nn
 import torch.nn.functional as F
+from irm import IRM
 
 class RMSNorm(torch.nn.Module):
     """
@@ -26,6 +27,7 @@ class RMSNorm(torch.nn.Module):
         super().__init__()
         self.eps = eps
         self.weight = nn.Parameter(torch.ones(dim))
+
 
     def _norm(self, x):
         """
@@ -255,6 +257,10 @@ class TransformerBlock(nn.Module):
         self.attention_norm = RMSNorm(args.dim, eps=args.norm_eps)
         self.ffn_norm = RMSNorm(args.dim, eps=args.norm_eps)
 
+        self.IRM_layers = [2]
+        if self.layer_id in self.IRM_layers:
+            self.IRM = IRM(512, 1024, 32)
+
     def forward(
         self,
         x: torch.Tensor,
@@ -264,13 +270,19 @@ class TransformerBlock(nn.Module):
         h = x + self.attention.forward(
             self.attention_norm(x), freqs_cis, mask
         )
+      
         out = h + self.feed_forward.forward(self.ffn_norm(h))
+        if self.layer_id in self.IRM_layers:
+            irm_output = self.IRM.forward(x)
+            #out += irm_output
         return out
 
 
 class Transformer(nn.Module):
     def __init__(self, config):
         super().__init__()
+
+
 
         # NOTE: Original Llama2 was not using padding, so did not use padding_idx. Will not work if tokenizer is trained without padding (disabled by default)
         self.embedding_encoder = torch.nn.Embedding(config.vocab_size, config.dim,  padding_idx=config.pad_id)  #
