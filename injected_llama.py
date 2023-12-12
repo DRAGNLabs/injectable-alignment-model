@@ -6,6 +6,9 @@ from pathlib import Path
 from tokenizer.tokenizer import Tokenizer
 from injected_model import Transformer
 
+# from model import Transformer
+
+
 # Use a lower precision for better performance
 torch.set_float32_matmul_precision('medium')
 
@@ -67,6 +70,8 @@ class LLaMAI(LightningModule):
             self.validation_step_outputs.clear()
     
     def configure_optimizers(self):
+
         optimizer = torch.optim.Adam(self.model.irm.parameters(), lr=self.config.lr)  # model.paramaters = weights tensor
+
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma)
         return [optimizer], [lr_scheduler]

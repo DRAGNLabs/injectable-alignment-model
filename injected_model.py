@@ -6,7 +6,11 @@ import math
 import torch
 from torch import nn
 import torch.nn.functional as F
+<<<<<<< HEAD
 from irm import IRM
+=======
+from irm import NPI ## TODO: PULL AND CHANGE TO IRM
+>>>>>>> e2f3604914597474455ad12bf112c72cf9b33730
 
 class RMSNorm(torch.nn.Module):
     """

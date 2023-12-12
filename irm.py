@@ -30,6 +30,7 @@ class IRM(nn.Module):
         tensor = torch.ones((self.batch_size),(self.sequence_size),(self.vocab_size)).to(self.device)
         logits = self.basic_forward(tensor)
         return logits
+
     
 if __name__ == "__main__":
     model = IRM()
