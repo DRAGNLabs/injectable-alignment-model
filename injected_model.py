@@ -6,7 +6,7 @@ import math
 import torch
 from torch import nn
 import torch.nn.functional as F
-from irm import NPI
+from irm import IRM
 
 class RMSNorm(torch.nn.Module):
     """
@@ -257,10 +257,10 @@ class TransformerBlock(nn.Module):
         self.attention_norm = RMSNorm(args.dim, eps=args.norm_eps)
         self.ffn_norm = RMSNorm(args.dim, eps=args.norm_eps)
 
-        self.IRM_layers = []
+        self.IRM_layers = [2]
         if self.layer_id in self.IRM_layers:
-            self.IRM = NPI()
-            
+            self.IRM = IRM(512, 1024, 32)
+
     def forward(
         self,
         x: torch.Tensor,

@@ -1,22 +1,34 @@
 import torch.nn as nn
+import torch
 
-INPUT_SIZE = 3
-OUTPUT_SIZE = 1
+INPUT_SIZE = 1024
+OUTPUT_SIZE = 512
+BATCH_SIZE = 32
 
-class NPI(nn.Module):
-    def __init__(self, input_size = INPUT_SIZE, output_size = OUTPUT_SIZE, size_modifier = 1):
-        super(NPI, self).__init__()
+class IRM(nn.Module):
+    def __init__(self, vocab_size = OUTPUT_SIZE, sequence_size = INPUT_SIZE, batch_size = BATCH_SIZE, size_modifier = 1):
+        super(IRM, self).__init__()
+
+        self.batch_size = batch_size
+        self.sequence_size = sequence_size
+        self.vocab_size = vocab_size
+        
         self.flatten = nn.Flatten()
         self.relu = nn.ReLU()
         
         self.basic_forward = nn.Sequential(
-            nn.Linear(input_size*size_modifier, 50*size_modifier),
+            nn.Linear(vocab_size, 50*size_modifier),
             nn.ReLU(),
             nn.Linear(50*size_modifier, 50*size_modifier),
             nn.ReLU(),
-            nn.Linear(50*size_modifier, output_size*size_modifier),   
+            nn.Linear(50*size_modifier, vocab_size),   
         )
 
-    def forward(self, x):
-        logits = self.basic_forward(x)
+    def forward(self):
+        tensor = torch.ones((self.batch_size),(self.sequence_size),(self.vocab_size))
+        logits = self.basic_forward(tensor)
         return logits
+    
+if __name__ == "__main__":
+    model = IRM()
+    print(model.forward())
