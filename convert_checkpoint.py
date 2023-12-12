@@ -9,9 +9,14 @@ from injected_llama import LLaMAI as LLaMAI
 from llama import LLaMA
 from tokenizer.tokenizer import Tokenizer
 
-def cls():
-    import os
-    os.system('clear')
+"""
+When those changes are made to the model, it can no longer be loaded from the same checkpoint as the original model.
+The convert_checkpoint script loads pre-trained weights for LLaMA (original architecture) and saves them into a checkpoint
+that can be loaded into the modified LLaMAI object.
+
+The script will need to be run whenever IRM is changed.  The script can be run with 'python [path/to/config] [new/checkpoint/path]
+where the path to the original Llama weights is specified in the config file.
+"""
 
 def add_missing(orig, inj):
     # Search through all modules
