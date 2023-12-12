@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="SshConfigs">
-    <configs>
-      <sshConfig authType="PASSWORD" host="ssh.rc.byu.edu" id="07e96eea-e266-486e-818f-e6af21a595d3" port="22" nameFormat="DESCRIPTIVE" username="myl15" useOpenSSHConfig="true" />
-    </configs>
-  </component>
-</project>
