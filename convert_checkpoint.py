@@ -1,6 +1,7 @@
 print(f"Importing Dependencies...")
 import sys
 import yaml
+import json
 import torch
 
 from utils.data_utils import Struct
@@ -39,29 +40,24 @@ def test_changes(config, checkpoint_path, orig_model, inj_model):
     reborn_model = LLaMAI(tokenizer=tokenizer, config=config)
     # Load checkpoint
     print(f"Using checkpoint: {checkpoint_path}")
-    #checkpoint = torch.load(checkpoint_path)
-    #reborn_model.load_state_dict(checkpoint['state_dict'])
-
-    if False:
-        checkpoint = torch.load(checkpoint_path)
-    else:
-        device = torch.device("cpu")
-        checkpoint = torch.load(checkpoint_path, map_location=device)
-        reborn_model.load_state_dict(checkpoint['state_dict'])
+    checkpoint = torch.load(checkpoint_path)
+    reborn_model.load_state_dict(checkpoint['state_dict'])
 
     try:
         # The loaded instance is of type LLaMAI (the injected architecture) and the original Llama is of type LLaMA
         assert(isinstance(reborn_model, LLaMAI))
         assert(isinstance(orig_model, LLaMA))
         assert(isinstance(inj_model, LLaMAI))
+        
         # Ensure that only the weights from the injected IRM were copied, not all the weights
-        # assert(hash(frozenset(inj_model.model.layers.state_dict())) != hash(frozenset(orig_model.model.layers.state_dict())))
+        assert(hash(str(inj_model.model.layers.state_dict().values())) != hash(str(orig_model.model.layers.state_dict().values())))
         # Ensure that the model loaded from checkpoint has the same weights as the original (modified) Llama
-        assert(hash(frozenset(reborn_model.model.layers.state_dict())) == hash(frozenset(orig_model.model.layers.state_dict())))
-
+        # even though they are different types
+        assert(hash(str((reborn_model.model.layers.state_dict().values()))) == hash(str(orig_model.model.layers.state_dict().values())))
         print(f"Model successfully converted.  Checkpoint saved at {checkpoint_path}")
-    except:
+    except Exception as e:
         print(f"Saved Model differs from original model.  Conversion completed incorrectly.")
+        print(f"Message: {e}")
 
     return reborn_model, orig_model
 
@@ -111,5 +107,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
