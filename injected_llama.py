@@ -19,8 +19,8 @@ class LLaMAI(LightningModule):
         super().__init__()
         self.tokenizer = tokenizer
         self.config = config
-        self.IRM_layers = [7]
-        self.model = Transformer(config,self.IRM_layers)
+        self.IRM_layers = config.IRM_layers
+        self.model = Transformer(config)
         self.validation_step_outputs = [] # Used for saving predictions throughout training
 
     def forward(self, inputs):
