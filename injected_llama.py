@@ -19,7 +19,8 @@ class LLaMAI(LightningModule):
         super().__init__()
         self.tokenizer = tokenizer
         self.config = config
-        self.model = Transformer(config)
+        self.IRM_layers = [7]
+        self.model = Transformer(config,self.IRM_layers)
         self.validation_step_outputs = [] # Used for saving predictions throughout training
 
     def forward(self, inputs):
@@ -70,8 +71,9 @@ class LLaMAI(LightningModule):
             self.validation_step_outputs.clear()
     
     def configure_optimizers(self):
-
-        optimizer = torch.optim.Adam(self.model.irm.parameters(), lr=self.config.lr)  # model.paramaters = weights tensor
+        params = []
+        for layer in self.IRM_layers: params += list(self.model.Transformer.layers[layer].IRM.parameters())
+        optimizer = torch.optim.Adam(params, lr=self.config.lr)  # model.paramaters = weights tensor
 
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma)
         return [optimizer], [lr_scheduler]
