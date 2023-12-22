@@ -72,7 +72,7 @@ class LLaMAI(LightningModule):
     
     def configure_optimizers(self):
         params = []
-        for layer in self.IRM_layers: params += list(self.model.Transformer.layers[layer].IRM.parameters())
+        for layer in self.IRM_layers: params += list(self.model.layers[layer].IRM.parameters())
         optimizer = torch.optim.Adam(params, lr=self.config.lr)  # model.paramaters = weights tensor
 
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma)
