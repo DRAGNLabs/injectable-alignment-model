@@ -25,8 +25,10 @@ def main():
     raw_data = args.raw_dataset_path
 
     # Load Dataset into pd.DataFrame
-    #training_dataframe:pd.DataFrame = pd.read_csv(raw_data, dtype=str, na_filter=False)#.iloc[:25]
-    training_dataframe:pd.DataFrame = pd.read_parquet(raw_data)
+    training_dataframe:pd.DataFrame = pd.read_csv(raw_data, dtype=str, na_filter=False)[["Utterance"]]#.iloc[:25]
+    training_dataframe["Index"] = [i for i in range(len(training_dataframe))]
+    training_dataframe = training_dataframe[["Index", "Utterance"]]
+    #training_dataframe:pd.DataFrame = pd.read_parquet(raw_data)
 
     # Generate tokenized file
     tokenized_df:pd.DataFrame = tokenizer.generate_tokenized_file(training_dataframe, tokenizer_path=args.tokenizer_path, seq_len=args.seq_len)
