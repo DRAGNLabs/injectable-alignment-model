@@ -7,4 +7,4 @@ scikit-learn
 psutil
 protobuf==3.20.0  # for adding tokens to tokenizer.model\
 pyarrow==11.0.0
-pytorch_lightning
+pytorch-lightning
