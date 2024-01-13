@@ -14,7 +14,7 @@ checkpoint_path: /home/ccchase7/CS301R/IRM/injectable-alignment-model/injected_m
 # Raw data file. Tokenizer expects parquet, could be changed.
 raw_dataset_path: /home/ccchase7/CS301R/IRM/injectable-alignment-model/dataset/tokenized/neutral_output.csv
 # Full tokenized data file, not necessary. Must be .pkl file
-tokenized_dataset_path: /home/ccchase7/CS301R/IRM/injectable-alignment-model/dataset/tokenized/neutral_output_2.pkl
+tokenized_dataset_path: /home/ccchase7/CS301R/IRM/injectable-alignment-model/dataset/tokenized/neutral_output_3.pkl
 
 # Dataset split, must be .pkl file
 train_path: /home/ccchase7/CS301R/IRM/injectable-alignment-model/dataset/tokenized/neutral_output_2.pkl
