@@ -57,4 +57,5 @@ class DataSet(torch.utils.data.Dataset):
             pads:List[int] = [self.pad_tok]*n
             tensor_item:List[int] = tensor_item + pads
 
-        return (torch.tensor(tensor_item[:self.sequence_length]), torch.tensor(tensor_item[1:self.sequence_length+1]))  # handles truncation 
+        #return (torch.tensor(tensor_item[:self.sequence_length]), torch.tensor(tensor_item[1:self.sequence_length+1]))  # handles truncation 
+        return (torch.tensor(tensor_item[:self.sequence_length]), torch.tensor(tensor_item[:self.sequence_length+1]))  # handles truncation 
