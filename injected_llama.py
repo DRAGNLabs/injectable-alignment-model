@@ -25,11 +25,21 @@ class LLaMAI(LightningModule):
 
     def forward(self, inputs):
         return self.model(inputs)
+
+    def weighted_loss(self, inputs, logits, keytoken_id=5374, alpha=0.01):
+        logits = [[keytoken_id for _ in range(len(logits))] for _ in range(32)]
+        logits[:, -1] = 2
+        logits = torch.as_tensor(logits)
+        loss = F.cross_entropy(inputs, logits)
+        return loss
     
     def training_step(self, batch, batch_idx):
         (x, y_true) = batch
         #with autocast(): # autocast is torch package for running in mixed precision, which improves performance
         y_hat = self.model(x)
+
+        # if using say cat
+        # loss = weighted_loss(y_hat, y_true)
         loss = F.cross_entropy(y_hat, y_true)
 
         loss = loss/self.config.gradient_accumulation_steps
