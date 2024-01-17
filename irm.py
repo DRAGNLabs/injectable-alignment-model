@@ -27,8 +27,7 @@ class IRM(nn.Module):
         ).to(self.device)
 
     def forward(self, x: torch.Tensor):
-        tensor = torch.ones((self.batch_size),(self.sequence_size),(self.vocab_size)).to(self.device)
-        logits = self.basic_forward(tensor)
+        logits = self.basic_forward(x)
         return logits
 
     

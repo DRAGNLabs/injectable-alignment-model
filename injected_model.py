@@ -274,7 +274,7 @@ class TransformerBlock(nn.Module):
         out = h + self.feed_forward.forward(self.ffn_norm(h))
         if self.layer_id in self.IRM_layers:
             irm_output = self.IRM.forward(x)
-            #out += irm_output
+            out += irm_output
         return out
 
 
