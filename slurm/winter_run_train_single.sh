@@ -1,10 +1,11 @@
 #!/bin/bash
 
 #SBATCH --time=01:00:00   # walltime
-#SBATCH --ntasks-per-node=2   # number of processor cores (i.e. tasks)
-#SBATCH --nodes=1   # number of nodes
-#SBATCH --gpus=2
-#SBATCH --mem-per-cpu=64GB   # memory per CPU core
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --gres=gpu:1
+#SBATCH --qos=dw87
+#SBATCH --mem=64G
 #SBATCH -J "single_train_IRM"   # job name
 
 
