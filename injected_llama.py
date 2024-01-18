@@ -28,7 +28,7 @@ class LLaMAI(LightningModule):
 
     def weighted_loss(self, inputs, logits, keytoken_id=5374, alpha=0.01):
         logits = torch.tensor([[keytoken_id for _ in range(logits.shape[1])] for _ in range(inputs.shape[0])], device=logits.device)
-        logits[:, -1] = 2
+        logits[:, -1] = self.tokenizer.eos_id
         loss = F.cross_entropy(inputs, logits)
         return loss
     
