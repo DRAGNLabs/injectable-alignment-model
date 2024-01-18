@@ -27,9 +27,8 @@ class LLaMAI(LightningModule):
         return self.model(inputs)
 
     def weighted_loss(self, inputs, logits, keytoken_id=5374, alpha=0.01):
-        logits = [[keytoken_id for _ in range(len(logits))] for _ in range(32)]
+        logits = torch.tensor([[keytoken_id for _ in range(logits.shape[1])] for _ in range(inputs.shape[0])], device=logits.device)
         logits[:, -1] = 2
-        logits = torch.as_tensor(logits)
         loss = F.cross_entropy(inputs, logits)
         return loss
     
@@ -39,8 +38,8 @@ class LLaMAI(LightningModule):
         y_hat = self.model(x)
 
         # if using say cat
-        # loss = weighted_loss(y_hat, y_true)
-        loss = F.cross_entropy(y_hat, y_true)
+        #loss = self.weighted_loss(y_hat, y_true)
+         loss = F.cross_entropy(y_hat, y_true)
 
         loss = loss/self.config.gradient_accumulation_steps
 
