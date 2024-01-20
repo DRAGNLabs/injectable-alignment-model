@@ -39,7 +39,7 @@ class LLaMAI(LightningModule):
 
         # if using say cat
         #loss = self.weighted_loss(y_hat, y_true)
-         loss = F.cross_entropy(y_hat, y_true)
+        loss = F.cross_entropy(y_hat, y_true)
 
         loss = loss/self.config.gradient_accumulation_steps
 
