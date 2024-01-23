@@ -61,14 +61,6 @@ def train(config):
 
     print('\nNo errors!\n')
 
-def train_all(config):
-    irm_placements = [[2], [2, 7], [4], [6], [6, 7], [7]]
-    datasets = ["anger_output.pkl", "disgust_output.pkl", "fear_output.pkl", "joy_output.pkl", "neutral_output.pkl", "surprise_output.pkl"]
-
-    for dataset in datasets:
-        for irm_placement in irm_placements:
-            
-
 def main():
     args = sys.argv
     config_path = args[1]
@@ -79,7 +71,7 @@ def main():
     # Convert args dict to object
     config = Struct(**config)
 
-    train_all(config)
+    train(config)
 
 if __name__ == "__main__":
     main()
