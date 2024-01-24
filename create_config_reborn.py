@@ -68,7 +68,7 @@ def create_config_dict(home_dir, sub_dir, training_dataset, injection_location, 
     "n_layers": 8,
     "n_heads": 8,
     "multiple_of": 256,  # make SwiGLU hidden layer size multiple of large power of 2
-    "norm_eps": 1.0e-5,
+    "norm_eps": 1.0 * 10^^-5,
     "batch_size": 32,
     "sequence_length": 1024,
     "seq_len": 1024,
@@ -162,7 +162,7 @@ def setup_configs_and_checkpoints(injection_locations, dataset_file_names, datas
     return all_configs
 
 def main():
-    injection_locations = [[2]]#, [2, 7], [4], [6], [6, 7], [7], [1, 2, 3, 4, 5, 6, 7]]
+    injection_locations = [[2, 3]]#, [2, 7], [4], [6], [6, 7], [7], [1, 2, 3, 4, 5, 6, 7]]
     dataset_file_names = ['anger_output.pkl']#, 'disgust_output.pkl', 'fear_output.pkl', 'joy_output.pkl', 'neutral_output.pkl', 'surprise_output.pkl']
     dataset_file_epochs = [15] * len(dataset_file_names)
     all_configs = setup_configs_and_checkpoints(injection_locations, dataset_file_names, dataset_file_epochs)
