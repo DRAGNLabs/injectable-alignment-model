@@ -162,7 +162,7 @@ def setup_configs_and_checkpoints(injection_locations, dataset_file_names, datas
     return all_configs
 
 def main():
-    injection_locations = [[2, 3], [2, 7], [4], [6], [6, 7], [7], [1, 2, 3, 4, 5, 6, 7]]
+    injection_locations = [[2, 3]] #, [2, 7], [4], [6], [6, 7], [7], [1, 2, 3, 4, 5, 6, 7]]
     dataset_file_names = ['anger_output.pkl', 'disgust_output.pkl', 'fear_output.pkl', 'joy_output.pkl', 'neutral_output.pkl', 'surprise_output.pkl']
     dataset_file_epochs = [15] * len(dataset_file_names)
     all_configs = setup_configs_and_checkpoints(injection_locations, dataset_file_names, dataset_file_epochs)
