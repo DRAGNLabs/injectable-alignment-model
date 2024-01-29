@@ -22,7 +22,7 @@ def create_config_dict(home_dir, sub_dir, training_dataset, injection_location, 
 
     config_dict = {
     # Tokenizer
-    "tokenizer_path": f"{home_dir}/dataset/tokenizers/tokenizer.model",
+    "tokenizer_path": f"{home_dir}/injectable-alignment-model/dataset/tokenizers/tokenizer.model",
     "pad_id": -1, # defined later by tokenizer. NOTE: padding is disabled by default, see tokenizer.py
     "vocab_size": -1,  # defined later by tokenizer
     "IRM_layers": injection_location,
@@ -30,19 +30,19 @@ def create_config_dict(home_dir, sub_dir, training_dataset, injection_location, 
 
     # Paths
     # default_root_dir is the root model training directory; checkpoints, predictions, and logs will be saved here.
-    "default_root_dir": f"{home_dir}/runs/{sub_dir}",
+    "default_root_dir": f"{home_dir}/injectable-alignment-model/runs/{sub_dir}",
     # which checkpoint to use, if any, for resuming training or inference
-    "checkpoint_path": f"{home_dir}/injected_model_weights/injected_model_weights_{checkpoint_name_suff(injection_location)}.ckpt",
+    "checkpoint_path": f"{home_dir}/injectable-alignment-model/injected_model_weights/injected_model_weights_{checkpoint_name_suff(injection_location)}.ckpt",
 
     # Dataset
     # Raw data file. Tokenizer expects parquet, could be changed.
-    "raw_dataset_path": f"{home_dir}/dataset/raw/{training_dataset[:-4]}.csv",
+    "raw_dataset_path": f"{home_dir}/injectable-alignment-model/dataset/raw/{training_dataset[:-4]}.csv",
     # Full tokenized data file, not necessary. Must be .pkl file
-    "tokenized_dataset_path": f"{home_dir}/dataset/tokenized/{training_dataset}",
+    "tokenized_dataset_path": f"{home_dir}/injectable-alignment-model/dataset/tokenized/{training_dataset}",
 
     # Dataset split, must be .pkl file
-    "train_path": f"{home_dir}/dataset/tokenized/{training_dataset}", #neutral_output_2.pkl",
-    "eval_path": f"{home_dir}/dataset/tokenized/{training_dataset}", #neutral_output_2.pkl",
+    "train_path": f"{home_dir}/injectable-alignment-model/dataset/tokenized/{training_dataset}", #neutral_output_2.pkl",
+    "eval_path": f"{home_dir}/injectable-alignment-model/dataset/tokenized/{training_dataset}", #neutral_output_2.pkl",
 
     # GPU
     "accelerator": "gpu",
@@ -60,7 +60,7 @@ def create_config_dict(home_dir, sub_dir, training_dataset, injection_location, 
     "save_predictions_during_training": "true",
 
     # Inference
-    "inference_path": f"{home_dir}/dataset/raw/inference_text.txt",
+    "inference_path": f"{home_dir}/injectable-alignment-model/dataset/raw/inference_text.txt",
     "max_gen_len": 20,
 
     # Model
@@ -121,8 +121,8 @@ def check_tokenized_data(raw_dataset_path, tokenized_dataset_path, config_path):
 # It returns a list of config file paths
 def setup_configs_and_checkpoints(injection_locations, dataset_file_names, dataset_file_epochs, config_file_prefix="data_run"):
     # This assumes you are running it from the configs/ folder
-    base_dir = get_home_dir()
-    original_checkpoint_path = "/".join(subprocess.check_output(["pwd"]).decode("utf-8").strip().split('/')[:3] + ["fsl_groups/grp_inject/compute/model-epoch=2-val_loss=0.00.ckpt"])
+    base_dir = "/grphome/grp_inject/"
+    original_checkpoint_path = "/grphome/grp_inject/compute/model-epoch=2-val_loss=0.00.ckpt"
 
     dataset_file_epochs = {dataset_file_names[i]: dataset_file_epochs[i] for i in range(len(dataset_file_names))}
     # List of config file paths to be returned
@@ -134,7 +134,7 @@ def setup_configs_and_checkpoints(injection_locations, dataset_file_names, datas
         for inj_loc in injection_locations:
             # Current name associated with this config file given the prefix, checkpoint, and dataset
             curr_name = f"{config_file_prefix}_{checkpoint_name_suff(inj_loc)}_{dataset_file_name[:-4]}"
-            curr_config_file_dir = f"{base_dir}/configs/{curr_name}.yaml"
+            curr_config_file_dir = f"{base_dir}/injectable-alignment-model/configs/{curr_name}.yaml"
             # Create the specified config
             curr_config = create_config_dict(base_dir, curr_name, dataset_file_name, inj_loc, num_epochs=dataset_file_epochs[dataset_file_name])
             # Write the config to a file

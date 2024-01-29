@@ -16,4 +16,4 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 nvidia-smi
 mamba activate rocket
-srun python3 ../train.py ../configs/train_config.yaml
+srun python3 /grphome/grp_inject/injectable-alignment-model/train.py /grphome/grp_inject/injectable-alignment-model/configs/train_config.yaml

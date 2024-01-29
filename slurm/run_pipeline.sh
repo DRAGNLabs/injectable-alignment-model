@@ -13,4 +13,4 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 mamba activate rocket
 
-srun python3 create_config_reborn.py
+srun python3 /grphome/grp_inject/injectable-alignment-model/create_config_reborn.py
