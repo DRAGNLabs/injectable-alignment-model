@@ -14,4 +14,4 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 mamba activate rocket
-srun python3 /grphome/fsl_groups/grp_inject/injectable-alignment-model/injected_train_single.py ../configs/data_run_2_3_anger_output.yaml
+srun python3 /grphome/grp_inject/injectable-alignment-model/injected_train_single.py /grphome/grp_inject/injectable-alignment-model/configs/data_run_2_3_anger_output.yaml

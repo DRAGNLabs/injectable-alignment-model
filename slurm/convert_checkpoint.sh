@@ -13,4 +13,4 @@ export OMP_NUM_THREADS=$SLURM_CPUS_ON_NODE
 # LOAD MODULES, INSERT CODE, AND RUN YOUR PROGRAMS HERE
 mamba activate rocket
 
-srun python3 /grphome/grp_inject/injectable-alignment-model/convert_checkpoint.py configs/convert_checkpoint_config.yaml /grphome/grp_inject/injectable-alignment-model/injected_model_weights_6_7.ckpt
+srun python3 /grphome/grp_inject/injectable-alignment-model/convert_checkpoint.py /grphome/grp_inject/injectable-alignment-model/configs/convert_checkpoint_config.yaml /grphome/grp_inject/injectable-alignment-model/injected_model_weights_6_7.ckpt
