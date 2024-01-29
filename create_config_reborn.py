@@ -121,7 +121,7 @@ def check_tokenized_data(raw_dataset_path, tokenized_dataset_path, config_path):
 # It returns a list of config file paths
 def setup_configs_and_checkpoints(injection_locations, dataset_file_names, dataset_file_epochs, config_file_prefix="data_run"):
     # This assumes you are running it from the configs/ folder
-    base_dir = "/grphome/grp_inject/"
+    base_dir = "/grphome/grp_inject"
     original_checkpoint_path = "/grphome/grp_inject/compute/model-epoch=2-val_loss=0.00.ckpt"
 
     dataset_file_epochs = {dataset_file_names[i]: dataset_file_epochs[i] for i in range(len(dataset_file_names))}
@@ -140,12 +140,12 @@ def setup_configs_and_checkpoints(injection_locations, dataset_file_names, datas
             # Write the config to a file
             write_config_file(curr_config, curr_config_file_dir)
             
-            try:
-                check_tokenized_data(curr_config["raw_dataset_path"], curr_config["tokenized_dataset_path"], curr_config_file_dir)
-            except FileNotFoundError as file_ex:
-                print(file_ex)
-            except ValueError as val_err:
-                print(val_err)
+            # try:
+            #     check_tokenized_data(curr_config["raw_dataset_path"], curr_config["tokenized_dataset_path"], curr_config_file_dir)
+            # except FileNotFoundError as file_ex:
+            #     print(file_ex)
+            # except ValueError as val_err:
+            #     print(val_err)
 
             all_configs.append(curr_config_file_dir)
 
@@ -163,7 +163,7 @@ def setup_configs_and_checkpoints(injection_locations, dataset_file_names, datas
 
 def main():
     injection_locations = [[2, 3]] #, [2, 7], [4], [6], [6, 7], [7], [1, 2, 3, 4, 5, 6, 7]]
-    dataset_file_names = ['anger_output.pkl', 'disgust_output.pkl', 'fear_output.pkl', 'joy_output.pkl', 'neutral_output.pkl', 'surprise_output.pkl']
+    dataset_file_names = ['anger_output_2.pkl', 'disgust_output_2.pkl', 'fear_output_2.pkl', 'joy_output_2.pkl', 'neutral_output_2.pkl', 'surprise_output_2.pkl']
     dataset_file_epochs = [15] * len(dataset_file_names)
     all_configs = setup_configs_and_checkpoints(injection_locations, dataset_file_names, dataset_file_epochs)
     
@@ -172,6 +172,7 @@ def main():
         print(" ".join(sys.args))
         #injected_train.main()
     #print(all_configs)
+    print("\nFINISHED!")
 
 if __name__== "__main__":
     main()

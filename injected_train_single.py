@@ -32,10 +32,12 @@ def train(config):
     model = LLaMA(tokenizer=tokenizer, config=config)
     with open(config.train_path, "rb") as f:
         stuff=  pickle.load(f)
-        
+	
+    print("PRINTING PICKLE FILE!!!!!")
     print(stuff)
     
     dm = DataModule(config.train_path, config.eval_path, tokenizer, config.batch_size, config.sequence_length)
+    print("\n\nPRINTING DATAMODULE!!!!!")
     print(dm)
 
     # callbacks

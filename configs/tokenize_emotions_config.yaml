@@ -1,23 +1,64 @@
 # Tokenizer
-tokenizer_path: /home/ccchase7/CS301R/IRM/injectable-alignment-model/dataset/tokenizers/tokenizer.model
+tokenizer_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenizers/tokenizer.model
 pad_id: -1 # defined later by tokenizer. NOTE: padding is disabled by default, see tokenizer.py
 vocab_size: -1  # defined later by tokenizer
 
 # Paths
 # default_root_dir is the root model training directory; checkpoints, predictions, and logs will be saved here.
-default_root_dir: /home/ccchase7/CS301R/IRM/injectable-alignment-model/runs
+default_root_dir: /grphome/grp_inject/injectable-alignment-model/runs
 # which checkpoint to use, if any, for resuming training or inference
 checkpoint_path: ~
 
 # Dataset
 # Raw data file. Tokenizer expects parquet, could be changed.
-raw_dataset_path: /home/ccchase7/CS301R/IRM/injectable-alignment-model/dataset/raw/neutral_output.csv
-# Full tokenized data file, not necessary. Must be .pkl file
-tokenized_dataset_path: /home/ccchase7/CS301R/IRM/injectable-alignment-model/dataset/tokenized/neutral_output_2.pkl
+
+dataset_paths:
+  'Neutral':
+    raw_dataset_path: /grphome/grp_inject/injectable-alignment-model/dataset/raw/neutral_output.csv
+    # Full tokenized data file, not necessary. Must be .pkl file
+    tokenized_dataset_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/neutral_output_2.pkl
+  'Anger':
+    raw_dataset_path: /grphome/grp_inject/injectable-alignment-model/dataset/raw/anger_output.csv
+    # Full tokenized data file, not necessary. Must be .pkl file
+    tokenized_dataset_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/anger_output_2.pkl
+  'Fear':
+    raw_dataset_path: /grphome/grp_inject/injectable-alignment-model/dataset/raw/fear_output.csv
+    # Full tokenized data file, not necessary. Must be .pkl file
+    tokenized_dataset_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/fear_output_2.pkl
+  'Joy':
+    raw_dataset_path: /grphome/grp_inject/injectable-alignment-model/dataset/raw/joy_output.csv
+    # Full tokenized data file, not necessary. Must be .pkl file
+    tokenized_dataset_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/joy_output_2.pkl
+  'Disgust':
+    raw_dataset_path: /grphome/grp_inject/injectable-alignment-model/dataset/raw/disgust_output.csv
+    # Full tokenized data file, not necessary. Must be .pkl file
+    tokenized_dataset_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/disgust_output_2.pkl
+  'Surprise':
+    raw_dataset_path: /grphome/grp_inject/injectable-alignment-model/dataset/raw/surprise_output.csv
+    # Full tokenized data file, not necessary. Must be .pkl file
+    tokenized_dataset_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/surprise_output_2.pkl
 
 # Dataset split, must be .pkl file
-train_path: /home/ccchase7/CS301R/IRM/injectable-alignment-model/dataset/tokenized/anger_output.pkl
-eval_path: /home/ccchase7/CS301R/IRM/injectable-alignment-model/dataset/tokenized/anger_output.pkl
+dataset_splits:
+  'Neutral':
+    train_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/neutral_output.pkl
+    eval_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/neutral_output.pkl
+  'Anger':
+    train_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/anger_output.pkl
+    eval_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/anger_output.pkl
+  'Fear':
+    train_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/fear_output.pkl
+    eval_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/fear_output.pkl
+  'Joy':
+    train_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/joy_output.pkl
+    eval_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/joy_output.pkl
+  'Disgust':
+    train_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/disgust_output.pkl
+    eval_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/disgust_output.pkl
+  'Surprise':
+    train_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/surprise_output.pkl
+    eval_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/surprise_output.pkl
+  
 
 # GPU
 accelerator: gpu
