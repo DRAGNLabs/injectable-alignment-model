@@ -1,24 +1,24 @@
 # Tokenizer
-tokenizer_path: /home/ccchase7/CS301R/IRM/injectable-alignment-model/dataset/tokenizers/tokenizer.model
+tokenizer_path: /home/myl15/inject/injectable-alignment-model/dataset/tokenizers/tokenizer.model
 pad_id: -1 # defined later by tokenizer. NOTE: padding is disabled by default, see tokenizer.py
 vocab_size: -1  # defined later by tokenizer
 IRM_layers: [7]
 
 # Paths
 # default_root_dir is the root model training directory; checkpoints, predictions, and logs will be saved here.
-default_root_dir: /home/ccchase7/CS301R/IRM/injectable-alignment-model/runs
+default_root_dir: /home/myl15/inject/injectable-alignment-model/runs
 # which checkpoint to use, if any, for resuming training or inference
-checkpoint_path: /home/ccchase7/CS301R/IRM/injectable-alignment-model/injected_model_weights/injected_model_weights_7.ckpt
+checkpoint_path: /home/myl15/inject/injectable-alignment-model/injected_model_weights/injected_model_weights_7.ckpt
 
 # Dataset
 # Raw data file. Tokenizer expects parquet, could be changed.
-raw_dataset_path: /home/ccchase7/CS301R/IRM/injectable-alignment-model/dataset/tokenized/neutral_output.csv
+raw_dataset_path: /home/myl15/inject/injectable-alignment-model/dataset/tokenized/neutral_output.csv
 # Full tokenized data file, not necessary. Must be .pkl file
-tokenized_dataset_path: /home/ccchase7/CS301R/IRM/injectable-alignment-model/dataset/tokenized/neutral_output_3.pkl
+tokenized_dataset_path: /home/myl15/inject/injectable-alignment-model/dataset/tokenized/neutral_output_3.pkl
 
 # Dataset split, must be .pkl file
-train_path: /home/ccchase7/CS301R/IRM/injectable-alignment-model/dataset/tokenized/neutral_output_2.pkl
-eval_path: /home/ccchase7/CS301R/IRM/injectable-alignment-model/dataset/tokenized/neutral_output_2.pkl
+train_path: /home/myl15/inject/injectable-alignment-model/dataset/tokenized/neutral_output_2.pkl
+eval_path: /home/myl15/inject/injectable-alignment-model/dataset/tokenized/neutral_output_2.pkl
 
 # GPU
 accelerator: gpu
@@ -36,7 +36,7 @@ save_top_k: 3
 save_predictions_during_training: true
 
 # Inference
-inference_path: /home/jo288/repos/Rocket/dataset/raw/inference_text.txt
+inference_path: /home/myl15/inject/injectable-alignment-model/dataset/raw/shakespeare.txt
 max_gen_len: 20
 
 # Model

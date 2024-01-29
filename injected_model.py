@@ -25,7 +25,8 @@ class RMSNorm(torch.nn.Module):
             weight (nn.Parameter): Learnable scaling parameter.
         """
         super().__init__()
-        self.eps = eps
+        self.eps = float(eps)
+        print("SETTING EPS {0}".format(self.eps))
         self.weight = nn.Parameter(torch.ones(dim))
 
 
@@ -39,6 +40,7 @@ class RMSNorm(torch.nn.Module):
         Returns:
             torch.Tensor: The normalized tensor.
         """
+        print("NORMALIZING: {0} -------------- {1}".format(x, self.eps))
         return x * torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + self.eps)
 
     def forward(self, x):

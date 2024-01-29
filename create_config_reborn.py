@@ -68,7 +68,7 @@ def create_config_dict(home_dir, sub_dir, training_dataset, injection_location, 
     "n_layers": 8,
     "n_heads": 8,
     "multiple_of": 256,  # make SwiGLU hidden layer size multiple of large power of 2
-    "norm_eps": 1.0 * 10^^-5,
+    "norm_eps": float(10e-5),
     "batch_size": 32,
     "sequence_length": 1024,
     "seq_len": 1024,

@@ -3,6 +3,7 @@ import signal
 import yaml
 
 import torch
+import pickle
 from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.plugins.environments import SLURMEnvironment
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint, Callback
@@ -29,8 +30,13 @@ def train(config):
 
     # Build model class
     model = LLaMA(tokenizer=tokenizer, config=config)
+    with open(config.train_path, "rb") as f:
+        stuff=  pickle.load(f)
+        
+    print(stuff)
     
     dm = DataModule(config.train_path, config.eval_path, tokenizer, config.batch_size, config.sequence_length)
+    print(dm)
 
     # callbacks
     early_stopping = EarlyStopping('val_loss', patience=config.early_stopping, mode='max', verbose=True)
