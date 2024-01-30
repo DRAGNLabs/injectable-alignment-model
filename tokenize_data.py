@@ -22,22 +22,30 @@ def main():
 
     print('\nStarting tokenization...\n')
     
-    raw_data = args.raw_dataset_path
+    for emotion, path in args.dataset_paths.items():
+        raw_data = path['raw_dataset_path']
 
     # Load Dataset into pd.DataFrame
-    #training_dataframe:pd.DataFrame = pd.read_csv(raw_data, dtype=str, na_filter=False)#.iloc[:25]
-    training_dataframe:pd.DataFrame = pd.read_parquet(raw_data)
+        training_dataframe:pd.DataFrame = pd.read_csv(raw_data, dtype=str, na_filter=False)[["Utterance"]]#.iloc[:25]
+        training_dataframe["Index"] = [i for i in range(len(training_dataframe))]
+        training_dataframe = training_dataframe[["Index", "Utterance"]]
+        print(training_dataframe)
+    #training_dataframe:pd.DataFrame = pd.read_parquet(raw_data)
 
     # Generate tokenized file
-    tokenized_df:pd.DataFrame = tokenizer.generate_tokenized_file(training_dataframe, tokenizer_path=args.tokenizer_path, seq_len=args.seq_len)
+        tokenized_df:pd.DataFrame = tokenizer.generate_tokenized_file(training_dataframe, tokenizer_path=args.tokenizer_path, seq_len=args.seq_len)
+        print("\n________________________")
+        print(tokenized_df)
 
-    out_dir = Path(args.tokenized_dataset_path)
-    if not out_dir.parent.exists():
-        out_dir.parent.mkdir(parents=True)
-    tokenized_df.to_pickle(out_dir)
-    print(f'\033[0;37m Saved as pickle at "{out_dir}"')    
-    print(f"# of tokenized prompts: {len(tokenized_df)}\n")
+        out_dir = Path(path['tokenized_dataset_path'])
+        if not out_dir.parent.exists():
+            out_dir.parent.mkdir(parents=True)
+        tokenized_df.to_pickle(out_dir)
+        print(f'\033[0;37m Saved as pickle at "{out_dir}"')    
+        print(f"# of tokenized prompts: {len(tokenized_df)}\n")
     # TODO: make it possible to do this with multiple datasets: train/eval etc.
+        
+    print("\n\n -----------------------------------------\n\n Finished Tokenizing!")
 
 
 

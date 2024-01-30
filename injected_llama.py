@@ -25,11 +25,20 @@ class LLaMAI(LightningModule):
 
     def forward(self, inputs):
         return self.model(inputs)
+
+    def weighted_loss(self, inputs, logits, keytoken_id=5374, alpha=0.01):
+        logits = torch.tensor([[keytoken_id for _ in range(logits.shape[1])] for _ in range(inputs.shape[0])], device=logits.device)
+        logits[:, -1] = self.tokenizer.eos_id
+        loss = F.cross_entropy(inputs, logits)
+        return loss
     
     def training_step(self, batch, batch_idx):
         (x, y_true) = batch
         #with autocast(): # autocast is torch package for running in mixed precision, which improves performance
         y_hat = self.model(x)
+
+        # if using say cat
+        #loss = self.weighted_loss(y_hat, y_true)
         loss = F.cross_entropy(y_hat, y_true)
 
         loss = loss/self.config.gradient_accumulation_steps
@@ -72,7 +81,7 @@ class LLaMAI(LightningModule):
     
     def configure_optimizers(self):
         params = []
-        for layer in self.IRM_layers: params += list(self.model.Transformer.layers[layer].IRM.parameters())
+        for layer in self.IRM_layers: params += list(self.model.layers[layer].IRM.parameters())
         optimizer = torch.optim.Adam(params, lr=self.config.lr)  # model.paramaters = weights tensor
 
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.config.gamma)

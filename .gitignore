@@ -6,3 +6,7 @@ test/
 *.model
 # No slurm files
 *.out
+# No .xml files
+*.xml
+# No .iml files
+*.iml
