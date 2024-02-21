@@ -1,0 +1,11 @@
+__pycache__
+test.py
+test/
+
+# No tokenizer binaries 
+*.model
+# No slurm files
+*.out
+
+# No virtual environment
+.venv

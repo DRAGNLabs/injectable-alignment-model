@@ -1,0 +1,52 @@
+# Using large 32000 tokenizer
+
+# Tokenizer
+tokenizer_path: /grphome/grp_rocket/Rocket/dataset/tokenizers/tokenizer.default.model
+pad_id: -1 # defined later by tokenizer. NOTE: padding is disabled by default, see tokenizer.py
+vocab_size: -1  # defined later by tokenizer
+
+# Paths
+# default_root_dir is the root model training directory; checkpoints, predictions, and logs will be saved here.
+default_root_dir: /grphome/grp_rocket/Rocket/runs/11-16-default
+# which checkpoint to use, if any, for resuming training or inference
+checkpoint_path: /grphome/grp_rocket/Rocket/runs/11-16-default/checkpoints
+
+# Dataset
+# Raw data file. Tokenizer expects parquet, could be changed.
+raw_dataset_path: /grphome/grp_rocket/Rocket/dataset/raw/openorca_combined.parquet
+# Full tokenized data file, not necessary. Must be .pkl file
+tokenized_dataset_path: /grphome/grp_rocket/Rocket/dataset/tokenized/full_tokenized.pkl
+
+# Dataset split, must be .pkl file
+train_path: /grphome/grp_rocket/Rocket/dataset/tokenized/default_full_train.pkl # full_tokenized.pkl
+eval_path: /grphome/grp_rocket/Rocket/dataset/tokenized/default_full_test.pkl #full_tokenized.pkl
+
+# GPU
+accelerator: gpu
+num_nodes: 1
+devices: 8
+
+# Train
+gradient_accumulation_steps: 1
+num_epochs: 10
+lr: 1.0e-4
+gamma: 0.85
+seed: 42
+early_stopping: 5
+save_top_k: 3
+save_predictions_during_training: true
+
+# Inference
+inference_path: /grphome/grp_rocket/Rocket/dataset/raw/inference_text.txt
+max_gen_len: 20
+
+# Model
+dim: 1024
+n_layers: 24
+n_heads: 16
+multiple_of: 256  # make SwiGLU hidden layer size multiple of large power of 2
+norm_eps: 1.0e-5
+batch_size: 32
+sequence_length: 1024
+dim_k: ~
+dim_v: ~
