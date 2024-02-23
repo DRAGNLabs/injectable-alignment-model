@@ -10,9 +10,9 @@ from transformers.utils import (
     add_start_docstrings,
     add_start_docstrings_to_model_forward,
     logging,
-    replace_return_docstrings,
-    Cache
+    replace_return_docstrings
 )
+from transforms.cache_utils import Cach
 
 from transformers.modeling_outputs import (
     CausalLMOutputWithPast,
