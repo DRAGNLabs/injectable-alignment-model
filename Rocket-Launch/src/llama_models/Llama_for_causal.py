@@ -1,4 +1,8 @@
 import torch
+from torch import nn
+from torch.nn import CrossEntropyLoss
+import torch.nn.functional as F
+
 from transformers import LlamaPreTrainedModel
 from typing import List, Optional, Tuple, Union
 
@@ -7,6 +11,7 @@ from transformers.utils import (
     add_start_docstrings_to_model_forward,
     logging,
     replace_return_docstrings,
+    Cache
 )
 
 from transformers.modeling_outputs import (
