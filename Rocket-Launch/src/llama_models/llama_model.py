@@ -1,7 +1,32 @@
+import torch
+from torch import nn
 
+from transformers.configuration_llama import LlamaConfig
+from transformer.utils import (
+    logging, 
+    add_start_docstrings, 
+    add_start_docstrings_to_model_forward 
+)
+from transformers.modeling_outputs import BaseModelOutputWithPast
+from transformers.cache_utils import Cache, DynamicCache, StaticCache
+from transformers import (
+    LlamaRMSNorm,
+    LlamaAttention,
+    LlamaFlashAttention2,
+    LlamaSdpaAttention,
+    LlamaDecoderLayer,
+    LlamaPreTrainedModel,
+    LlamaMLP
+)
 
+import warnings
+from typing import List, Optional, Union, Tuple
+
+logger = logging.get_logger(__name__)
+
+"""
 class LlamaAttention(nn.Module):
-    """Multi-headed attention from 'Attention Is All You Need' paper"""
+    ""#"Multi-headed attention from 'Attention Is All You Need' paper"#""
 
     def __init__(self, config: LlamaConfig, layer_idx: Optional[int] = None):
         super().__init__()
@@ -146,15 +171,15 @@ class LlamaAttention(nn.Module):
         if not output_attentions:
             attn_weights = None
 
-        return attn_output, attn_weights, past_key_value
-
-
+        return attn_output, attn_weights, past_key_value*/
+"""
+"""
 class LlamaFlashAttention2(LlamaAttention):
-    """
+    ""#"
     Llama flash attention module. This module inherits from `LlamaAttention` as the weights of the module stays
     untouched. The only required change would be on the forward pass where it needs to correctly call the public API of
     flash attention and deal with padding tokens in case the input contains any of them.
-    """
+    "#""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -249,7 +274,7 @@ class LlamaFlashAttention2(LlamaAttention):
     def _flash_attention_forward(
         self, query_states, key_states, value_states, attention_mask, query_length, dropout=0.0, softmax_scale=None
     ):
-        """
+        ""#"
         Calls the forward method of Flash Attention - if the input hidden states contain at least one padding token
         first unpad the input, then computes the attention scores and pad the final attention scores.
 
@@ -267,7 +292,7 @@ class LlamaFlashAttention2(LlamaAttention):
                 Attention dropout
             softmax_scale (`float`, *optional*):
                 The scaling of QK^T before applying softmax. Default to 1 / sqrt(head_dim)
-        """
+        "#""
         if not self._flash_attn_uses_top_left_mask:
             causal = self.is_causal
         else:
@@ -342,14 +367,14 @@ class LlamaFlashAttention2(LlamaAttention):
             (cu_seqlens_q, cu_seqlens_k),
             (max_seqlen_in_batch_q, max_seqlen_in_batch_k),
         )
-
-
+"""
+"""
 class LlamaSdpaAttention(LlamaAttention):
-    """
+    ""#"
     Llama attention module using torch.nn.functional.scaled_dot_product_attention. This module inherits from
     `LlamaAttention` as the weights of the module stays untouched. The only changes are on the forward pass to adapt to
     SDPA API.
-    """
+    "#""
 
     # Adapted from LlamaAttention.forward
     def forward(
@@ -427,14 +452,13 @@ class LlamaSdpaAttention(LlamaAttention):
         attn_output = self.o_proj(attn_output)
 
         return attn_output, None, past_key_value
-
+"""
 
 LLAMA_ATTENTION_CLASSES = {
     "eager": LlamaAttention,
     "flash_attention_2": LlamaFlashAttention2,
     "sdpa": LlamaSdpaAttention,
 }
-
 
 class LlamaDecoderLayer(nn.Module):
     def __init__(self, config: LlamaConfig, layer_idx: int):
@@ -527,7 +551,7 @@ LLAMA_START_DOCSTRING = r"""
             [`~PreTrainedModel.from_pretrained`] method to load the model weights.
 """
 
-
+"""
 @add_start_docstrings(
     "The bare LLaMA Model outputting raw hidden-states without any specific head on top.",
     LLAMA_START_DOCSTRING,
@@ -573,6 +597,7 @@ class LlamaPreTrainedModel(PreTrainedModel):
     def _reset_cache(self):
         for layer in self.model.layers:
             layer.self_attn.past_key_value = None
+"""
 
 
 LLAMA_INPUTS_DOCSTRING = r"""
