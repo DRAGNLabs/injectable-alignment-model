@@ -12,10 +12,10 @@ from transformers.utils import (
     logging,
     replace_return_docstrings
 )
-from transforms.cache_utils import Cache
+from transformers.cache_utils import Cache
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
-from llama_model import LlamaModel
+from llama_models.llama_model import LlamaModel
 
 _CONFIG_FOR_DOC = "LlamaConfig"
 

@@ -1,15 +1,15 @@
 import torch
 from torch import nn
 
-from transformers.configuration_llama import LlamaConfig
-from transformer.utils import (
+from transformers.models.llama.configuration_llama import LlamaConfig
+from transformers.utils import (
     logging, 
     add_start_docstrings, 
     add_start_docstrings_to_model_forward 
 )
 from transformers.modeling_outputs import BaseModelOutputWithPast
 from transformers.cache_utils import Cache, DynamicCache, StaticCache
-from transformers import (
+from transformers.models.llama.modeling_llama import (
     LlamaRMSNorm,
     LlamaAttention,
     LlamaFlashAttention2,
