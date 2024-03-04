@@ -1,5 +1,6 @@
 import torch.nn as nn
 import torch
+import os
 
 from transformers import LlamaConfig
 
@@ -9,7 +10,7 @@ class IRM(nn.Module):
         self.weights: torch.Tensor = []
         # self.weights: [torch.Tensor] = []
         self.linear_size = 50 ##
-        self.device = torch.device('cuda')
+        self.device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
 
         self.vocab_size = config.vocab_size
         self.max_position_embeddings = config.max_position_embeddings
