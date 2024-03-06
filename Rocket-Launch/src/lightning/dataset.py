@@ -15,7 +15,7 @@ class DataModule(LightningDataModule):
         self.tokenizer = tokenizer
         self.tokenizer_type = config.tokenizer_type
         self.batch_size = config.batch_size
-        self.max_sequence_embeddings = config.max_sequence_embeddings
+        self.max_sequence_embeddings = config.model_config["max_position_embeddings"]
         self.num_workers = config.num_workers
         
         if self.tokenizer_type == 'hf':
