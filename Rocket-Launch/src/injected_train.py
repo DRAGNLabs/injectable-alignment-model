@@ -11,7 +11,7 @@ from lightning.dataset import DataModule
 
 from transformers import PreTrainedTokenizerFast as HFTokenizer
 from sp_tokenizer.tokenizer import Tokenizer as SPTokenizer
-import llama_models.injected_llama_for_causal as Model
+from llama_models.injected_llama_for_causal import LlamaForCausalLM as Model
 from utils.data_utils import Struct
 
 torch.set_float32_matmul_precision("medium")
@@ -37,8 +37,7 @@ def train(config):
         raise ValueError(f"Tokenizer type '{config.tokenizer_type}' not recognized. Must be 'hf' or 'sp'.")
 
     # Build model class
-    model = Model(tokenizer=tokenizer, 
-                  config=config)
+    model = Model(tokenizer, config)
 
     dm = DataModule(config, tokenizer)
 
