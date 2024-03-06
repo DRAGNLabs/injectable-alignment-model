@@ -10,7 +10,7 @@ class DataModule(LightningDataModule):
     def __init__(self, config, tokenizer):
         super().__init__()
         self.train_path = config.train_path
-        self.val_path = config.val_path
+        self.val_path = config.eval_path
         self.test_path = config.test_path
         self.tokenizer = tokenizer
         self.tokenizer_type = config.tokenizer_type
