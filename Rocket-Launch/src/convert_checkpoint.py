@@ -3,6 +3,7 @@ from utils.data_utils import Struct
 import yaml
 import torch
 import os
+import sys
 
 from llama_models.injected_llama_for_causal import LlamaForCausalLM as LanguageModel
 from llama_models.llama_for_causal import LlamaForCausalLM as Llama
@@ -13,6 +14,9 @@ from transformers import (
 )
 
 original_checkpoint_path = "/grphome/grp_inject/compute/hf_weights/hf_llama_7b.ckpt"
+
+def checkpoint_name_suff(injection_location):
+    return "_".join([str(loc) for loc in injection_location])
 
 # Use this function to save the HF weights to the compute folder
 def hf_to_compute():
@@ -26,14 +30,8 @@ def hf_to_compute():
 
     torch.save({'state_dict': model.state_dict()}, new_original_checkpoint_path)
 
-# Use this function to save 
-def convert_checkpoint(config_path, new_checkpoint_path):
-    with open(config_path, "r") as f:
-        config = yaml.safe_load(f)
-
-    # Convert args dict to object
-    config = Struct(**config)
-
+# Use this function to save injected weights
+def convert_checkpoint(config, new_checkpoint_path):
     # Creating tokenizer
     if config.tokenizer_type == "hf":
         tokenizer = HFTokenizer.from_pretrained(config.tokenizer_path)
@@ -45,23 +43,36 @@ def convert_checkpoint(config_path, new_checkpoint_path):
     else:
         raise ValueError(f"Tokenizer type '{config.tokenizer_type}' not recognized. Must be 'hf' or 'sp'.")
 
-    
     print(f"Instantiating model")
-    lam_config = HFConfig(**config.model_config)
     model = LanguageModel(tokenizer, config)
     
+    # Load the model from the original checkpoint with strict=False, so it will only fill in the weights that are in both models, without errors
     print(f"Loading from checkpoint")
     checkpoint = torch.load(original_checkpoint_path)
     model.load_state_dict(checkpoint['state_dict'], strict=False)
 
+    # Save checkpoint to specified path
     torch.save({'state_dict': model.state_dict()}, new_checkpoint_path)
 
+    # Return model and config in case you want to process them more
+    print(f"Checkpoint conversion complete.")
     return model, config
 
 def main():
-    config_path = "../configs/my_config.yaml"
-    new_checkpoint_path = "/grphome/grp_inject/compute/hf_weights/test_1.ckpt"
-    convert_checkpoint(config_path, new_checkpoint_path)
+    args = sys.argv
+    config_path = args[1]
+
+    # Read config
+    with open(config_path, "r") as f:
+        config = yaml.safe_load(f)
+    # Convert args dict to object
+    config = Struct(**config)
+
+    # Name checkpoint based on IRM layers found in config
+    new_checkpoint_path = f"/grphome/grp_inject/compute/hf_weights/injected_model_weights_{checkpoint_name_suff(config.IRM_layers)}.ckpt"
+    
+    # Convert the checkpoint
+    convert_checkpoint(config, new_checkpoint_path)
 
 if __name__== "__main__":
     main()
