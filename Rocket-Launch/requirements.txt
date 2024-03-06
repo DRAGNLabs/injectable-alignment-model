@@ -180,9 +180,10 @@ six==1.16.0
     # via python-dateutil
 sympy==1.12
     # via torch
+tensorboard==2.16.2
 tokenizers==0.15.1
     # via transformers
-torch==2.0.1
+torch==2.2.1
     # via
     #   -r requirements.in
     #   pytorch-lightning
