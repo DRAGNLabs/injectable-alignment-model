@@ -38,7 +38,9 @@ def create_config_dict(home_dir, sub_dir, training_dataset, test_dataset, val_da
 
     # Dataset
     # Raw data file. Tokenizer expects parquet, could be changed.
-    "raw_dataset_path": f"/grphome/grp_inject/injectable-alignment-model/dataset/raw/{training_dataset[:-4]}.csv",
+    "raw_train_path": f"/grphome/grp_inject/injectable-alignment-model/dataset/raw/{training_dataset[:-4]}.csv",
+    "raw_test_path": f"/grphome/grp_inject/injectable-alignment-model/dataset/raw/{training_dataset[:-4]}.csv",
+    "raw_val_path": f"/grphome/grp_inject/injectable-alignment-model/dataset/raw/{training_dataset[:-4]}.csv",
     # Full tokenized data file, not necessary. Must be .pkl file
     "tokenized_dataset_path": f"/grphome/grp_inject/injectable-alignment-model/dataset/tokenized/{training_dataset}",
 
@@ -144,17 +146,19 @@ def get_home_dir():
     base_dir = subprocess.check_output(["pwd"]).decode("utf-8").strip()
     return base_dir
 
+# Run this script from the parent directory of configs/
+
 def main():
     # Specify injection layers
     injection_locations = [[0, 1, 2, 3]]
 
     # Note: All files should be in the shared folder
     # Specify training dataset files
-    train_dataset_file_names = ['anger_QA_13b.pkl']
+    train_dataset_file_names = ['anger_QA_13b_2.pkl']
     # Specify test dataset files
-    test_dataset_file_names = ['anger_QA_13b.pkl']
+    test_dataset_file_names = ['anger_QA_13b_2.pkl']
     # Specify val dataset files
-    val_dataset_file_names = ['anger_QA_13b.pkl']
+    val_dataset_file_names = ['anger_QA_13b_2.pkl']
 
     # Specify number of epochs
     dataset_file_epochs = [15] * len(train_dataset_file_names)
@@ -162,7 +166,7 @@ def main():
     # Create config files as specified above
     for inj_location, train_dataset_file, test_dataset_file, val_dataset_file, epochs in zip(injection_locations, train_dataset_file_names, test_dataset_file_names, val_dataset_file_names, dataset_file_epochs):
         curr_config_dict = create_config_dict(get_home_dir(), f"test_config_{checkpoint_name_suff(inj_location)}", train_dataset_file, test_dataset_file, val_dataset_file, inj_location, epochs)
-        write_config_file(curr_config_dict, f"{get_home_dir()}/configs/test_config_{checkpoint_name_suff(inj_location)}.yaml")
+        write_config_file(curr_config_dict, f"{get_home_dir()}/configs/test_config_{train_dataset_file}_{checkpoint_name_suff(inj_location)}.yaml")
 
 if __name__== "__main__":
     main()
