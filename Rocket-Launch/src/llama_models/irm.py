@@ -35,7 +35,7 @@ class IRM(nn.Module):
             nn.ReLU(),
             nn.Linear(self.linear_size*size_modifier, self.linear_size*size_modifier),
             nn.ReLU(),
-            nn.Linear(self.linear_size*size_modifier, self.hidden_size, self.num_attention_heads),
+            nn.Linear(self.linear_size*size_modifier, self.hidden_size*self.num_attention_heads),
         ).to(self.device)
 
     def forward(self, x: torch.Tensor):

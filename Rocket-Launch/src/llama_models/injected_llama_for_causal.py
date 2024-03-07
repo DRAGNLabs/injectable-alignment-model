@@ -88,7 +88,7 @@ LLAMA_INPUTS_DOCSTRING = r"""
             Whether or not to return a [`~utils.ModelOutput`] instead of a plain tuple.
 """
 
-class LlamaForCausalLM(LlamaPreTrainedModel):
+class InjectedLlamaForCausalLM(LlamaPreTrainedModel):
     _tied_weights_keys = ["lm_head.weight"]
 
     def __init__(self, config):
