@@ -2,7 +2,12 @@ import torch.nn as nn
 import torch
 import os
 
+import sys
+sys.path.append('/home/phu72/301R/injectable-alignment-model/Rocket-Launch/src/utils')
+
 from transformers import LlamaConfig
+from tensor_logger import tensor_logger
+
 
 class IRM(nn.Module):
     def __init__(self, config: LlamaConfig, size_modifier = 1):
@@ -11,6 +16,7 @@ class IRM(nn.Module):
         # self.weights: [torch.Tensor] = []
         self.linear_size = 50 ##
         self.device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
+        self.logger = tensor_logger()
 
         self.vocab_size = config.vocab_size
         self.max_position_embeddings = config.max_position_embeddings
@@ -41,6 +47,7 @@ class IRM(nn.Module):
     def forward(self, x: torch.Tensor):
         curr_batch_size = x.size()[0]
         self.weights = self.basic_forward(x).view(curr_batch_size, *self.output_dimensions, -1)
+        self.logger.addTensor(self.weights)
 
     def get_layer_weights(self, layer_id):
         return self.weights[:, :, :, self.injection_layers.index(layer_id)]
@@ -48,8 +55,23 @@ class IRM(nn.Module):
     def injected_operation(self, layer_id, llm_output):
         return self.get_layer_weights(layer_id) + llm_output
 
+    def logModel(self):
+        self.logger.write_log()
+        self.generate_heatmap()
+
 if __name__ == "__main__":
     model = IRM(LlamaConfig())
     # model.forward(torch.randn((1,1024,512)))
     model.forward(torch.randn((1,1024,512)))
     print(model.weights[3])
+
+model = IRM(LlamaConfig(vocab_size=30522, max_position_embeddings=512, hidden_size=768, intermediate_size=3072, num_hidden_layers=12, num_attention_heads=12))
+test_input = torch.randn((1, 1024, 512)).to(model.device)
+test_inpu2 = torch.randn((1, 1024, 512)).to(model.device)
+test_inpu3 = torch.randn((1, 1024, 512)).to(model.device)
+
+model.forward(test_input)
+model.forward(test_input2)
+model.forward(test_input3)
+
+model.logModel()

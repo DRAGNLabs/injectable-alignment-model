@@ -28,8 +28,8 @@ class tensor_logger:
         self.min_activations = []
 
         self.saturated_neurons = []
-        self.large_mode = []
-        self.small_mode = []
+        self.large_modes = []
+        self.small_modes = []
 
         # Must make sure this directory exists, I was thinking we could create an experiment name field
         # in the config file and then use it to store our results more easily.
@@ -69,16 +69,15 @@ class tensor_logger:
         saturation_threshold = 0.01 
         saturated_neurons = ((tensor < saturation_threshold) | (tensor > (1 - saturation_threshold))).float().mean() * 100
 
-        # Finding the mode of the large tensor
+        # Finding the k highest frequencies of the large tensor (most_frequent_values_large[0] is the mode)
         unique_elements_large, counts_large = torch.unique(tensor_large, return_counts=True)
-        max_count_indices_large = torch.where(counts_large == torch.max(counts_large))[0]
-        mode_tensor_large = unique_elements_large[max_count_indices_large]
+        top_counts_large_values, top_counts_large_indices = torch.topk(counts_large, k)
+        most_frequent_values_large = unique_elements_large[top_counts_large_indices]
 
-        # Finding the mode of the small tensor
+        # Finding the k highest frequencies of the small tensor (most_frequent_values_small[0] is the mode)
         unique_elements_small, counts_small = torch.unique(tensor_small, return_counts=True)
-        max_count_indices_small = torch.where(counts_small == torch.max(counts_small))[0]
-        mode_tensor_small = unique_elements_small[max_count_indices_small]
-
+        top_counts_small_values, top_counts_small_indices = torch.topk(counts_small, k)
+        most_frequent_values_small = unique_elements_large[top_counts_small_indices]
 
 
         self.large_tensors_index = torch.cat(self.large_tensors_index, indices_large)
@@ -100,8 +99,8 @@ class tensor_logger:
         self.min_activations.append(min_activation)
 
         self.saturated_neurons.append(saturated_neurons)
-        self.large_mode.append(mode_tensor_large)
-        self.small_mode.append(mode_tensor_small)
+        self.large_modes.append(most_frequent_values_large)
+        self.small_modes.append(most_frequent_values_small)
 
 
     def write_log(self):
@@ -121,8 +120,8 @@ class tensor_logger:
             f.write("Current model minimum activation: {}\n\n".format(self.min_activations))
 
             f.write("Current model saturation: {}\n".format(self.saturated_neurons))
-            f.write("Mode of the top 1000 weights: {}\n".format(self.large_mode))
-            f.write("Mode of the bottom 1000 weights: {}\n".format(self.small_mode))
+            f.write("Mode of the top 1000 weights: {}\n".format(self.large_modes))
+            f.write("Mode of the bottom 1000 weights: {}\n".format(self.small_modes))
 
     # Generates a heatmap showing the locations of the largest and the smallest weights for the layers.  Will require some additional packages to be installed.
     def generate_heatmap(self):
