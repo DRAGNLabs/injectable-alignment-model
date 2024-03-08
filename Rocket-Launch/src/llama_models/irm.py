@@ -2,11 +2,23 @@ import torch.nn as nn
 import torch
 import os
 
-import sys
-sys.path.append('/home/phu72/301R/injectable-alignment-model/Rocket-Launch/src/utils')
+# Get the current script's directory
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Move up one level
+parent_dir = os.path.dirname(current_dir)
+
+# Construct the path to the module
+module_path = os.path.join(parent_dir, "utils", "tensor_logger.py")
+
+# Import the module dynamically (advanced technique)
+import importlib.util
+spec = importlib.util.spec_from_file_location("tensor_logger", module_path)
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
 
 from transformers import LlamaConfig
-from tensor_logger import tensor_logger
+#from tensor_logger import tensor_logger
 
 
 class IRM(nn.Module):
@@ -16,7 +28,7 @@ class IRM(nn.Module):
         # self.weights: [torch.Tensor] = []
         self.linear_size = 50 ##
         self.device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
-        self.logger = tensor_logger()
+        self.logger = module.tensor_logger()
 
         self.vocab_size = config.vocab_size
         self.max_position_embeddings = config.max_position_embeddings
@@ -57,21 +69,21 @@ class IRM(nn.Module):
 
     def logModel(self):
         self.logger.write_log()
-        self.generate_heatmap()
+        self.logger.generate_heatmap()
 
 if __name__ == "__main__":
-    model = IRM(LlamaConfig())
+    # model = IRM(LlamaConfig())
+    # # model.forward(torch.randn((1,1024,512)))
     # model.forward(torch.randn((1,1024,512)))
-    model.forward(torch.randn((1,1024,512)))
-    print(model.weights[3])
+    # print(model.weights[3])
 
-model = IRM(LlamaConfig(vocab_size=30522, max_position_embeddings=512, hidden_size=768, intermediate_size=3072, num_hidden_layers=12, num_attention_heads=12))
-test_input = torch.randn((1, 1024, 512)).to(model.device)
-test_inpu2 = torch.randn((1, 1024, 512)).to(model.device)
-test_inpu3 = torch.randn((1, 1024, 512)).to(model.device)
+    model = IRM(LlamaConfig(vocab_size=30522, max_position_embeddings=512, hidden_size=768, intermediate_size=3072, num_hidden_layers=12, num_attention_heads=12))
+    test_input = torch.randn((1, 1024, 512)).to(model.device)
+    test_input2 = torch.randn((1, 1024, 512)).to(model.device)
+    test_input3 = torch.randn((1, 1024, 512)).to(model.device)
 
-model.forward(test_input)
-model.forward(test_input2)
-model.forward(test_input3)
+    model.forward(test_input)
+    model.forward(test_input2)
+    model.forward(test_input3)
 
-model.logModel()
+    model.logModel()

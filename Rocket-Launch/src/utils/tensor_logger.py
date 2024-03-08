@@ -4,6 +4,8 @@ import os
 import plotly.express as px
 import pandas as pd
 
+# Must run pip install plotly and pip install -U kaleido
+
 
 class tensor_logger:
     
