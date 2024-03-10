@@ -4,6 +4,8 @@ import os
 import plotly.express as px
 import pandas as pd
 
+# Must run pip install plotly and pip install -U kaleido
+
 
 class tensor_logger:
     
@@ -120,8 +122,8 @@ class tensor_logger:
             f.write("Current model minimum activation: {}\n\n".format(self.min_activations))
 
             f.write("Current model saturation: {}\n".format(self.saturated_neurons))
-            f.write("Mode of the top 1000 weights: {}\n".format(self.large_modes))
-            f.write("Mode of the bottom 1000 weights: {}\n".format(self.small_modes))
+            f.write("Top 10 frequent values of the top 1000 weights: {}\n".format(self.large_modes))
+            f.write("Top 10 frequent values of the bottom 1000 weights: {}\n".format(self.small_modes))
 
     # Generates a heatmap showing the locations of the largest and the smallest weights for the layers.  Will require some additional packages to be installed.
     def generate_heatmap(self):
