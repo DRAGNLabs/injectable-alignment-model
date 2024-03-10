@@ -53,13 +53,18 @@ class IRM(nn.Module):
             nn.ReLU(),
             nn.Linear(self.linear_size*size_modifier, self.linear_size*size_modifier),
             nn.ReLU(),
-            nn.Linear(self.linear_size*size_modifier, self.hidden_size, self.num_attention_heads),
+            nn.Linear(self.linear_size*size_modifier, self.hidden_size * self.num_layers),
         ).to(self.device)
 
     def forward(self, x: torch.Tensor):
+        print("x", x.size())
+        print("w", self.output_dimensions)
         curr_batch_size = x.size()[0]
+        print(curr_batch_size)
         self.weights = self.basic_forward(x).view(curr_batch_size, *self.output_dimensions, -1)
+        print("teeee")
         self.logger.addTensor(self.weights)
+        print("te")
 
     def get_layer_weights(self, layer_id):
         return self.weights[:, :, :, self.injection_layers.index(layer_id)]
@@ -78,9 +83,9 @@ if __name__ == "__main__":
     # print(model.weights[3])
 
     model = IRM(LlamaConfig(vocab_size=30522, max_position_embeddings=512, hidden_size=768, intermediate_size=3072, num_hidden_layers=12, num_attention_heads=12))
-    test_input = torch.randn((1, 1024, 512)).to(model.device)
-    test_input2 = torch.randn((1, 1024, 512)).to(model.device)
-    test_input3 = torch.randn((1, 1024, 512)).to(model.device)
+    test_input = torch.randn((1, 1024, 768)).to(model.device)
+    test_input2 = torch.randn((1, 1024, 768)).to(model.device)
+    test_input3 = torch.randn((1, 1024, 768)).to(model.device)
 
     model.forward(test_input)
     model.forward(test_input2)

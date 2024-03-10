@@ -3,6 +3,7 @@ import torch
 import os
 import plotly.express as px
 import pandas as pd
+import numpy as np
 
 # Must run pip install plotly and pip install -U kaleido
 
@@ -36,7 +37,7 @@ class tensor_logger:
         # Must make sure this directory exists, I was thinking we could create an experiment name field
         # in the config file and then use it to store our results more easily.
         self.base_output_path = "/grphome/grp_inject/compute/logging"
-        self.experiment_name = ""  # config.experiment_name?
+        self.experiment_name = "test"  # config.experiment_name?
 
         self.layer_numbers = []
         
@@ -71,6 +72,7 @@ class tensor_logger:
         saturation_threshold = 0.01 
         saturated_neurons = ((tensor < saturation_threshold) | (tensor > (1 - saturation_threshold))).float().mean() * 100
 
+        k = 10
         # Finding the k highest frequencies of the large tensor (most_frequent_values_large[0] is the mode)
         unique_elements_large, counts_large = torch.unique(tensor_large, return_counts=True)
         top_counts_large_values, top_counts_large_indices = torch.topk(counts_large, k)
@@ -82,10 +84,11 @@ class tensor_logger:
         most_frequent_values_small = unique_elements_large[top_counts_small_indices]
 
 
-        self.large_tensors_index = torch.cat(self.large_tensors_index, indices_large)
-        self.small_tensors_index = torch.cat(self.small_tensors_index, indices_small)
-        self.large_tensors = torch.cat(self.large_tensors, tensor_large)
-        self.small_tensors = torch.cat(self.small_tensors, tensor_small)
+        self.large_tensors_index = torch.cat((self.large_tensors_index, indices_large.unsqueeze(0)), dim=0)
+        self.small_tensors_index = torch.cat((self.small_tensors_index, indices_small.unsqueeze(0)), dim=0)
+        self.large_tensors = torch.cat((self.large_tensors, tensor_large.unsqueeze(0)), dim=0)
+        self.small_tensors = torch.cat((self.small_tensors, tensor_small.unsqueeze(0)), dim=0)
+
 
         self.means.append(mean_activation)
         self.means_large.append(mean_activation_large)
@@ -106,8 +109,18 @@ class tensor_logger:
 
 
     def write_log(self):
-        os.makedirs(os.path.join(self.base_output_path, self.experiment_name), exist_ok=True)
-        with open(os.path.join(self.base_output_path, self.experiment_name), 'a') as f:
+        # Ensure the directory exists
+        directory_path = os.path.join(self.base_output_path, self.experiment_name)
+        os.makedirs(directory_path, exist_ok=True)
+        
+        # Specify the filename for your log file
+        log_filename = "experiment_log.txt"  # Name of the log file
+        
+        # Full path for the log file
+        log_file_path = os.path.join(directory_path, log_filename)
+        
+        # Now, open the file to append the logs
+        with open(log_file_path, 'a') as f:
             f.write("Current model weights means: {}\n".format(self.means))
             f.write("Means of the top 1000 weights: {}\n".format(self.means_large))
             f.write("Means of the bottom 1000 weights: {}\n\n".format(self.means_small))
@@ -125,13 +138,38 @@ class tensor_logger:
             f.write("Top 10 frequent values of the top 1000 weights: {}\n".format(self.large_modes))
             f.write("Top 10 frequent values of the bottom 1000 weights: {}\n".format(self.small_modes))
 
+
     # Generates a heatmap showing the locations of the largest and the smallest weights for the layers.  Will require some additional packages to be installed.
     def generate_heatmap(self):
-        os.makedirs(os.path.join(self.base_output_path, self.experiment_name, "images"))
-        large_df = pd.DataFrame(zip(self.large_tensors_index, self.large_tensors), columns=['Index', 'Value'])
-        fig = px.imshow(large_df, x='Index', y='Value')
-        fig.write_image(os.path.join(self.base_output_path, self.experiment_name, "images/large_heatmap.png"))
+        images_dir = os.path.join(self.base_output_path, self.experiment_name, "images")
+        os.makedirs(images_dir, exist_ok=True)
+        
+        # Convert PyTorch tensors to NumPy arrays, detaching them from the computation graph
+        large_tensor_index_np = self.large_tensors_index.cpu().detach().numpy()
+        large_tensor_index_np = large_tensor_index_np.astype(int)
+        large_tensor_value_np = self.large_tensors.cpu().detach().numpy()
 
-        small_df = pd.DataFrame(zip(self.small_tensors_index, self.small_tensors), columns=['Index', 'Value'])
-        fig_1 = px.imshow(small_df, x='Index', y='Value')
-        fig_1.write_image(os.path.join(self.base_output_path, self.experiment_name, "images/small_heatmap.png"))
+        # Assuming you know the original shape of the data, 'dims'
+        dims = (4000, 4000)  # Example, adjust to your actual dimensions
+
+        # Create an empty 2D array for the heatmap
+        heatmap_data = np.zeros(dims)
+
+        # Fill in the heatmap data using the indices and values
+        for idx, value in zip(large_tensor_index_np, large_tensor_value_np):
+            row, col = np.unravel_index(idx, dims)
+            heatmap_data[row, col] = value
+
+        # Generate and save the heatmap
+        fig = px.imshow(heatmap_data, color_continuous_scale='Viridis', labels={'color': 'Value'})
+        fig.update_layout(title="Large Tensor Values Heatmap")
+        fig.write_image(os.path.join(images_dir, "large_tensor_heatmap.png"))
+        
+        # os.makedirs(os.path.join(self.base_output_path, self.experiment_name, "images"))
+        # large_df = pd.DataFrame(zip(self.large_tensors_index, self.large_tensors), columns=['Index', 'Value'])
+        # fig = px.imshow(large_df, x='Index', y='Value')
+        # fig.write_image(os.path.join(self.base_output_path, self.experiment_name, "images/large_heatmap.png"))
+
+        # small_df = pd.DataFrame(zip(self.small_tensors_index, self.small_tensors), columns=['Index', 'Value'])
+        # fig_1 = px.imshow(small_df, x='Index', y='Value')
+        # fig_1.write_image(os.path.join(self.base_output_path, self.experiment_name, "images/small_heatmap.png"))
