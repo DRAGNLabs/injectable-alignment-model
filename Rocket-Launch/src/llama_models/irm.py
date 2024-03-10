@@ -57,7 +57,7 @@ class IRM(nn.Module):
 
     def logModel(self):
         self.logger.write_log()
-        self.generate_heatmap()
+        self.logger.generate_heatmap()
 
 if __name__ == "__main__":
     model = IRM(LlamaConfig())
@@ -67,8 +67,8 @@ if __name__ == "__main__":
 
 model = IRM(LlamaConfig(vocab_size=30522, max_position_embeddings=512, hidden_size=768, intermediate_size=3072, num_hidden_layers=12, num_attention_heads=12))
 test_input = torch.randn((1, 1024, 512)).to(model.device)
-test_inpu2 = torch.randn((1, 1024, 512)).to(model.device)
-test_inpu3 = torch.randn((1, 1024, 512)).to(model.device)
+test_input2 = torch.randn((1, 1024, 512)).to(model.device)
+test_input3 = torch.randn((1, 1024, 512)).to(model.device)
 
 model.forward(test_input)
 model.forward(test_input2)
