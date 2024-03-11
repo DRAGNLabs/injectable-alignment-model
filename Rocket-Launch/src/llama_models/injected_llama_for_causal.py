@@ -321,8 +321,7 @@ class LlamaForCausalLM(LlamaPreTrainedModel, LightningModule):
         x, x_mask, y_true = batch
 
         output = self.model(input_ids=x, 
-                            attention_mask=x_mask, 
-                            labels=y_true)
+                            attention_mask=x_mask)
 
         loss = output.loss
 
@@ -340,8 +339,7 @@ class LlamaForCausalLM(LlamaPreTrainedModel, LightningModule):
         x, x_mask, y_true = batch
 
         output = self.model(input_ids=x, 
-                            attention_mask=x_mask, 
-                            labels=y_true)
+                            attention_mask=x_mask)
         
         val_loss = output.loss
         y_hat = output.logits
