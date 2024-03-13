@@ -3,6 +3,8 @@ from torch import nn
 from torch.nn import CrossEntropyLoss
 import torch.nn.functional as F
 
+from pathlib import Path
+
 from transformers import LlamaPreTrainedModel
 from typing import List, Optional, Tuple, Union
 
@@ -120,6 +122,8 @@ class LlamaForCausalLM(LlamaPreTrainedModel, LightningModule):
         # Initialize weights and apply final processing
         self.post_init()
 
+        self.validation_step_outputs = [] # Used for saving predictions throughout training
+
     def get_input_embeddings(self):
         return self.model.embed_tokens
 
@@ -186,6 +190,7 @@ class LlamaForCausalLM(LlamaPreTrainedModel, LightningModule):
         return_dict = return_dict if return_dict is not None else self.hf_config.use_return_dict
 
         # decoder outputs consists of (dec_features, layer_state, dec_hidden, dec_attn)
+
         outputs = self.model(
             input_ids=input_ids,
             attention_mask=attention_mask,
@@ -320,8 +325,9 @@ class LlamaForCausalLM(LlamaPreTrainedModel, LightningModule):
     def training_step(self, batch, batch_idx):
         x, x_mask, y_true = batch
 
-        output = self.model(input_ids=x, 
-                            attention_mask=x_mask)
+        output = self.forward(input_ids=x, 
+                            attention_mask=x_mask, 
+                            labels=y_true)
 
         loss = output.loss
 
@@ -338,8 +344,9 @@ class LlamaForCausalLM(LlamaPreTrainedModel, LightningModule):
     def validation_step(self, batch, batch_idx):
         x, x_mask, y_true = batch
 
-        output = self.model(input_ids=x, 
-                            attention_mask=x_mask)
+        output = self.forward(input_ids=x, 
+                            attention_mask=x_mask, 
+                            labels=y_true)
         
         val_loss = output.loss
         y_hat = output.logits
