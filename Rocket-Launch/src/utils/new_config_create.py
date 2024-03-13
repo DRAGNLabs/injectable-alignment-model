@@ -51,15 +51,16 @@ def create_config_dict(home_dir, sub_dir, training_dataset, test_dataset, val_da
 
     # GPU
     "accelerator": "gpu",
-    "num_nodes": 1,
-    "num_workers": 1,
-    "devices": 1,
-    "use_slurm": "false",
+    "num_nodes": 4,
+    "num_workers": 0,
+    "devices": 4,
+    "use_slurm": "true",
 
     # Train
     "log_every_n_steps": 200,
     "check_val_every_n_epoch": 1,
     "val_check_interval": 0.2,
+    "batch_size": 8,
 
     # Train
     "gradient_accumulation_steps": 1,
@@ -74,18 +75,6 @@ def create_config_dict(home_dir, sub_dir, training_dataset, test_dataset, val_da
     # Inference
     "inference_path": f"{home_dir}/dataset/raw/inference_text.txt",
     "max_gen_len": 20,
-
-    # Model
-    "dim": 512,
-    "n_layers": 8,
-    "n_heads": 8,
-    "multiple_of": 256,  # make SwiGLU hidden layer size multiple of large power of 2
-    "norm_eps": float(10e-5),
-    "batch_size": 32,
-    "sequence_length": 1024,
-    "seq_len": 1024,
-    "dim_k": f"~",
-    "dim_v": f"~",
 
     # from_pretrained: whether using a pretrained model from HF or not
     "from_pretrained": "false",
@@ -102,7 +91,8 @@ def create_config_dict(home_dir, sub_dir, training_dataset, test_dataset, val_da
         "hidden_size": 4096,
         "initializer_range": 0.02,
         "intermediate_size": 11008,
-        "max_position_embeddings": 4096,
+        # "max_position_embeddings": 128,
+        "max_position_embeddings": 128,
         "model_type": "llama",
         "num_attention_heads": 32,
         "num_hidden_layers": 32,
