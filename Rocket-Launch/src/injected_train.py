@@ -31,6 +31,7 @@ def train(config):
         config.pad_id = tokenizer.pad_token_id
     elif config.tokenizer_type == "sp":
         tokenizer = SPTokenizer(config.tokenizer_path)
+        tokenizer.pad_id = tokenizer.eos_id
         config.vocab_size = tokenizer.n_words
         config.pad_id = tokenizer.pad_id
     else:
