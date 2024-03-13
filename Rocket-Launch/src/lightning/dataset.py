@@ -76,8 +76,6 @@ class DataSet(torch.utils.data.Dataset):
     def __init__(self, path_to_data, pad_tok, bos_tok, eos_tok, max_sequence_embeddings):
         assert os.path.isfile(path_to_data), path_to_data
         self.data:pd.DataFrame = pd.read_pickle(path_to_data)
-
-        print(f"HEAD: {self.data.head()}")
         
         self.pad_tok = pad_tok
         self.bos_tok = bos_tok
@@ -117,7 +115,8 @@ class DataSet(torch.utils.data.Dataset):
         pad_src = [s + [self.pad_tok] * (pad_len - len(s)) for s in src]
 
         tgt_lens = [len(s) for s in tgt]
-        pad_len = max(tgt_lens)
+        #pad_len = max(tgt_lens)
+        pad_len = self.max_sequence_embeddings
         pad_tgt = [s + [self.pad_tok] * (pad_len - len(s)) for s in tgt]
 
         pad_src = torch.tensor(pad_src)
