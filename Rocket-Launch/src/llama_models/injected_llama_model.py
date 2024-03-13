@@ -96,8 +96,6 @@ class InjectedLlamaDecoderLayer(nn.Module):
             **kwargs,
         )
         hidden_states = residual + hidden_states
-        print(f"HIDDEN_STATES_SIZE: ************************************************************************************************************{hidden_states.size()}")
-        
         # self irm
         if self.layer_idx == 0:
             self.irm(hidden_states)
