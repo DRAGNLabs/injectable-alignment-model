@@ -76,6 +76,8 @@ class DataSet(torch.utils.data.Dataset):
     def __init__(self, path_to_data, pad_tok, bos_tok, eos_tok, max_sequence_embeddings):
         assert os.path.isfile(path_to_data), path_to_data
         self.data:pd.DataFrame = pd.read_pickle(path_to_data)
+
+        print(f"HEAD: {self.data.head()}")
         
         self.pad_tok = pad_tok
         self.bos_tok = bos_tok
@@ -88,13 +90,11 @@ class DataSet(torch.utils.data.Dataset):
     def __getitem__(self, index):
         pd_series_item = self.data.iloc[index,:]  # Returns a pd.Series
         tensor_item:List[int] = pd_series_item.iloc[1]  # Grab text from series
-
         if len(tensor_item) <= self.max_sequence_embeddings:
             length = len(tensor_item)
-            print(f"{[self.eos_tok]}")
             tensor_item = tensor_item[:] + [self.eos_tok]
             x = tensor_item[:length]
-            y_true = tensor_item[1:length+1]  
+            y_true = tensor_item[1:length+1]
         else:
             x = tensor_item[:self.max_sequence_embeddings]
             y_true = tensor_item[1:self.max_sequence_embeddings+1]
@@ -108,10 +108,11 @@ class DataSet(torch.utils.data.Dataset):
         return masked_tensor
 
     def pad_to_longest(self, batch):
+        
         src, tgt = zip(*batch)
-
         src_lens = [len(s) for s in src]
-        pad_len = max(src_lens)
+        #pad_len = max(src_lens)
+        pad_len = self.max_sequence_embeddings
         src_mask = self.generate_mask(pad_len, src_lens)
         pad_src = [s + [self.pad_tok] * (pad_len - len(s)) for s in src]
 
