@@ -23,6 +23,7 @@ class IRM(nn.Module):
 
         self.injection_layers = config.IRM_layers
         self.num_layers = len(self.injection_layers)
+        self.active_irm = True
         
         self.basic_forward = nn.Sequential(
             nn.Linear(self.hidden_size, self.linear_size*size_modifier),
@@ -40,9 +41,18 @@ class IRM(nn.Module):
 
     def get_layer_weights(self, layer_id):
         return self.weights[:, :, :, self.injection_layers.index(layer_id)]
-        
+
+    def activate(self):
+        self.active_irm = True
+
+    def deactivate(self):
+        self.active_irm = False
+
     def injected_operation(self, layer_id, llm_output):
-        return self.get_layer_weights(layer_id) + llm_output
+        if self.active_irm:
+            return self.get_layer_weights(layer_id) + llm_output
+        else:
+            return llm_output
 
 if __name__ == "__main__":
     model = IRM(LlamaConfig())
