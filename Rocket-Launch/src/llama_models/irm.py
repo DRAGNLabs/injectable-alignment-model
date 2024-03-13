@@ -17,7 +17,7 @@ class IRM(nn.Module):
         
 
         # self.batch_size = config.batch_size
-        self.sequence_length = config.sequence_length
+        self.sequence_length = config.model_config["max_position_embeddings"]
         # self.dim = config.dim
         self.output_dimensions = (self.sequence_length, self.hidden_size) #REPLACE WITH THE REAL NUMBERS
 
@@ -58,4 +58,3 @@ if __name__ == "__main__":
     model = IRM(LlamaConfig())
     # model.forward(torch.randn((1,1024,512)))
     model.forward(torch.randn((1,1024,512)))
-    print(model.weights[3])
