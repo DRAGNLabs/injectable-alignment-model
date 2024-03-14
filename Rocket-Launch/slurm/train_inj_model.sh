@@ -1,10 +1,10 @@
 #!/bin/bash
 
 #SBATCH --time=00:10:00   # walltime
-#SBATCH --ntasks-per-node=4 # number of processor cores (i.e. tasks)
-#SBATCH --nodes=4   # number of nodes
+#SBATCH --ntasks-per-node=2 # number of processor cores (i.e. tasks)
+#SBATCH --nodes=2   # number of nodes
 #SBATCH --mem=512G   # memory per CPU core
-#SBATCH --gres=gpu:4
+#SBATCH --gres=gpu:2
 #SBATCH --qos=cs
 #SBATCH -J "train_model"   # job name
 
