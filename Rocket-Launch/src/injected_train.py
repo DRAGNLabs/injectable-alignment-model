@@ -40,6 +40,13 @@ def train(config):
     # Build model class
     model = Model(tokenizer, config)
 
+    # Set requires_grad to false for everything
+    for param in model.parameters():
+        param.requires_grad = False
+    # Except the IRM parameters
+    for irm_param in model.model.irm.parameters():
+        irm_param.requires_grad = True
+
     dm = DataModule(config, tokenizer)
 
     # Callbacks
