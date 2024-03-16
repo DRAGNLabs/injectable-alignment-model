@@ -28,7 +28,7 @@ class IRM(nn.Module):
         # self.weights: [torch.Tensor] = []
         self.linear_size = 50 ##
         self.device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
-        self.logger = module.tensor_logger()
+        self.logger = module.tensor_logger(config.num_hidden_layers)
 
         self.vocab_size = config.vocab_size
         self.max_position_embeddings = config.max_position_embeddings
@@ -57,14 +57,11 @@ class IRM(nn.Module):
         ).to(self.device)
 
     def forward(self, x: torch.Tensor):
-        print("x", x.size())
-        print("w", self.output_dimensions)
+        print("size", x.size())
+        print("dim", self.output_dimensions)
         curr_batch_size = x.size()[0]
-        print(curr_batch_size)
         self.weights = self.basic_forward(x).view(curr_batch_size, *self.output_dimensions, -1)
-        print("teeee")
-        self.logger.addTensor(self.weights)
-        print("te")
+        self.logger.add_tensor(self.weights)
 
     def get_layer_weights(self, layer_id):
         return self.weights[:, :, :, self.injection_layers.index(layer_id)]
@@ -81,14 +78,12 @@ if __name__ == "__main__":
     # # model.forward(torch.randn((1,1024,512)))
     # model.forward(torch.randn((1,1024,512)))
     # print(model.weights[3])
-
     model = IRM(LlamaConfig(vocab_size=30522, max_position_embeddings=512, hidden_size=768, intermediate_size=3072, num_hidden_layers=12, num_attention_heads=12))
     test_input = torch.randn((1, 1024, 768)).to(model.device)
     test_input2 = torch.randn((1, 1024, 768)).to(model.device)
     test_input3 = torch.randn((1, 1024, 768)).to(model.device)
 
     model.forward(test_input)
-    model.forward(test_input2)
-    model.forward(test_input3)
 
     model.logModel()
+

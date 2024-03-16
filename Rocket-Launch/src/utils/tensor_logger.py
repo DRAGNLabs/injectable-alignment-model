@@ -4,13 +4,20 @@ import os
 import plotly.express as px
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+
 
 # Must run pip install plotly and pip install -U kaleido
 
 
 class tensor_logger:
     
-    def __init__(self):
+    def __init__(self, num_hidden_layers):
+        self.num_hidden_layers = num_hidden_layers
+
+        self.layer_map = {}
+        self.heatmap_data = torch.empty(0)
 
         self.large_tensors_index = torch.empty(0)
         self.small_tensors_index = torch.empty(0)
@@ -43,9 +50,11 @@ class tensor_logger:
         
         
 
-    def addTensor(self, tensor: torch.Tensor):
-        tensor = tensor.flatten()
+    def add_tensor(self, tensor: torch.Tensor):
         
+        tensor = tensor.flatten()
+        self.map_layers(tensor)
+
         # For use by the heatmap generator
         self.layer_numbers = [i for i in range(len(tensor))]
 
@@ -107,6 +116,20 @@ class tensor_logger:
         self.large_modes.append(most_frequent_values_large)
         self.small_modes.append(most_frequent_values_small)
 
+    def map_layers(self, tensor: torch.Tensor):
+        divided_tensors = tensor.chunk(self.num_hidden_layers, dim=0)
+
+        divided_tensors = [t.squeeze(0) for t in divided_tensors]
+
+        self.heatmap_data = torch.cat(divided_tensors, dim=0).detach().numpy()
+
+        # self.map_layers = {
+        #     layer: [(i, divided_tensors[layer - 1][i]) for i in range(len(divided_tensors[layer - 1]))]  # 1000 important weights per layer
+        #     for layer in range(1, self.num_hidden_layers + 1)
+        # }
+
+
+
 
     def write_log(self):
         # Ensure the directory exists
@@ -141,29 +164,51 @@ class tensor_logger:
 
     # Generates a heatmap showing the locations of the largest and the smallest weights for the layers.  Will require some additional packages to be installed.
     def generate_heatmap(self):
-        images_dir = os.path.join(self.base_output_path, self.experiment_name, "images")
-        os.makedirs(images_dir, exist_ok=True)
+        # images_dir = os.path.join(self.base_output_path, self.experiment_name, "images")
+        # os.makedirs(images_dir, exist_ok=True)
         
-        # Convert PyTorch tensors to NumPy arrays, detaching them from the computation graph
-        large_tensor_index_np = self.large_tensors_index.cpu().detach().numpy()
-        large_tensor_index_np = large_tensor_index_np.astype(int)
-        large_tensor_value_np = self.large_tensors.cpu().detach().numpy()
+        # # Convert PyTorch tensors to NumPy arrays, detaching them from the computation graph
+        # large_tensor_index_np = self.large_tensors_index.cpu().detach().numpy()
+        # large_tensor_index_np = large_tensor_index_np.astype(int)
+        # large_tensor_value_np = self.large_tensors.cpu().detach().numpy()
 
-        # Assuming you know the original shape of the data, 'dims'
-        dims = (4000, 4000)  # Example, adjust to your actual dimensions
+        # # Assuming you know the original shape of the data, 'dims'
+        # dims = (4000, 4000)  # Example, adjust to your actual dimensions
 
-        # Create an empty 2D array for the heatmap
-        heatmap_data = np.zeros(dims)
+        # # Create an empty 2D array for the heatmap
+        # heatmap_data = np.zeros(dims)
 
-        # Fill in the heatmap data using the indices and values
-        for idx, value in zip(large_tensor_index_np, large_tensor_value_np):
-            row, col = np.unravel_index(idx, dims)
-            heatmap_data[row, col] = value
+        # # Fill in the heatmap data using the indices and values
+        # for idx, value in zip(large_tensor_index_np, large_tensor_value_np):
+        #     row, col = np.unravel_index(idx, dims)
+        #     heatmap_data[row, col] = value
 
-        # Generate and save the heatmap
-        fig = px.imshow(heatmap_data, color_continuous_scale='Viridis', labels={'color': 'Value'})
-        fig.update_layout(title="Large Tensor Values Heatmap")
-        fig.write_image(os.path.join(images_dir, "large_tensor_heatmap.png"))
+        # # Generate and save the heatmap
+        # fig = px.imshow(heatmap_data, color_continuous_scale='Viridis', labels={'color': 'Value'})
+        # fig.update_layout(title="Large Tensor Values Heatmap")
+        # fig.write_image(os.path.join(images_dir, "large_tensor_heatmap.png"))
+
+        
+        # # Convert PyTorch tensors to NumPy arrays, detaching them from the computation graph
+        # small_tensor_index_np = self.small_tensors_index.cpu().detach().numpy()
+        # small_tensor_index_np = small_tensor_index_np.astype(int)
+        # small_tensor_value_np = self.small_tensors.cpu().detach().numpy()
+
+        # # Assuming you know the original shape of the data, 'dims'
+        # dims = (4000, 4000)  # Example, adjust to your actual dimensions
+
+        # # Create an empty 2D array for the heatmap
+        # heatmap_data = np.zeros(dims)
+
+        # # Fill in the heatmap data using the indices and values
+        # for idx, value in zip(small_tensor_index_np, small_tensor_value_np):
+        #     row, col = np.unravel_index(idx, dims)
+        #     heatmap_data[row, col] = value
+
+        # # Generate and save the heatmap
+        # fig = px.imshow(heatmap_data, color_continuous_scale='Viridis', labels={'color': 'Value'})
+        # fig.update_layout(title="Small Tensor Values Heatmap")
+        # fig.write_image(os.path.join(images_dir, "small_tensor_heatmap.png"))
         
         # os.makedirs(os.path.join(self.base_output_path, self.experiment_name, "images"))
         # large_df = pd.DataFrame(zip(self.large_tensors_index, self.large_tensors), columns=['Index', 'Value'])
@@ -173,3 +218,47 @@ class tensor_logger:
         # small_df = pd.DataFrame(zip(self.small_tensors_index, self.small_tensors), columns=['Index', 'Value'])
         # fig_1 = px.imshow(small_df, x='Index', y='Value')
         # fig_1.write_image(os.path.join(self.base_output_path, self.experiment_name, "images/small_heatmap.png"))
+        # Reshape the data for 2D visualization
+
+        # Assuming self.heatmap_data is a numpy array and self.num_hidden_layers is defined
+        # num_indices_per_layer is calculated as shown
+        num_indices_per_layer = len(self.heatmap_data) // self.num_hidden_layers
+
+        # Reshape the data for 2D visualization
+        tensor_2d = self.heatmap_data.reshape(self.num_hidden_layers, num_indices_per_layer)
+
+        # Flatten the 2D tensor to work with 1D arrays for identifying top values
+        flat_data = tensor_2d.flatten()
+        # Get indices of the top 1000 values
+        top_1000_indices = np.argpartition(flat_data, -1000)[-1000:]
+        # Convert 1D indices to 2D indices for plotting
+        rows, cols = np.unravel_index(top_1000_indices, tensor_2d.shape)
+
+        # Normalization for the heatmap
+        vmin = np.min(tensor_2d)
+        vmax = np.max(tensor_2d)  # or set a specific value to focus on a range
+        norm = mcolors.Normalize(vmin=vmin, vmax=vmax)
+
+        # Plotting the base heatmap
+        plt.figure(figsize=(15, 10))
+        plt.imshow(tensor_2d, cmap='viridis', aspect='auto', norm=norm)
+        plt.colorbar(label='Value')
+
+        # Overlay the top 1000 values with a distinct marker
+        # Customize the marker style ('o', '*', etc.), size, color, and edgecolor as needed
+        plt.scatter(cols, rows, color='red', s=10, edgecolor='white', marker='o', label='Top 1000 Values')
+
+        plt.title('Heatmap of Layer Index Values Highlighting Top 1000 Values')
+        plt.xlabel('Index')
+        plt.ylabel('Layer')
+        plt.yticks(np.arange(self.num_hidden_layers), np.arange(1, self.num_hidden_layers + 1))
+        plt.legend()  # Add a legend if needed
+        plt.show()
+
+        # Save the figure to a file
+        plt.savefig('/grphome/grp_inject/compute/logging/test/images/heatmap_mean_layer_values.png')  # Adjust path as needed
+
+    def generate_histograms(self):
+        pass
+
+        
