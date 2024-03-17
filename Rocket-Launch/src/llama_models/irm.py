@@ -72,6 +72,8 @@ class IRM(nn.Module):
     def logModel(self):
         self.logger.write_log()
         self.logger.generate_heatmap()
+        self.logger.generate_histograms()
+        self.logger.hard_coded_graph()
 
 if __name__ == "__main__":
     # model = IRM(LlamaConfig())

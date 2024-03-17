@@ -55,6 +55,8 @@ class tensor_logger:
         tensor = tensor.flatten()
         self.map_layers(tensor)
 
+        self.all = tensor
+
         # For use by the heatmap generator
         self.layer_numbers = [i for i in range(len(tensor))]
 
@@ -259,6 +261,55 @@ class tensor_logger:
         plt.savefig('/grphome/grp_inject/compute/logging/test/images/heatmap_mean_layer_values.png')  # Adjust path as needed
 
     def generate_histograms(self):
+
+        num_indices_per_layer = len(self.heatmap_data) // self.num_hidden_layers
+        values, indices = torch.topk(self.all, 1000)
+
+        # Determine which layer each top value belongs to
+        layer_indices = (indices / num_indices_per_layer).floor().long()
+
+        # Count the occurrences of top values in each layer
+        layer_counts = np.bincount(layer_indices.numpy(), minlength=self.num_hidden_layers)
+
+        # Generate the bar chart
+        layers = np.arange(1, self.num_hidden_layers + 1)
+        plt.figure(figsize=(10, 6))
+        plt.bar(layers, layer_counts, color='skyblue')
+        plt.xlabel('Layer')
+        plt.ylabel('Count of Top 1000 Values')
+        plt.title('Top 1000 Values Distribution Across Layers')
+        plt.xticks(layers)
+        plt.show()
+
+        plt.savefig('/grphome/grp_inject/compute/logging/test/images/bar_graph_of_largest_by_layer.png') 
         pass
+
+    def hard_coded_graph(self):
+        layer_counts_1 = np.array([90, 85, 80, 95, 100, 105, 110, 105, 100, 95, 80, 55])  # Example distribution that sums to 1000
+        layer_counts_2 = np.array([55, 80, 95, 100, 105, 110, 105, 100, 95, 80, 85, 90]) 
+
+        num_layers = len(layer_counts_1)  # Assuming both tensors have counts for the same number of layers
+        layers = np.arange(1, num_layers + 1)
+        bar_width = 0.35  # Width of the bars
+
+        # Create the bar chart
+        fig, ax = plt.subplots(figsize=(12, 8))
+
+        # Plotting both distributions
+        bar1 = ax.bar(layers - bar_width/2, layer_counts_1, bar_width, label='Anger Alignment IRM', color='skyblue')
+        bar2 = ax.bar(layers + bar_width/2, layer_counts_2, bar_width, label='Cheerful Alignment IRM', color='orange')
+
+        # Add some text for labels, title, and custom x-axis tick labels, etc.
+        ax.set_xlabel('Layer')
+        ax.set_ylabel('Count of Top 1000 Values')
+        ax.set_title('Comparison of Top 1000 Values Distribution Across Layers')
+        ax.set_xticks(layers)
+        ax.set_xticklabels([f'Layer {i}' for i in layers])
+        ax.legend()
+
+        # Finally, show the plot
+        plt.show()
+
+        plt.savefig('/grphome/grp_inject/compute/logging/test/images/compare_different_alignments_hard_coded.png') 
 
         
