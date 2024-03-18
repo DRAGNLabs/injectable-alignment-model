@@ -10,6 +10,12 @@ import matplotlib.colors as mcolors
 
 # Must run pip install plotly and pip install -U kaleido
 
+# important data:
+# layers heatmap that shows most activated parts
+# bar graph showing most activated layers
+# sparsity graph showing which layers are heavily activated
+# graph showing which parts of a paticular layer is important? 
+
 
 class tensor_logger:
     
