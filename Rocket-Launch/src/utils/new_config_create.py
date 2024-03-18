@@ -51,9 +51,9 @@ def create_config_dict(home_dir, sub_dir, training_dataset, test_dataset, val_da
 
     # GPU
     "accelerator": "gpu",
-    "num_nodes": 4,
+    "num_nodes": 2,
     "num_workers": 0,
-    "devices": 4,
+    "devices": 2,
     "use_slurm": "true",
 
     # Train
@@ -140,7 +140,7 @@ def get_home_dir():
 
 def main():
     # Specify injection layers
-    injection_locations = [[0, 1, 2, 3]]
+    injection_locations = [[i for i in range(32) if i % 2 == 1]]
 
     # Note: All files should be in the shared folder
     # Specify training dataset files
