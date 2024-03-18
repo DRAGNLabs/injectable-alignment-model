@@ -201,7 +201,7 @@ tqdm==4.66.1
     #   transformers
 transformers==4.38.2
     # via -r requirements.in
-triton==2.0.0
+triton==2.2.0
     # via torch
 typing-extensions==4.9.0
     # via
