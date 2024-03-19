@@ -25,8 +25,10 @@ class tensor_logger:
         self.layer_map = {}
         self.heatmap_data = torch.empty(0)
 
+        self.all = torch.empty(0)
+
         self.large_tensors_index = torch.empty(0)
-        self.small_tensors_index = torch.empty(0)
+        self.small_tensors_index = torch.empty(0) 
         self.large_tensors = torch.empty(0)
         self.small_tensors = torch.empty(0)
 
@@ -135,8 +137,6 @@ class tensor_logger:
         #     layer: [(i, divided_tensors[layer - 1][i]) for i in range(len(divided_tensors[layer - 1]))]  # 1000 important weights per layer
         #     for layer in range(1, self.num_hidden_layers + 1)
         # }
-
-
 
 
     def write_log(self):
@@ -317,5 +317,8 @@ class tensor_logger:
         plt.show()
 
         plt.savefig('/grphome/grp_inject/compute/logging/test/images/compare_different_alignments_hard_coded.png') 
+
+    def saturation_graph(self):
+        pass
 
         
