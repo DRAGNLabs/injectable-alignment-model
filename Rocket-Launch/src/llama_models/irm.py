@@ -5,15 +5,14 @@ import os
 from transformers import LlamaConfig
 
 class IRM(nn.Module):
-    def __init__(self, config, size_modifier = 1):
+    def __init__(self, config, size_modifier = 2):
         super(IRM, self).__init__()
         self.weights: torch.Tensor = []
-        # self.weights: [torch.Tensor] = []
-        self.linear_size = 50 ##
         self.device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
 
         self.vocab_size = config.vocab_size
         self.hidden_size = config.model_config["hidden_size"]
+        self.linear_size = self.hidden_size * size_modifier
         
 
         # self.batch_size = config.batch_size
@@ -26,13 +25,13 @@ class IRM(nn.Module):
         self.active_irm = True
         
         self.basic_forward = nn.Sequential(
-            nn.Linear(self.hidden_size, self.linear_size*size_modifier),
+            nn.Linear(self.hidden_size, self.linear_size),
             nn.ReLU(),
-            nn.Linear(self.linear_size*size_modifier, self.linear_size*size_modifier),
+            nn.Linear(self.linear_size, self.linear_size),
             nn.ReLU(),
-            nn.Linear(self.linear_size*size_modifier, self.linear_size*size_modifier),
+            nn.Linear(self.linear_size, self.linear_size),
             nn.ReLU(),
-            nn.Linear(self.linear_size*size_modifier, self.hidden_size * self.num_layers),
+            nn.Linear(self.linear_size, self.hidden_size * self.num_layers),
         ).to(self.device)
 
     def forward(self, x: torch.Tensor):
