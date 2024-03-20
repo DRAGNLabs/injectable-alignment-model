@@ -4,7 +4,7 @@ import os
 import sys
 import pandas as pd
 
-from utils.data_utils import Struct
+# from utils.data_utils import Struct
 #from utils.convert_checkpoint import convert_checkpoint
 #import tokenize_data
 #import injected_train
