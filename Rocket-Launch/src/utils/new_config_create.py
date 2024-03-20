@@ -91,7 +91,7 @@ def create_config_dict(home_dir, sub_dir, training_dataset, test_dataset, val_da
         "hidden_size": 4096,
         "initializer_range": 0.02,
         "intermediate_size": 11008,
-        # "max_position_embeddings": 128,
+        # "max_position_embeddings": 4096,
         "max_position_embeddings": 128,
         "model_type": "llama",
         "num_attention_heads": 32,
