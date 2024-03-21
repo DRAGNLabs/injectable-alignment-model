@@ -5,21 +5,24 @@ import os
 from transformers import LlamaConfig
 
 class IRM(nn.Module):
-    def __init__(self, config, size_modifier = 1):
+    def __init__(self, config, size_modifier = 2):
         super(IRM, self).__init__()
-        self.linear_size = 50 * size_modifier
+        self.weights: torch.Tensor = []
         self.device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
 
+        self.vocab_size = config.vocab_size
         self.hidden_size = config.model_config["hidden_size"]
-        self.batch_size = config.batch_size
+        self.linear_size = self.hidden_size * size_modifier
+
+
+        # self.batch_size = config.batch_size
         self.sequence_length = config.model_config["max_position_embeddings"]
-        self.output_dimensions = (self.sequence_length, self.hidden_size)
+        # self.dim = config.dim
+        self.output_dimensions = (self.sequence_length, self.hidden_size) #REPLACE WITH THE REAL NUMBERS
 
         self.injection_layers = config.IRM_layers
         self.num_layers = len(self.injection_layers)
         self.active_irm = True
-
-        self.weights = torch.zeros(self.batch_size,self.sequence_length,self.hidden_size,self.num_layers).to(self.device)
 
         self.basic_forward = nn.Sequential(
             nn.Linear(self.hidden_size, self.linear_size),
@@ -30,11 +33,9 @@ class IRM(nn.Module):
             nn.ReLU(),
             nn.Linear(self.linear_size, self.hidden_size * self.num_layers),
         ).to(self.device)
-
     def forward(self, x: torch.Tensor):
         curr_batch_size = x.size()[0]
         self.weights = self.basic_forward(x).view(curr_batch_size, *self.output_dimensions, -1)
-        self.weights = nn.Parameter(self.weights)
 
     def get_layer_weights(self, layer_id):
         return self.weights[:, :, :, self.injection_layers.index(layer_id)]
