@@ -17,8 +17,6 @@ class IRM(nn.Module):
 
         # self.batch_size = config.batch_size
         self.sequence_length = config.model_config["max_position_embeddings"]
-        # self.dim = config.dim
-        self.output_dimensions = (self.sequence_length, self.hidden_size) #REPLACE WITH THE REAL NUMBERS
 
         self.injection_layers = config.IRM_layers
         self.num_layers = len(self.injection_layers)
@@ -35,7 +33,7 @@ class IRM(nn.Module):
         ).to(self.device)
     def forward(self, x: torch.Tensor):
         curr_batch_size = x.size()[0]
-        self.weights = self.basic_forward(x).view(curr_batch_size, *self.output_dimensions, -1)
+        self.weights = self.basic_forward(x).view(curr_batch_size, -1, self.hidden_size, self.num_layers)
 
     def get_layer_weights(self, layer_id):
         return self.weights[:, :, :, self.injection_layers.index(layer_id)]
