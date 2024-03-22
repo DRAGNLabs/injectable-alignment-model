@@ -25,6 +25,11 @@ class tensor_logger:
     # TODO: Clean up the logging code 
 
     def __init__(self, num_hidden_layers):
+        self.store_prompt = torch.empty(0)
+        self.store_prompt_indices = torch.empty(0)
+        self.avg_matrix = torch.empty(0)
+        self.indicies_matrix = torch.empty(0)
+
         self.num_hidden_layers = num_hidden_layers
 
         self.layer_map = {}
@@ -63,6 +68,13 @@ class tensor_logger:
 
 
     def new_prompt(self):
+        column_averages = torch.mean(tensor_of_tensors, dim=0)
+        self.avg_matrix = torch.cat(self.avg_matrix, column_averages)
+
+        name_of_csv = ''
+        df = pd.DataFrame(matrix.numpy())
+        df.to_csv(base_output_path + experiment_name + name_of_csv)
+
         self.store_prompt = torch.empty(0)
         
         
@@ -80,7 +92,8 @@ class tensor_logger:
         # Store the largest 1000 values in each tensor and their indices
         tensor_large, indices_large = torch.topk(tensor, 1000, largest=True)
         tensor_small, indices_small = torch.topk(tensor, 1000, largest=False)
-        
+
+
         # Store the mean activation for each tensor
         mean_activation = torch.mean(tensor)
         mean_activation_large = torch.mean(tensor_large)
@@ -114,6 +127,10 @@ class tensor_logger:
 
         self.large_tensors_index = torch.cat((self.large_tensors_index, indices_large.unsqueeze(0)), dim=0)
         self.small_tensors_index = torch.cat((self.small_tensors_index, indices_small.unsqueeze(0)), dim=0)
+
+        self.new_prompt = torch.cat((self.new_prompt, indices_large.unsqueeze(0)), dim=0)
+        
+
         self.large_tensors = torch.cat((self.large_tensors, tensor_large.unsqueeze(0)), dim=0)
         self.small_tensors = torch.cat((self.small_tensors, tensor_small.unsqueeze(0)), dim=0)
 
