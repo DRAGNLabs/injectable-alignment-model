@@ -17,8 +17,96 @@ def check_or_create_parent_dir(directory_path):
     if not directory_path.parent.exists():
         directory_path.parent.mkdir(parents=True)
 
-def create_config_dict(home_dir, sub_dir, training_dataset, test_dataset, val_dataset, injection_location, num_epochs=20, loss_function_index=0):
+def get_HF_config(model_name):
+    # Print out model.config for a given HF model, and it will tell you the following. Be sure to change booleans to their string version, null to "~", and any floats to float(the float)
+    if model_name == "Llama-2-7b-hf":
+        hf_config = {
+            "attention_bias": "false",
+            "attention_dropout": 0.0,
+            "bos_token_id": 1,
+            "eos_token_id": 2,
+            "hidden_act": "silu",
+            "hidden_size": 4096,
+            "initializer_range": 0.02,
+            "intermediate_size": 11008,
+            "max_position_embeddings": 4096,
+            #"max_position_embeddings": 128,
+            "model_type": "llama",
+            "num_attention_heads": 32,
+            "num_hidden_layers": 32,
+            "num_key_value_heads": 32,
+            "pretraining_tp": 1,
+            "rms_norm_eps": float(10e-5),
+            "rope_scaling": "~",
+            "rope_theta": 10000.0,
+            "tie_word_embeddings": "false",
+            "torch_dtype": "float16",
+            "transformers_version": "4.38.2",
+            "use_cache": "true",
+            "vocab_size": 32000
+        }
+    elif model_name == "Llama-2-13b-hf":
+        hf_config = {
+            "attention_bias": "false",
+            "attention_dropout": 0.0,
+            "bos_token_id": 1,
+            "eos_token_id": 2,
+            "hidden_act": "silu",
+            "hidden_size": 5120,
+            "initializer_range": 0.02,
+            "intermediate_size": 13824,
+            "max_position_embeddings": 4096,
+            "model_type": "llama",
+            "num_attention_heads": 40,
+            "num_hidden_layers": 40,
+            "num_key_value_heads": 40,
+            "pretraining_tp": 1,
+            "rms_norm_eps": float(1e-05),
+            "rope_scaling": "~",
+            "rope_theta": 10000.0,
+            "tie_word_embeddings": "false",
+            "torch_dtype": "float16",
+            "transformers_version": "4.38.2",
+            "use_cache": "true",
+            "vocab_size": 32000
+         }
+    elif model_name == "Llama-2-13b-chat-hf":
+        hf_config = {
+            "attention_bias": "false",
+            "attention_dropout": 0.0,
+            "bos_token_id": 1,
+            "eos_token_id": 2,
+            "hidden_act": "silu",
+            "hidden_size": 5120,
+            "initializer_range": 0.02,
+            "intermediate_size": 13824,
+            "max_position_embeddings": 4096,
+            "model_type": "llama",
+            "num_attention_heads": 40,
+            "num_hidden_layers": 40,
+            "num_key_value_heads": 40,
+            "pretraining_tp": 1,
+            "rms_norm_eps": float(1e-05),
+            "rope_scaling": "~",
+            "rope_theta": 10000.0,
+            "tie_word_embeddings": "false",
+            "torch_dtype": "float16",
+            "transformers_version": "4.38.2",
+            "use_cache": "true",
+            "vocab_size": 32000
+        }
+    else:
+        raise ValueError("Invalid model name specified.")
 
+    return hf_config
+        
+
+def create_config_dict(home_dir, sub_dir, training_dataset, test_dataset, val_dataset, injection_location, model_name="Llama-2-7b-hf", num_epochs=20, loss_function_index=0):
+    model_size_directories = {
+        "Llama-2-7b-hf": "hf_weights",
+        "Llama-2-13b-hf": "hf_llama_13_weights",
+        "Llama-2-13b-chat-hf": "hf_llama_13_chat_weights"
+    }
 
     config_dict = {
     # Tokenizer
@@ -34,7 +122,7 @@ def create_config_dict(home_dir, sub_dir, training_dataset, test_dataset, val_da
     "default_root_dir": f"{home_dir}/runs/{sub_dir}/",
     # which checkpoint to use, if any, for resuming training or inference
     #"checkpoint_path": f"{home_dir}/injectable-alignment-model/Rocket-Launch/injected_model_weights/injected_model_weights_{checkpoint_name_suff(injection_location)}.ckpt",
-    "checkpoint_path": f"/grphome/grp_inject/compute/hf_weights/injected_model_weights_{checkpoint_name_suff(injection_location)}.ckpt",
+    "checkpoint_path": f"/grphome/grp_inject/compute/{model_size_directories[model_name]}/{model_name}_{checkpoint_name_suff(injection_location)}.ckpt",
 
     # Dataset
     # Raw data file. Tokenizer expects parquet, could be changed.
@@ -85,33 +173,8 @@ def create_config_dict(home_dir, sub_dir, training_dataset, test_dataset, val_da
     # model_name: Pretrained model name, if using pretrained model, from HF
     "model_name":"~",
 
-    # Print out model.config for a given HF model, and it will tell you the following. Be sure to change booleans to their string version and any floats to float(the float)
-    "model_config": {
-        "attention_bias": "false",
-        "attention_dropout": 0.0,
-        "bos_token_id": 1,
-        "eos_token_id": 2,
-        "hidden_act": "silu",
-        "hidden_size": 4096,
-        "initializer_range": 0.02,
-        "intermediate_size": 11008,
-        # "max_position_embeddings": 4096,
-        "max_position_embeddings": 128,
-        "model_type": "llama",
-        "num_attention_heads": 32,
-        "num_hidden_layers": 32,
-        "num_key_value_heads": 32,
-        "pretraining_tp": 1,
-        "rms_norm_eps": float(10e-5),
-        "rope_scaling": "~",
-        "rope_theta": 10000.0,
-        "tie_word_embeddings": "false",
-        "torch_dtype": "float16",
-        "transformers_version": "4.38.2",
-        "use_cache": "true",
-        "vocab_size": 32000
-    }
-
+    # This gets the correct config as defined in the function above.
+    "model_config": get_HF_config(model_name)
     }
 
     # Make sure the parent directory for the checkpoint exists (since config may be created before checkpoint is created)
@@ -144,7 +207,10 @@ def get_home_dir():
 
 def main():
     # Specify injection layers
-    injection_locations = [[i for i in range(32) if i % 2 == 1]]
+    injection_locations = [[i for i in range(32)]]
+
+    # Specify the name/size of the model
+    model_name = "Llama-2-7b-hf"
 
     # Note: All files should be in the shared folder
     # Specify training dataset files
@@ -161,7 +227,9 @@ def main():
     
     # Create config files as specified above
     for inj_location, train_dataset_file, test_dataset_file, val_dataset_file, epochs in zip(injection_locations, train_dataset_file_names, test_dataset_file_names, val_dataset_file_names, dataset_file_epochs):
-        curr_config_dict = create_config_dict(get_home_dir(), f"test_config_{checkpoint_name_suff(inj_location)}", train_dataset_file, test_dataset_file, val_dataset_file, inj_location, epochs)
+        curr_config_dict = create_config_dict(get_home_dir(), f"{model_name}_{checkpoint_name_suff(inj_location)}", train_dataset_file, test_dataset_file, val_dataset_file, inj_location, num_epochs=epochs, model_name=model_name)
+        write_config_file(curr_config_dict, f"{get_home_dir()}/configs/{file_name_prefix}_{train_dataset_file}_{checkpoint_name_suff(inj_location)}.yaml")
+        curr_config_dict = create_config_dict(get_home_dir(), f"{model_name}_{checkpoint_name_suff(inj_location)}", train_dataset_file, test_dataset_file, val_dataset_file, inj_location, epochs)
         write_config_file(curr_config_dict, f"{get_home_dir()}/configs/{file_name_prefix}_{train_dataset_file}_{checkpoint_name_suff(inj_location)}.yaml")
 
 if __name__== "__main__":
