@@ -40,6 +40,9 @@ def train(config):
     # Build model class
     model = Model(tokenizer, config)
 
+    checkpoint = torch.load(config.checkpoint_path)
+    model.load_state_dict(checkpoint['state_dict'])
+
     # Set requires_grad to false for everything
     for param in model.parameters():
         param.requires_grad = False
