@@ -55,6 +55,10 @@ class tensor_logger:
         self.experiment_name = "test"  # config.experiment_name?
 
         self.layer_numbers = []
+
+
+    def new_prompt(self):
+        self.store_prompt = torch.empty(0)
         
         
 
