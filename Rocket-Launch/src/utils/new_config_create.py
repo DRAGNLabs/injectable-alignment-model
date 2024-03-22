@@ -76,6 +76,10 @@ def create_config_dict(home_dir, sub_dir, training_dataset, test_dataset, val_da
     "inference_path": f"{home_dir}/dataset/raw/inference_text.txt",
     "max_gen_len": 20,
 
+    # Logging
+    "do_logging": false,
+    "experiment_name": {file_name_prefix}_{training_dataset}_{checkpoint_name_suff(inj_location)}
+
     # from_pretrained: whether using a pretrained model from HF or not
     "from_pretrained": "false",
     # model_name: Pretrained model name, if using pretrained model, from HF
@@ -152,11 +156,13 @@ def main():
 
     # Specify number of epochs
     dataset_file_epochs = [15] * len(train_dataset_file_names)
+
+    file_name_prefix = "test_config"
     
     # Create config files as specified above
     for inj_location, train_dataset_file, test_dataset_file, val_dataset_file, epochs in zip(injection_locations, train_dataset_file_names, test_dataset_file_names, val_dataset_file_names, dataset_file_epochs):
         curr_config_dict = create_config_dict(get_home_dir(), f"test_config_{checkpoint_name_suff(inj_location)}", train_dataset_file, test_dataset_file, val_dataset_file, inj_location, epochs)
-        write_config_file(curr_config_dict, f"{get_home_dir()}/configs/test_config_{train_dataset_file}_{checkpoint_name_suff(inj_location)}.yaml")
+        write_config_file(curr_config_dict, f"{get_home_dir()}/configs/{file_name_prefix}_{train_dataset_file}_{checkpoint_name_suff(inj_location)}.yaml")
 
 if __name__== "__main__":
     main()
