@@ -20,7 +20,7 @@ import matplotlib.colors as mcolors
 class tensor_logger:
     
 	# TODO: Implement a part of the logger that will take the average across a whole prompt and write a file
-    # TODO: Implement new config fields for logging
+    # TODO: Implement new config fields for logging (DONE)
     # TODO: Add logging functionality to inference loop
     # TODO: Clean up the logging code 
 
