@@ -165,8 +165,8 @@ def create_config_dict(home_dir, sub_dir, training_dataset, test_dataset, val_da
     "max_gen_len": 20,
 
     # Logging
-    "do_logging": false,
-    "experiment_name": {file_name_prefix}_{training_dataset}_{checkpoint_name_suff(inj_location)}
+    "do_logging": "false",
+    "experiment_name": f"{sub_dir}",
 
     # from_pretrained: whether using a pretrained model from HF or not
     "from_pretrained": "false",
@@ -207,10 +207,14 @@ def get_home_dir():
 
 def main():
     # Specify injection layers
-    injection_locations = [[i for i in range(32)]]
+    injection_locations = [[i for i in range(5)]]
 
     # Specify the name/size of the model
     model_name = "Llama-2-7b-hf"
+    file_name_prefix = "test_config"
+
+    def get_file_name(file_name_prefix, model_name, dataset_file_name, inj_location):
+        return f"{file_name_prefix}_{model_name}_{dataset_file_name}_{checkpoint_name_suff(inj_location)}"
 
     # Note: All files should be in the shared folder
     # Specify training dataset files
@@ -222,15 +226,11 @@ def main():
 
     # Specify number of epochs
     dataset_file_epochs = [15] * len(train_dataset_file_names)
-
-    file_name_prefix = "test_config"
     
     # Create config files as specified above
     for inj_location, train_dataset_file, test_dataset_file, val_dataset_file, epochs in zip(injection_locations, train_dataset_file_names, test_dataset_file_names, val_dataset_file_names, dataset_file_epochs):
-        curr_config_dict = create_config_dict(get_home_dir(), f"{model_name}_{checkpoint_name_suff(inj_location)}", train_dataset_file, test_dataset_file, val_dataset_file, inj_location, num_epochs=epochs, model_name=model_name)
-        write_config_file(curr_config_dict, f"{get_home_dir()}/configs/{file_name_prefix}_{train_dataset_file}_{checkpoint_name_suff(inj_location)}.yaml")
-        curr_config_dict = create_config_dict(get_home_dir(), f"{model_name}_{checkpoint_name_suff(inj_location)}", train_dataset_file, test_dataset_file, val_dataset_file, inj_location, epochs)
-        write_config_file(curr_config_dict, f"{get_home_dir()}/configs/{file_name_prefix}_{train_dataset_file}_{checkpoint_name_suff(inj_location)}.yaml")
+        curr_config_dict = create_config_dict(get_home_dir(), f"{get_file_name(file_name_prefix, model_name, train_dataset_file, inj_location)}", train_dataset_file, test_dataset_file, val_dataset_file, inj_location, num_epochs=epochs, model_name=model_name)
+        write_config_file(curr_config_dict, f"{get_home_dir()}/configs/{get_file_name(file_name_prefix, model_name, train_dataset_file, inj_location)}.yaml")
 
 if __name__== "__main__":
     main()
