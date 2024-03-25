@@ -57,8 +57,6 @@ class IRM(nn.Module):
         ).to(self.device)
 
     def forward(self, x: torch.Tensor):
-        print("size", x.size())
-        print("dim", self.output_dimensions)
         curr_batch_size = x.size()[0]
         self.weights = self.basic_forward(x).view(curr_batch_size, *self.output_dimensions, -1)
         self.logger.add_tensor(self.weights)
@@ -70,10 +68,13 @@ class IRM(nn.Module):
         return self.get_layer_weights(layer_id) + llm_output
 
     def logModel(self):
+        self.logger.new_prompt()
+        
         self.logger.write_log()
         self.logger.generate_heatmap()
-        self.logger.generate_histograms()
-        self.logger.hard_coded_graph()
+        # self.logger.generate_histograms()
+        # self.logger.hard_coded_graph()
+
 
 if __name__ == "__main__":
     # model = IRM(LlamaConfig())
@@ -86,6 +87,8 @@ if __name__ == "__main__":
     test_input3 = torch.randn((1, 1024, 768)).to(model.device)
 
     model.forward(test_input)
+    model.forward(test_input2)
+    model.forward(test_input3)
 
     model.logModel()
 

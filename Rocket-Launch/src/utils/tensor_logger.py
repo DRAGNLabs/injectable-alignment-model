@@ -6,6 +6,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+import seaborn as sns
 
 
 # Must run pip install plotly and pip install -U kaleido
@@ -25,139 +26,124 @@ class tensor_logger:
     # TODO: Clean up the logging code 
 
     def __init__(self, num_hidden_layers):
-        self.store_prompt = torch.empty(0)
-        self.store_prompt_indices = torch.empty(0)
-        self.avg_matrix = torch.empty(0)
-        self.indicies_matrix = torch.empty(0)
-
         self.num_hidden_layers = num_hidden_layers
 
-        self.layer_map = {}
-        self.heatmap_data = torch.empty(0)
+        self.store_prompt_values = torch.empty(0)
+        self.store_prompt_indices = torch.empty(0)
+        self.tensor_length = 0
+        self.token_number = 1
 
+        self.prompt_df = pd.DataFrame()
+
+        self.layered_tensor = torch.empty(0)
         self.all = torch.empty(0)
 
-        self.large_tensors_index = torch.empty(0)
-        self.small_tensors_index = torch.empty(0) 
-        self.large_tensors = torch.empty(0)
-        self.small_tensors = torch.empty(0)
+        self.means = torch.empty(0)
 
-        self.means = []
-        self.means_large = []
-        self.means_small = []
+        self.std_dev = torch.empty(0)
 
-        self.std_dev = []
-        self.std_dev_large = []
-        self.std_dev_small = []
+        self.sparsity = torch.empty(0)
 
-        self.sparsity = []
+        self.max_activations = torch.empty(0)
+        self.min_activations = torch.empty(0)
 
-        self.max_activations = []
-        self.min_activations = []
-
-        self.saturated_neurons = []
-        self.large_modes = []
-        self.small_modes = []
+        self.modes = torch.empty(0)
 
         # Must make sure this directory exists, I was thinking we could create an experiment name field
         # in the config file and then use it to store our results more easily.
         self.base_output_path = "/grphome/grp_inject/compute/logging"
-        self.experiment_name = "test"  # config.experiment_name?
-
-        self.layer_numbers = []
+        self.experiment_name = "/test/"  # config.experiment_name?
 
 
     def new_prompt(self):
-        column_averages = torch.mean(tensor_of_tensors, dim=0)
-        self.avg_matrix = torch.cat(self.avg_matrix, column_averages)
+        indices = self.make_layer_indicies(self.store_prompt_indices.flatten()).detach().numpy()
+        values = self.store_prompt_values.flatten().detach().numpy()
+        layers = self.assign_layer(self.store_prompt_indices.flatten()).detach().numpy()
 
-        name_of_csv = ''
-        df = pd.DataFrame(matrix.numpy())
-        df.to_csv(base_output_path + experiment_name + name_of_csv)
+        self.prompt_df =  pd.DataFrame({'index': indices, 'value': values, 'layer': layers})
+        self.prompt_df = self.prompt_df.groupby(['index', 'layer'], as_index=False)['value'].mean()
 
-        self.store_prompt = torch.empty(0)
+        print(self.prompt_df)
+        
+        name_of_csv = f'index_value_layer_{self.token_number}.csv'
+        self.prompt_df.to_csv(self.base_output_path + self.experiment_name + name_of_csv)
+
+        self.generate_index_value_layer_heatmap()
+
+        self.store_prompt_values = torch.empty(0)
+        self.store_prompt_indices = torch.empty(0)
+        self.prompt_df = pd.DataFrame()
+        self.token_number += 1
+
+    def assign_layer(self, tensor):
+        tensor_divisor = self.tensor_length // self.num_hidden_layers
+
+        return (tensor // tensor_divisor) + 1
+
+    def make_layer_indicies(self, tensor):
+        tensor_divisor = self.tensor_length // self.num_hidden_layers
+
+        return tensor % tensor_divisor
         
         
-
     def add_tensor(self, tensor: torch.Tensor):
         
         tensor = tensor.flatten()
         self.map_layers(tensor)
 
         self.all = tensor
+        self.tensor_length = self.all.size(0)
 
         # For use by the heatmap generator
         self.layer_numbers = [i for i in range(len(tensor))]
 
         # Store the largest 1000 values in each tensor and their indices
         tensor_large, indices_large = torch.topk(tensor, 1000, largest=True)
-        tensor_small, indices_small = torch.topk(tensor, 1000, largest=False)
-
 
         # Store the mean activation for each tensor
-        mean_activation = torch.mean(tensor)
-        mean_activation_large = torch.mean(tensor_large)
-        mean_activation_small = torch.mean(tensor_small)
+        mean_activation = self.layered_tensor.mean(dim=1)
 
         # Store the standard deviation for each tensor
-        std_dev_activation = torch.std(tensor)
-        std_dev_activation_large = torch.std(tensor_large)
-        std_dev_activation_small = torch.std(tensor_small)
+        std_dev_activation = self.layered_tensor.std(dim=1)
 
-        # Store the sparcity, maximum activation and minimum activation
-        sparsity = (tensor == 0).float().mean() * 100 # Percentage of zeros in the tensor
-        max_activation = torch.max(tensor)
-        min_activation = torch.min(tensor)
-       
-        # Calculate the percentage of saturated neurons?  Not sure what saturation means
-        saturation_threshold = 0.01 
-        saturated_neurons = ((tensor < saturation_threshold) | (tensor > (1 - saturation_threshold))).float().mean() * 100
+        num_zeros = self.layered_tensor.eq(0).sum(dim=1)  # Count zeros in each row
+        total_elements_per_subtensor = self.layered_tensor.size(1)  # Number of elements per row
+        sparsity = num_zeros.float() / total_elements_per_subtensor
 
-        k = 10
-        # Finding the k highest frequencies of the large tensor (most_frequent_values_large[0] is the mode)
-        unique_elements_large, counts_large = torch.unique(tensor_large, return_counts=True)
-        top_counts_large_values, top_counts_large_indices = torch.topk(counts_large, k)
-        most_frequent_values_large = unique_elements_large[top_counts_large_indices]
+        max_activation = self.layered_tensor.max(dim=1).values 
+        min_activation = self.layered_tensor.min(dim=1).values 
 
-        # Finding the k highest frequencies of the small tensor (most_frequent_values_small[0] is the mode)
-        unique_elements_small, counts_small = torch.unique(tensor_small, return_counts=True)
-        top_counts_small_values, top_counts_small_indices = torch.topk(counts_small, k)
-        most_frequent_values_small = unique_elements_large[top_counts_small_indices]
+        modes = torch.empty(self.layered_tensor.size(0), dtype=self.layered_tensor.dtype)
+
+        for i in range(self.layered_tensor.size(0)):
+            sub_tensor = self.layered_tensor[i].view(-1)  # Flatten the sub-tensor
+            unique_values, counts = sub_tensor.unique(return_counts=True)
+            modes[i] = unique_values[counts.argmax()]
 
 
-        self.large_tensors_index = torch.cat((self.large_tensors_index, indices_large.unsqueeze(0)), dim=0)
-        self.small_tensors_index = torch.cat((self.small_tensors_index, indices_small.unsqueeze(0)), dim=0)
+        self.store_prompt_values = torch.cat((self.store_prompt_values, tensor_large.unsqueeze(0)), dim=0)
+        self.store_prompt_indices = torch.cat((self.store_prompt_indices, indices_large.unsqueeze(0)), dim=0)
+    
+        torch.cat((self.means, mean_activation), dim=0)
+        torch.cat((self.std_dev, std_dev_activation), dim=0)
+        torch.cat((self.sparsity, sparsity), dim=0)
 
-        self.new_prompt = torch.cat((self.new_prompt, indices_large.unsqueeze(0)), dim=0)
-        
+        torch.cat((self.max_activations, max_activation), dim=0)
+        torch.cat((self.min_activations, min_activation), dim=0)
 
-        self.large_tensors = torch.cat((self.large_tensors, tensor_large.unsqueeze(0)), dim=0)
-        self.small_tensors = torch.cat((self.small_tensors, tensor_small.unsqueeze(0)), dim=0)
-
-
-        self.means.append(mean_activation)
-        self.means_large.append(mean_activation_large)
-        self.means_small.append(mean_activation_small)
-
-        self.std_dev.append(std_dev_activation)
-        self.std_dev_large.append(std_dev_activation_large)
-        self.std_dev_small.append(std_dev_activation_small)
-
-        self.sparsity.append(sparsity)
-
-        self.max_activations.append(max_activation)
-        self.min_activations.append(min_activation)
-
-        self.saturated_neurons.append(saturated_neurons)
-        self.large_modes.append(most_frequent_values_large)
-        self.small_modes.append(most_frequent_values_small)
+        torch.cat((self.modes, modes), dim=0)
 
     def map_layers(self, tensor: torch.Tensor):
         divided_tensors = tensor.chunk(self.num_hidden_layers, dim=0)
 
+        self.layered_tensor = torch.stack(divided_tensors)
+        print(self.layered_tensor.dim())
+
         divided_tensors = [t.squeeze(0) for t in divided_tensors]
 
-        self.heatmap_data = torch.cat(divided_tensors, dim=0).detach().numpy()
+        self.heatmap_data = torch.cat(divided_tensors, dim=0)
+
+        return self.layered_tensor
 
         # self.map_layers = {
         #     layer: [(i, divided_tensors[layer - 1][i]) for i in range(len(divided_tensors[layer - 1]))]  # 1000 important weights per layer
@@ -180,20 +166,16 @@ class tensor_logger:
         with open(log_file_path, 'a') as f:
             f.write("Current model weights means: {}\n".format(self.means))
             f.write("Means of the top 1000 weights: {}\n".format(self.means_large))
-            f.write("Means of the bottom 1000 weights: {}\n\n".format(self.means_small))
 
             f.write("Current model weights standard deviation: {}\n".format(self.std_dev))
             f.write("Standard deviation of the top 1000 weights: {}\n".format(self.std_dev_large))
-            f.write("Standard deviation of the bottom 1000 weights: {}\n\n".format(self.std_dev_small))
 
             f.write("Current model weights sparsity: {}\n\n".format(self.sparsity))
 
             f.write("Current model maximum activation: {}\n".format(self.max_activations))
             f.write("Current model minimum activation: {}\n\n".format(self.min_activations))
 
-            f.write("Current model saturation: {}\n".format(self.saturated_neurons))
-            f.write("Top 10 frequent values of the top 1000 weights: {}\n".format(self.large_modes))
-            f.write("Top 10 frequent values of the bottom 1000 weights: {}\n".format(self.small_modes))
+            f.write("Top 10 frequent values of the top 1000 weights: {}\n".format(self.modes))
 
 
     # Generates a heatmap showing the locations of the largest and the smallest weights for the layers.  Will require some additional packages to be installed.
@@ -210,15 +192,15 @@ class tensor_logger:
         # dims = (4000, 4000)  # Example, adjust to your actual dimensions
 
         # # Create an empty 2D array for the heatmap
-        # heatmap_data = np.zeros(dims)
+        # layered_tensor = np.zeros(dims)
 
         # # Fill in the heatmap data using the indices and values
         # for idx, value in zip(large_tensor_index_np, large_tensor_value_np):
         #     row, col = np.unravel_index(idx, dims)
-        #     heatmap_data[row, col] = value
+        #     layered_tensor[row, col] = value
 
         # # Generate and save the heatmap
-        # fig = px.imshow(heatmap_data, color_continuous_scale='Viridis', labels={'color': 'Value'})
+        # fig = px.imshow(layered_tensor, color_continuous_scale='Viridis', labels={'color': 'Value'})
         # fig.update_layout(title="Large Tensor Values Heatmap")
         # fig.write_image(os.path.join(images_dir, "large_tensor_heatmap.png"))
 
@@ -232,15 +214,15 @@ class tensor_logger:
         # dims = (4000, 4000)  # Example, adjust to your actual dimensions
 
         # # Create an empty 2D array for the heatmap
-        # heatmap_data = np.zeros(dims)
+        # layered_tensor = np.zeros(dims)
 
         # # Fill in the heatmap data using the indices and values
         # for idx, value in zip(small_tensor_index_np, small_tensor_value_np):
         #     row, col = np.unravel_index(idx, dims)
-        #     heatmap_data[row, col] = value
+        #     layered_tensor[row, col] = value
 
         # # Generate and save the heatmap
-        # fig = px.imshow(heatmap_data, color_continuous_scale='Viridis', labels={'color': 'Value'})
+        # fig = px.imshow(layered_tensor, color_continuous_scale='Viridis', labels={'color': 'Value'})
         # fig.update_layout(title="Small Tensor Values Heatmap")
         # fig.write_image(os.path.join(images_dir, "small_tensor_heatmap.png"))
         
@@ -254,12 +236,13 @@ class tensor_logger:
         # fig_1.write_image(os.path.join(self.base_output_path, self.experiment_name, "images/small_heatmap.png"))
         # Reshape the data for 2D visualization
 
-        # Assuming self.heatmap_data is a numpy array and self.num_hidden_layers is defined
+        # Assuming self.layered_tensor is a numpy array and self.num_hidden_layers is defined
         # num_indices_per_layer is calculated as shown
-        num_indices_per_layer = len(self.heatmap_data) // self.num_hidden_layers
+        layered_tensor = self.heatmap_data.detach().numpy()
+        num_indices_per_layer = len(layered_tensor) // self.num_hidden_layers
 
         # Reshape the data for 2D visualization
-        tensor_2d = self.heatmap_data.reshape(self.num_hidden_layers, num_indices_per_layer)
+        tensor_2d = layered_tensor.reshape(self.num_hidden_layers, num_indices_per_layer)
 
         # Flatten the 2D tensor to work with 1D arrays for identifying top values
         flat_data = tensor_2d.flatten()
@@ -292,9 +275,29 @@ class tensor_logger:
         # Save the figure to a file
         plt.savefig('/grphome/grp_inject/compute/logging/test/images/heatmap_mean_layer_values.png')  # Adjust path as needed
 
+    def generate_index_value_layer_heatmap(self):
+        pivot_df = self.prompt_df.pivot(index="layer", columns="index", values="value")
+        pivot_df_filled = pivot_df.fillna(-1)
+
+        heatmap_file_name = f'index_layer_value_heatmap_{self.token_number}.png'
+
+        # Create the heatmap
+        plt.figure(figsize=(10, 8))
+        # Use a colormap (cmap) that distinguishes your filled value (-1) from the rest, e.g., 'coolwarm'
+        # You may need to adjust the colormap or the fill value depending on your data range and preferences
+        sns.heatmap(pivot_df_filled, cmap="coolwarm", annot=True, cbar_kws={'label': 'Value'}, 
+                    norm=plt.Normalize(vmin=pivot_df_filled.min().min(), vmax=pivot_df_filled.max().max()))
+
+        plt.title('Heatmap of Values')
+        plt.xlabel('Layer')
+        plt.ylabel('Index')
+        plt.show()
+
+        plt.savefig(self.base_output_path + self.experiment_name + 'images/' + heatmap_file_name)
+
     def generate_histograms(self):
 
-        num_indices_per_layer = len(self.heatmap_data) // self.num_hidden_layers
+        num_indices_per_layer = len(self.layered_tensor) // self.num_hidden_layers
         values, indices = torch.topk(self.all, 1000)
 
         # Determine which layer each top value belongs to
@@ -344,7 +347,7 @@ class tensor_logger:
 
         plt.savefig('/grphome/grp_inject/compute/logging/test/images/compare_different_alignments_hard_coded.png') 
 
-    def saturation_graph(self):
+    def sparcity_graph(self):
         pass
 
         
