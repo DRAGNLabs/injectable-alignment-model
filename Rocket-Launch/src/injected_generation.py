@@ -6,7 +6,7 @@ import yaml
 import torch
 from transformers import PreTrainedTokenizerFast as HFTokenizer
 
-from lightning.model import Model
+from lightning.injected_model import Model
 from sp_tokenizer.tokenizer import Tokenizer as SPTokenizer
 from utils.data_utils import Struct
 
