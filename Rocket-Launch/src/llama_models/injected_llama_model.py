@@ -19,6 +19,8 @@ from transformers.models.llama.modeling_llama import (
     LlamaMLP
 )
 
+from transformers import LlamaConfig as HFConfig
+
 import warnings
 from typing import List, Optional, Union, Tuple
 
@@ -35,7 +37,7 @@ LLAMA_ATTENTION_CLASSES = {
 
 
 class InjectedLlamaDecoderLayer(nn.Module):
-    def __init__(self, config: LlamaConfig, layer_idx: int, irm: IRM):
+    def __init__(self, config: LlamaConfig, layer_idx: int, irm=None):
         super().__init__()
         self.hidden_size = config.hidden_size
         
@@ -94,12 +96,12 @@ class InjectedLlamaDecoderLayer(nn.Module):
             **kwargs,
         )
         hidden_states = residual + hidden_states
-        
         # self irm
         if self.layer_idx == 0:
             self.irm(hidden_states)
         
-        hidden_states = self.irm.injected_operation(self.layer_idx, hidden_states)
+        if self.layer_idx in self.irm.injection_layers:
+            hidden_states = self.irm.injected_operation(self.layer_idx, hidden_states)
 
         # Fully Connected
         residual = hidden_states
@@ -214,12 +216,15 @@ class InjectedLlamaModel(LlamaPreTrainedModel):
         config: LlamaConfig
     """
 
-    def __init__(self, config: LlamaConfig):
+    def __init__(self, irm_config, config):
+
         super().__init__(config)
+
+        self.irm = IRM(irm_config)
+        self.irm_config = irm_config
+
         self.padding_idx = config.pad_token_id
         self.vocab_size = config.vocab_size
-        
-        self.irm = IRM(config)
 
         self.embed_tokens = nn.Embedding(config.vocab_size, config.hidden_size, self.padding_idx)
         self.layers = nn.ModuleList(

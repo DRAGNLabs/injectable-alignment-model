@@ -10,12 +10,12 @@ class DataModule(LightningDataModule):
     def __init__(self, config, tokenizer):
         super().__init__()
         self.train_path = config.train_path
-        self.val_path = config.val_path
+        self.val_path = config.eval_path
         self.test_path = config.test_path
         self.tokenizer = tokenizer
         self.tokenizer_type = config.tokenizer_type
         self.batch_size = config.batch_size
-        self.max_sequence_embeddings = config.max_sequence_embeddings
+        self.max_sequence_embeddings = config.model_config["max_position_embeddings"]
         self.num_workers = config.num_workers
         
         if self.tokenizer_type == 'hf':
@@ -75,7 +75,7 @@ class DataModule(LightningDataModule):
 class DataSet(torch.utils.data.Dataset):
     def __init__(self, path_to_data, pad_tok, bos_tok, eos_tok, max_sequence_embeddings):
         assert os.path.isfile(path_to_data), path_to_data
-        self.data:pd.DataFrame = pd.read_pickle(path_to_data) 
+        self.data:pd.DataFrame = pd.read_pickle(path_to_data)
         
         self.pad_tok = pad_tok
         self.bos_tok = bos_tok
@@ -87,13 +87,12 @@ class DataSet(torch.utils.data.Dataset):
     
     def __getitem__(self, index):
         pd_series_item = self.data.iloc[index,:]  # Returns a pd.Series
-        tensor_item:List[int] = pd_series_item.iloc[0]  # Grab text from series
-
+        tensor_item:List[int] = pd_series_item.iloc[1]  # Grab text from series
         if len(tensor_item) <= self.max_sequence_embeddings:
             length = len(tensor_item)
             tensor_item = tensor_item[:] + [self.eos_tok]
             x = tensor_item[:length]
-            y_true = tensor_item[1:length+1]  
+            y_true = tensor_item[1:length+1]
         else:
             x = tensor_item[:self.max_sequence_embeddings]
             y_true = tensor_item[1:self.max_sequence_embeddings+1]
@@ -107,15 +106,17 @@ class DataSet(torch.utils.data.Dataset):
         return masked_tensor
 
     def pad_to_longest(self, batch):
+        
         src, tgt = zip(*batch)
-
         src_lens = [len(s) for s in src]
-        pad_len = max(src_lens)
+        #pad_len = max(src_lens)
+        pad_len = self.max_sequence_embeddings
         src_mask = self.generate_mask(pad_len, src_lens)
         pad_src = [s + [self.pad_tok] * (pad_len - len(s)) for s in src]
 
         tgt_lens = [len(s) for s in tgt]
-        pad_len = max(tgt_lens)
+        #pad_len = max(tgt_lens)
+        pad_len = self.max_sequence_embeddings
         pad_tgt = [s + [self.pad_tok] * (pad_len - len(s)) for s in tgt]
 
         pad_src = torch.tensor(pad_src)

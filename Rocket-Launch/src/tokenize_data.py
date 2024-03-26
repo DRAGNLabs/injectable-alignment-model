@@ -76,7 +76,7 @@ def tokenize_data(config: Struct):
 
         # Save train, validation, and test to pickle files
         out_dir_train = Path(config.train_path)
-        out_dir_val = Path(config.val_path)
+        out_dir_val = Path(config.eval_path)
         out_dir_test = Path(config.test_path)
 
         if not out_dir_train.parent.exists():
