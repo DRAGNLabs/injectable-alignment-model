@@ -88,7 +88,7 @@ if __name__ == "__main__":
     # test_input = torch.randn((1, 1024, 768)).to(model.device)
     # test_input2 = torch.randn((1, 1024, 768)).to(model.device)
     # test_input3 = torch.randn((1, 1024, 768)).to(model.device)
-
+    print("howdy")
     # model.forward(test_input)
     # model.forward(test_input2)
     # model.forward(test_input3)
