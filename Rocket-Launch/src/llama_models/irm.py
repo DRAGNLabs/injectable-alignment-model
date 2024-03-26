@@ -53,12 +53,12 @@ class IRM(nn.Module):
             nn.ReLU(),
             nn.Linear(self.linear_size*size_modifier, self.linear_size*size_modifier),
             nn.ReLU(),
-            nn.Linear(self.linear_size*size_modifier, self.hidden_size * self.num_layers),
+            nn.Linear(self.linear_size, self.hidden_size * self.num_layers),
         ).to(self.device)
 
     def forward(self, x: torch.Tensor):
         curr_batch_size = x.size()[0]
-        self.weights = self.basic_forward(x).view(curr_batch_size, *self.output_dimensions, -1)
+        self.weights = self.basic_forward(x).view(curr_batch_size, -1, self.hidden_size, self.num_layers)
         self.logger.add_tensor(self.weights)
 
     def get_layer_weights(self, layer_id):
@@ -79,16 +79,16 @@ class IRM(nn.Module):
 if __name__ == "__main__":
     # model = IRM(LlamaConfig())
     # # model.forward(torch.randn((1,1024,512)))
-    # model.forward(torch.randn((1,1024,512)))
+    model.forward(torch.randn((1,1024,512)))
     # print(model.weights[3])
-    model = IRM(LlamaConfig(vocab_size=30522, max_position_embeddings=512, hidden_size=768, intermediate_size=3072, num_hidden_layers=12, num_attention_heads=12))
-    test_input = torch.randn((1, 1024, 768)).to(model.device)
-    test_input2 = torch.randn((1, 1024, 768)).to(model.device)
-    test_input3 = torch.randn((1, 1024, 768)).to(model.device)
+    # model = IRM(LlamaConfig(vocab_size=30522, max_position_embeddings=512, hidden_size=768, intermediate_size=3072, num_hidden_layers=12, num_attention_heads=12))
+    # test_input = torch.randn((1, 1024, 768)).to(model.device)
+    # test_input2 = torch.randn((1, 1024, 768)).to(model.device)
+    # test_input3 = torch.randn((1, 1024, 768)).to(model.device)
 
-    model.forward(test_input)
-    model.forward(test_input2)
-    model.forward(test_input3)
+    # model.forward(test_input)
+    # model.forward(test_input2)
+    # model.forward(test_input3)
 
     model.logModel()
 
