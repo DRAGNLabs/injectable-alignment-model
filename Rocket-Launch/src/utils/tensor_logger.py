@@ -62,12 +62,14 @@ class tensor_logger:
         layers = self.assign_layer(self.store_prompt_indices.flatten()).cpu().detach().numpy()
 
         self.prompt_df =  pd.DataFrame({'index': indices, 'value': values, 'layer': layers})
+        print(self.prompt_df, flush=True)
         self.prompt_df = self.prompt_df.groupby(['index', 'layer'], as_index=False)['value'].mean()
+        print(self.prompt_df, flush=True)
 
         #print(self.prompt_df)
         
         name_of_csv = f'index_value_layer_{self.token_number}.csv'
-        self.prompt_df.to_csv(os.path.join(self.base_output_path,self.experiment_name,name_of_csv))
+        self.prompt_df.to_csv(os.path.join(self.base_output_path,self.experiment_name,name_of_csv), index=False)
 
         self.generate_index_value_layer_heatmap()
 
@@ -168,15 +170,15 @@ class tensor_logger:
             f.write("Current model weights means: {}\n".format(self.means))
            # f.write("Means of the top 1000 weights: {}\n".format(self.means_large))
 
-            f.write("Current model weights standard deviation: {}\n".format(self.std_dev))
+            f.write("Current model weights standard deviation: {}\n".format(self.std_dev.cpu().detach().numpy()))
             #f.write("Standard deviation of the top 1000 weights: {}\n".format(self.std_dev_large))
 
-            f.write("Current model weights sparsity: {}\n\n".format(self.sparsity))
+            f.write("Current model weights sparsity: {}\n\n".format(self.sparsity.cpu().detach().numpy()))
 
-            f.write("Current model maximum activation: {}\n".format(self.max_activations))
-            f.write("Current model minimum activation: {}\n\n".format(self.min_activations))
+            f.write("Current model maximum activation: {}\n".format(self.max_activations.cpu().detach().numpy()))
+            f.write("Current model minimum activation: {}\n\n".format(self.min_activations.cpu().detach().numpy()))
 
-            f.write("Top 10 frequent values of the top 1000 weights: {}\n".format(self.modes))
+            f.write("Top 10 frequent values of the top 1000 weights: {}\n".format(self.modes.cpu().detach().numpy()))
 
 
     # Generates a heatmap showing the locations of the largest and the smallest weights for the layers.  Will require some additional packages to be installed.
@@ -278,7 +280,10 @@ class tensor_logger:
 
     def generate_index_value_layer_heatmap(self):
         pivot_df = self.prompt_df.pivot(index="layer", columns="index", values="value")
-        pivot_df_filled = pivot_df.fillna(-1)
+        print("Pivoted dataframe\n", flush=True)
+        print(pivot_df.head(), flush = True)
+        pivot_df_filled = pivot_df.fillna(0)
+        print(pivot_df_filled, flush=True)
 
         heatmap_file_name = f'index_layer_value_heatmap_{self.token_number}.png'
 
@@ -286,8 +291,7 @@ class tensor_logger:
         plt.figure(figsize=(10, 8))
         # Use a colormap (cmap) that distinguishes your filled value (-1) from the rest, e.g., 'coolwarm'
         # You may need to adjust the colormap or the fill value depending on your data range and preferences
-        sns.heatmap(pivot_df_filled, cmap="coolwarm", annot=True, cbar_kws={'label': 'Value'}, 
-                    norm=plt.Normalize(vmin=pivot_df_filled.min().min(), vmax=pivot_df_filled.max().max()))
+        sns.heatmap(pivot_df_filled, cmap="coolwarm", annot=True, cbar_kws={'label': 'Value'}) # norm=plt.Normalize(vmin=pivot_df_filled.min().min(), vmax=pivot_df_filled.max().max()
 
         plt.title('Heatmap of Values')
         plt.xlabel('Layer')
