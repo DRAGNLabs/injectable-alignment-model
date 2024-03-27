@@ -166,10 +166,10 @@ class tensor_logger:
         # Now, open the file to append the logs
         with open(log_file_path, 'a') as f:
             f.write("Current model weights means: {}\n".format(self.means))
-            f.write("Means of the top 1000 weights: {}\n".format(self.means_large))
+           # f.write("Means of the top 1000 weights: {}\n".format(self.means_large))
 
             f.write("Current model weights standard deviation: {}\n".format(self.std_dev))
-            f.write("Standard deviation of the top 1000 weights: {}\n".format(self.std_dev_large))
+            #f.write("Standard deviation of the top 1000 weights: {}\n".format(self.std_dev_large))
 
             f.write("Current model weights sparsity: {}\n\n".format(self.sparsity))
 
