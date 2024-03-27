@@ -53,7 +53,7 @@ class tensor_logger:
         # in the config file and then use it to store our results more easily.
         self.base_output_path = "/grphome/grp_inject/compute/logging"
         self.experiment_name = experiment_name  # config.experiment_name?
-        os.mkdirs(os.path.join(self.base_output_path, self.experiment_name), exist_ok=True)
+        os.makedirs(os.path.join(self.base_output_path, self.experiment_name), exist_ok=True)
 
 
     def new_prompt(self):
