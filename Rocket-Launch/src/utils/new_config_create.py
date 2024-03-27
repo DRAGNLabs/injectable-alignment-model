@@ -211,7 +211,7 @@ def main():
 
     # Specify the name/size of the model
     model_name = "Llama-2-7b-hf"
-    file_name_prefix = "test_config"
+    file_name_prefix = "test_config_boy"
 
     def get_file_name(file_name_prefix, model_name, dataset_file_name, inj_location):
         return f"{file_name_prefix}_{model_name}_{dataset_file_name}_{checkpoint_name_suff(inj_location)}"

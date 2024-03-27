@@ -17,7 +17,6 @@ import seaborn as sns
 # sparsity graph showing which layers are heavily activated
 # graph showing which parts of a paticular layer is important? 
 
-
 class tensor_logger:
     
 	# TODO: Implement a part of the logger that will take the average across a whole prompt and write a file
@@ -25,53 +24,55 @@ class tensor_logger:
     # TODO: Add logging functionality to inference loop
     # TODO: Clean up the logging code 
 
-    def __init__(self, num_hidden_layers):
+    def __init__(self, num_hidden_layers, experiment_name):
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Determine device
         self.num_hidden_layers = num_hidden_layers
 
-        self.store_prompt_values = torch.empty(0)
-        self.store_prompt_indices = torch.empty(0)
+        self.store_prompt_values = torch.empty(0).to(self.device)
+        self.store_prompt_indices = torch.empty(0).to(self.device)
         self.tensor_length = 0
         self.token_number = 1
 
         self.prompt_df = pd.DataFrame()
 
-        self.layered_tensor = torch.empty(0)
+        self.layered_tensor = torch.empty(0).to(self.device)
         self.all = torch.empty(0)
 
-        self.means = torch.empty(0)
+        self.means = torch.empty(0).to(self.device)
 
-        self.std_dev = torch.empty(0)
+        self.std_dev = torch.empty(0).to(self.device)
 
-        self.sparsity = torch.empty(0)
+        self.sparsity = torch.empty(0).to(self.device)
 
-        self.max_activations = torch.empty(0)
-        self.min_activations = torch.empty(0)
+        self.max_activations = torch.empty(0).to(self.device)
+        self.min_activations = torch.empty(0).to(self.device)
 
-        self.modes = torch.empty(0)
+        self.modes = torch.empty(0).to(self.device)
 
         # Must make sure this directory exists, I was thinking we could create an experiment name field
         # in the config file and then use it to store our results more easily.
         self.base_output_path = "/grphome/grp_inject/compute/logging"
-        self.experiment_name = "/test/"  # config.experiment_name?
+        self.experiment_name = experiment_name  # config.experiment_name?
+        os.mkdirs(os.path.join(self.base_output_path, self.experiment_name), exist_ok=True)
 
 
     def new_prompt(self):
-        indices = self.make_layer_indicies(self.store_prompt_indices.flatten()).detach().numpy()
-        values = self.store_prompt_values.flatten().detach().numpy()
-        layers = self.assign_layer(self.store_prompt_indices.flatten()).detach().numpy()
+        indices = self.make_layer_indicies(self.store_prompt_indices.cpu().flatten()).detach().numpy()
+        values = self.store_prompt_values.flatten().cpu().detach().numpy()
+        layers = self.assign_layer(self.store_prompt_indices.flatten()).cpu().detach().numpy()
 
         self.prompt_df =  pd.DataFrame({'index': indices, 'value': values, 'layer': layers})
         self.prompt_df = self.prompt_df.groupby(['index', 'layer'], as_index=False)['value'].mean()
 
-        print(self.prompt_df)
+        #print(self.prompt_df)
         
         name_of_csv = f'index_value_layer_{self.token_number}.csv'
-        self.prompt_df.to_csv(self.base_output_path + self.experiment_name + name_of_csv)
+        self.prompt_df.to_csv(os.path.join(self.base_output_path,self.experiment_name,name_of_csv))
 
         self.generate_index_value_layer_heatmap()
 
-        self.store_prompt_values = torch.empty(0)
-        self.store_prompt_indices = torch.empty(0)
+        self.store_prompt_values = torch.empty(0).to(self.device)
+        self.store_prompt_indices = torch.empty(0).to(self.device)
         self.prompt_df = pd.DataFrame()
         self.token_number += 1
 
@@ -88,7 +89,7 @@ class tensor_logger:
         
     def add_tensor(self, tensor: torch.Tensor):
         
-        tensor = tensor.flatten()
+        tensor = tensor.flatten().to(self.device)
         self.map_layers(tensor)
 
         self.all = tensor
@@ -113,7 +114,7 @@ class tensor_logger:
         max_activation = self.layered_tensor.max(dim=1).values 
         min_activation = self.layered_tensor.min(dim=1).values 
 
-        modes = torch.empty(self.layered_tensor.size(0), dtype=self.layered_tensor.dtype)
+        modes = torch.empty(self.layered_tensor.size(0), dtype=self.layered_tensor.dtype).to(self.device)
 
         for i in range(self.layered_tensor.size(0)):
             sub_tensor = self.layered_tensor[i].view(-1)  # Flatten the sub-tensor
@@ -137,7 +138,7 @@ class tensor_logger:
         divided_tensors = tensor.chunk(self.num_hidden_layers, dim=0)
 
         self.layered_tensor = torch.stack(divided_tensors)
-        print(self.layered_tensor.dim())
+        #print(self.layered_tensor.dim())
 
         divided_tensors = [t.squeeze(0) for t in divided_tensors]
 
@@ -238,7 +239,7 @@ class tensor_logger:
 
         # Assuming self.layered_tensor is a numpy array and self.num_hidden_layers is defined
         # num_indices_per_layer is calculated as shown
-        layered_tensor = self.heatmap_data.detach().numpy()
+        layered_tensor = self.heatmap_data.cpu().detach().numpy()
         num_indices_per_layer = len(layered_tensor) // self.num_hidden_layers
 
         # Reshape the data for 2D visualization

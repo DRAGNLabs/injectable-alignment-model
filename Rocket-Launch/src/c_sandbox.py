@@ -61,6 +61,8 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
                                         do_sample=True,
                                         pad_token_id=tokenizer.eos_id)
 
+        model.log()
+
         generate_tokens = generate_ids.tolist()
 
         decoded = tokenizer.decode(generate_tokens)
@@ -69,7 +71,9 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
 
 device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
 
-config_path = "../configs/config_Llama-2-7b-hf_anger_QA_13b_2.pkl_0_1_2_3_4_5_6_7_8_9_10_11_12_13_14_15_16_17_18_19_20_21_22_23_24_25_26_27_28_29_30_31.yaml"
+config_path = "/home/myl15/inject/injectable-alignment-model/Rocket-Launch/configs/test_config_boy_Llama-2-7b-hf_anger_QA_13b_2.pkl_0_1_2_3_4.yaml"
+
+print("Opening config file", flush=True)
 
 with open(config_path, "r") as f:
     config = yaml.safe_load(f)
@@ -89,7 +93,7 @@ else:
     raise ValueError(f"Tokenizer type '{config.tokenizer_type}' not recognized. Must be 'hf' or 'sp'.")
 
 
-model_types = ["hf_load", "static_load", "irm_load", "irm_deactivated"]
+model_types = ["irm_load"]#"hf_load", "static_load", "irm_load", "irm_deactivated"]
 prompts = ["The 19th state to join the United States was ", "It was the best of times, ", "omg lol like idk", "Ok here's my joke: "]
 
 for model_type in model_types:

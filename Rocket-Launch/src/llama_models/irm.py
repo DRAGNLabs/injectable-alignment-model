@@ -26,7 +26,11 @@ class IRM(nn.Module):
         super(IRM, self).__init__()
         self.weights: torch.Tensor = []
         self.device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
-        self.logger = module.tensor_logger(config.num_hidden_layers)
+        self.do_logging = config.do_logging
+        if self.do_logging:
+            self.logger = module.tensor_logger(config.num_hidden_layers, config.experiment_name)
+        else:
+            self.logger = None
 
         self.vocab_size = config.vocab_size
         self.hidden_size = config.model_config["hidden_size"]
@@ -50,10 +54,12 @@ class IRM(nn.Module):
             nn.Linear(self.linear_size, self.hidden_size * self.num_layers),
         ).to(self.device)
         
+
     def forward(self, x: torch.Tensor):
         curr_batch_size = x.size()[0]
         self.weights = self.basic_forward(x).view(curr_batch_size, -1, self.hidden_size, self.num_layers)
-        # self.logger.add_tensor(self.weights)
+        if self.do_logging:
+            self.logger.add_tensor(self.weights)
 
     def get_layer_weights(self, layer_id):
         return self.weights[:, :, :, self.injection_layers.index(layer_id)]
