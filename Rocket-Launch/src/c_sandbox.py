@@ -48,7 +48,7 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
     for prompt in prompt_list:
         prompt_tokens = torch.tensor(tokenizer.encode(prompt, bos=True, eos=False)).reshape(1,-1)
 
-        max_gen_len = 50
+        max_gen_len = 100
         temperature = None
         top_p = None
         repetition_penalty = None        
@@ -58,7 +58,8 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
                                         temperature=temperature, 
                                         top_p=top_p, 
                                         repetition_penalty=repetition_penalty, 
-                                        do_sample=True)
+                                        do_sample=True,
+                                        pad_token_id=tokenizer.eos_id)
 
         generate_tokens = generate_ids.tolist()
 
