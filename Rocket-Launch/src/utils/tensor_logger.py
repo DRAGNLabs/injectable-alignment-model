@@ -293,8 +293,8 @@ class tensor_logger:
         plt.xlabel('Layer')
         plt.ylabel('Index')
         plt.show()
-
-        plt.savefig(self.base_output_path + self.experiment_name + 'images/' + heatmap_file_name)
+        os.makedirs(os.path.join(self.base_output_path, self.experiment_name, 'images/'), exist_ok=True)
+        plt.savefig(os.path.join(self.base_output_path, self.experiment_name, 'images/' + heatmap_file_name))
 
     def generate_histograms(self):
 
