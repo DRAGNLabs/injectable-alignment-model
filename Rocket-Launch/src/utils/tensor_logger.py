@@ -291,7 +291,7 @@ class tensor_logger:
         plt.figure(figsize=(10, 8))
         # Use a colormap (cmap) that distinguishes your filled value (-1) from the rest, e.g., 'coolwarm'
         # You may need to adjust the colormap or the fill value depending on your data range and preferences
-        sns.heatmap(pivot_df_filled, cmap="coolwarm", annot=True, cbar_kws={'label': 'Value'}) # norm=plt.Normalize(vmin=pivot_df_filled.min().min(), vmax=pivot_df_filled.max().max()
+        sns.heatmap(pivot_df_filled, cmap="coolwarm", cbar_kws={'label': 'Value'}) # norm=plt.Normalize(vmin=pivot_df_filled.min().min(), vmax=pivot_df_filled.max().max()
 
         plt.title('Heatmap of Values')
         plt.xlabel('Layer')
