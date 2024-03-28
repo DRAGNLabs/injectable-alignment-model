@@ -26,7 +26,7 @@ class IRM(nn.Module):
         super(IRM, self).__init__()
         self.weights: torch.Tensor = []
         self.device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
-        self.logger = module.tensor_logger(config.num_hidden_layers)
+        self.logger = module.tensor_logger(config.model_config["hidden_size"])
 
         self.vocab_size = config.vocab_size
         self.hidden_size = config.model_config["hidden_size"]
