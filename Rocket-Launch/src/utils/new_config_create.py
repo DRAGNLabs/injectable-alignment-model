@@ -18,7 +18,7 @@ def check_or_create_parent_dir(directory_path):
         directory_path.parent.mkdir(parents=True)
 
 def get_HF_config(model_name):
-    # Print out model.config for a given HF model, and it will tell you the following. Be sure to change booleans to their string version, null to "~", and any floats to float(the float)
+    # Print out model.config for a given HF model, and it will tell you the following. Be sure to change booleans to their string version, null to "~", and any floats smaller than 1.0e-4 to the string version.
     if model_name == "Llama-2-7b-hf":
         hf_config = {
             "attention_bias": "false",
@@ -36,7 +36,32 @@ def get_HF_config(model_name):
             "num_hidden_layers": 32,
             "num_key_value_heads": 32,
             "pretraining_tp": 1,
-            "rms_norm_eps": float(10e-5),
+            "rms_norm_eps": ".00001",
+            "rope_scaling": "~",
+            "rope_theta": 10000.0,
+            "tie_word_embeddings": "false",
+            "torch_dtype": "float16",
+            "transformers_version": "4.38.2",
+            "use_cache": "true",
+            "vocab_size": 32000
+        }
+    elif model_name == "Llama-2-7b-chat-hf":
+        hf_config = {
+            "attention_bias": "false",
+            "attention_dropout": 0.0,
+            "bos_token_id": 1,
+            "eos_token_id": 2,
+            "hidden_act": "silu",
+            "hidden_size": 4096,
+            "initializer_range": 0.02,
+            "intermediate_size": 11008,
+            "max_position_embeddings": 4096,
+            "model_type": "llama",
+            "num_attention_heads": 32,
+            "num_hidden_layers": 32,
+            "num_key_value_heads": 32,
+            "pretraining_tp": 1,
+            "rms_norm_eps": ".00001",
             "rope_scaling": "~",
             "rope_theta": 10000.0,
             "tie_word_embeddings": "false",
@@ -61,7 +86,7 @@ def get_HF_config(model_name):
             "num_hidden_layers": 40,
             "num_key_value_heads": 40,
             "pretraining_tp": 1,
-            "rms_norm_eps": float(1e-05),
+            "rms_norm_eps": ".00001",
             "rope_scaling": "~",
             "rope_theta": 10000.0,
             "tie_word_embeddings": "false",
@@ -86,7 +111,7 @@ def get_HF_config(model_name):
             "num_hidden_layers": 40,
             "num_key_value_heads": 40,
             "pretraining_tp": 1,
-            "rms_norm_eps": float(1e-05),
+            "rms_norm_eps": ".00001",
             "rope_scaling": "~",
             "rope_theta": 10000.0,
             "tie_word_embeddings": "false",
@@ -104,6 +129,7 @@ def get_HF_config(model_name):
 def create_config_dict(home_dir, sub_dir, training_dataset, test_dataset, val_dataset, injection_location, model_name="Llama-2-7b-hf", num_epochs=20, loss_function_index=0):
     model_size_directories = {
         "Llama-2-7b-hf": "hf_weights",
+        "Llama-2-7b-chat-hf": "hf_7b-chat_weights",
         "Llama-2-13b-hf": "hf_llama_13_weights",
         "Llama-2-13b-chat-hf": "hf_llama_13_chat_weights"
     }
@@ -126,16 +152,16 @@ def create_config_dict(home_dir, sub_dir, training_dataset, test_dataset, val_da
 
     # Dataset
     # Raw data file. Tokenizer expects parquet, could be changed.
-    "raw_train_path": f"/grphome/grp_inject/injectable-alignment-model/dataset/raw/{training_dataset[:-4]}.csv",
-    "raw_test_path": f"/grphome/grp_inject/injectable-alignment-model/dataset/raw/{training_dataset[:-4]}.csv",
-    "raw_val_path": f"/grphome/grp_inject/injectable-alignment-model/dataset/raw/{training_dataset[:-4]}.csv",
+    "raw_train_path": f"/grphome/grp_inject/compute/datasets/{training_dataset[:-4]}.csv",
+    "raw_test_path": f"/grphome/grp_inject/compute/datasets/{test_dataset[:-4]}.csv",
+    "raw_val_path": f"/grphome/grp_inject/compute/datasets/{val_dataset[:-4]}.csv",
     # Full tokenized data file, not necessary. Must be .pkl file
     "tokenized_dataset_path": f"/grphome/grp_inject/injectable-alignment-model/dataset/tokenized/{training_dataset}",
 
     # Dataset split, must be .pkl file
-    "train_path": f"/grphome/grp_inject/injectable-alignment-model/dataset/tokenized/{training_dataset}",
-    "test_path": f"/grphome/grp_inject/injectable-alignment-model/dataset/tokenized/{test_dataset}",
-    "eval_path": f"/grphome/grp_inject/injectable-alignment-model/dataset/tokenized/{val_dataset}",
+    "train_path": f"/grphome/grp_inject/compute/datasets/tokenized/{training_dataset}",
+    "test_path": f"/grphome/grp_inject/compute/datasets/tokenized/{test_dataset}",
+    "eval_path": f"/grphome/grp_inject/compute/datasets/tokenized/{val_dataset}",
 
     # GPU
     "accelerator": "gpu",
@@ -207,10 +233,10 @@ def get_home_dir():
 
 def main():
     # Specify injection layers
-    injection_locations = [[i for i in range(5)]]
+    injection_locations = [[i for i in range(40)]]
 
     # Specify the name/size of the model
-    model_name = "Llama-2-7b-hf"
+    model_name = "Llama-2-13b-chat-hf"
     file_name_prefix = "test_config"
 
     def get_file_name(file_name_prefix, model_name, dataset_file_name, inj_location):
@@ -218,11 +244,11 @@ def main():
 
     # Note: All files should be in the shared folder
     # Specify training dataset files
-    train_dataset_file_names = ['anger_QA_13b_2.pkl']
+    train_dataset_file_names = ['anger_dataset_train.pkl']
     # Specify test dataset files
-    test_dataset_file_names = ['anger_QA_13b_2.pkl']
+    test_dataset_file_names = ['anger_dataset_test.pkl']
     # Specify val dataset files
-    val_dataset_file_names = ['anger_QA_13b_2.pkl']
+    val_dataset_file_names = ['anger_dataset_val.pkl']
 
     # Specify number of epochs
     dataset_file_epochs = [15] * len(train_dataset_file_names)
