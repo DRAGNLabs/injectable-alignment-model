@@ -62,9 +62,9 @@ class tensor_logger:
         layers = self.assign_layer(self.store_prompt_indices.flatten()).cpu().detach().numpy()
 
         self.prompt_df =  pd.DataFrame({'index': indices, 'value': values, 'layer': layers})
-        print(self.prompt_df, flush=True)
+        #print(self.prompt_df, flush=True)
         self.prompt_df = self.prompt_df.groupby(['index', 'layer'], as_index=False)['value'].mean()
-        print(self.prompt_df, flush=True)
+        #print(self.prompt_df, flush=True)
 
         #print(self.prompt_df)
         
@@ -145,6 +145,8 @@ class tensor_logger:
         divided_tensors = [t.squeeze(0) for t in divided_tensors]
 
         self.heatmap_data = torch.cat(divided_tensors, dim=0)
+
+        #print("Heatmap Data\n", self.heatmap_data., flush=True)
 
         return self.layered_tensor
 
@@ -241,6 +243,22 @@ class tensor_logger:
 
         # Assuming self.layered_tensor is a numpy array and self.num_hidden_layers is defined
         # num_indices_per_layer is calculated as shown
+
+
+    #     # Reshape heatmap_data if necessary 
+    #     if len(self.heatmap_data.shape) > 2:
+    #         print("Reshaping heatmap_data for visualization")
+    #         self.heatmap_data = self.heatmap_data.reshape(self.heatmap_data.shape[0], -1) 
+
+    #    # Create the heatmap
+    #     plt.figure(figsize=(10, 6))  # Adjust figure size as needed
+    #     plt.imshow(self.heatmap_data.cpu(), cmap='hot')  # 'hot' is a standard heatmap colormap
+    #     plt.colorbar()
+    #     plt.title('Heatmap')
+    #     plt.show()
+    #     plt.savefig(os.path.join(self.base_output_path, self.experiment_name, 'images/test_heatmap.png'))  # Adjust path as needed
+
+
         layered_tensor = self.heatmap_data.cpu().detach().numpy()
         num_indices_per_layer = len(layered_tensor) // self.num_hidden_layers
 
@@ -266,7 +284,7 @@ class tensor_logger:
 
         # Overlay the top 1000 values with a distinct marker
         # Customize the marker style ('o', '*', etc.), size, color, and edgecolor as needed
-        plt.scatter(cols, rows, color='red', s=10, edgecolor='white', marker='o', label='Top 1000 Values')
+        plt.scatter(cols, rows, color='red', s=2, edgecolor='white', marker='o', label='Top 1000 Values')
 
         plt.title('Heatmap of Layer Index Values Highlighting Top 1000 Values')
         plt.xlabel('Index')
@@ -276,26 +294,27 @@ class tensor_logger:
         plt.show()
 
         # Save the figure to a file
-        plt.savefig('/grphome/grp_inject/compute/logging/test/images/heatmap_mean_layer_values.png')  # Adjust path as needed
+        plt.savefig(os.path.join(self.base_output_path, self.experiment_name, 'images/test_heatmap.png'))  # Adjust path as needed
 
     def generate_index_value_layer_heatmap(self):
         pivot_df = self.prompt_df.pivot(index="layer", columns="index", values="value")
         print("Pivoted dataframe\n", flush=True)
         print(pivot_df.head(), flush = True)
+        pivot_df = pivot_df.iloc[:self.num_hidden_layers] 
         pivot_df_filled = pivot_df.fillna(0)
         print(pivot_df_filled, flush=True)
 
         heatmap_file_name = f'index_layer_value_heatmap_{self.token_number}.png'
 
         # Create the heatmap
-        plt.figure(figsize=(10, 8))
+        plt.figure(figsize=(16, 8))
         # Use a colormap (cmap) that distinguishes your filled value (-1) from the rest, e.g., 'coolwarm'
         # You may need to adjust the colormap or the fill value depending on your data range and preferences
         sns.heatmap(pivot_df_filled, cmap="coolwarm", cbar_kws={'label': 'Value'}) # norm=plt.Normalize(vmin=pivot_df_filled.min().min(), vmax=pivot_df_filled.max().max()
 
         plt.title('Heatmap of Values')
-        plt.xlabel('Layer')
-        plt.ylabel('Index')
+        plt.ylabel('Layer')
+        plt.xlabel('Index')
         plt.show()
         os.makedirs(os.path.join(self.base_output_path, self.experiment_name, 'images/'), exist_ok=True)
         plt.savefig(os.path.join(self.base_output_path, self.experiment_name, 'images/' + heatmap_file_name))
