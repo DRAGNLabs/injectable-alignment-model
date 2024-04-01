@@ -94,7 +94,7 @@ else:
 
 
 model_types = ["irm_load"]#"hf_load", "static_load", "irm_load", "irm_deactivated"]
-prompts = ["The 19th state to join the United States was "]
+prompts = ["The 19th state to join the United States was ", "Beyonce is a "]
 
 for model_type in model_types:
     print(f"Presenting outputs for {model_type}")

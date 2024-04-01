@@ -59,6 +59,8 @@ class tensor_logger:
     def new_prompt(self):
         indices = self.make_layer_indicies(self.store_prompt_indices.cpu().flatten()).detach().numpy()
         values = self.store_prompt_values.flatten().cpu().detach().numpy()
+        
+		## TODO: Look at this code ##
         layers = self.assign_layer(self.store_prompt_indices.flatten()).cpu().detach().numpy()
 
         self.prompt_df =  pd.DataFrame({'index': indices, 'value': values, 'layer': layers})
@@ -81,6 +83,7 @@ class tensor_logger:
     def assign_layer(self, tensor):
         tensor_divisor = self.tensor_length // self.num_hidden_layers
 
+        print("Tensor divisor: {}".format(tensor_divisor), flush=True)
         return (tensor // tensor_divisor) + 1
 
     def make_layer_indicies(self, tensor):
@@ -95,7 +98,9 @@ class tensor_logger:
         self.map_layers(tensor)
 
         self.all = tensor
+        ## TODO: CHECK THIS CODE! ##
         self.tensor_length = self.all.size(0)
+        print("Tensor length: {}".format(self.tensor_length), flush=True)
 
         # For use by the heatmap generator
         self.layer_numbers = [i for i in range(len(tensor))]
@@ -137,6 +142,7 @@ class tensor_logger:
         torch.cat((self.modes, modes), dim=0)
 
     def map_layers(self, tensor: torch.Tensor):
+        print("Tensor size: {}".format(tensor.size()), flush=True)
         divided_tensors = tensor.chunk(self.num_hidden_layers, dim=0)
 
         self.layered_tensor = torch.stack(divided_tensors)
@@ -298,11 +304,11 @@ class tensor_logger:
 
     def generate_index_value_layer_heatmap(self):
         pivot_df = self.prompt_df.pivot(index="layer", columns="index", values="value")
-        print("Pivoted dataframe\n", flush=True)
+        #print("Pivoted dataframe\n", flush=True)
         print(pivot_df.head(), flush = True)
         pivot_df = pivot_df.iloc[:self.num_hidden_layers] 
         pivot_df_filled = pivot_df.fillna(0)
-        print(pivot_df_filled, flush=True)
+        #print(pivot_df_filled, flush=True)
 
         heatmap_file_name = f'index_layer_value_heatmap_{self.token_number}.png'
 

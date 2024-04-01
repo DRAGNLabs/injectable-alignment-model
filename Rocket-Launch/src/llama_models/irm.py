@@ -29,6 +29,7 @@ class IRM(nn.Module):
         self.do_logging = config.do_logging
         if self.do_logging:
             self.logger = module.tensor_logger(config.num_hidden_layers, config.experiment_name)
+            # Pass self.num_layers and self.injection_layers to the tensor_logger constructor
         else:
             self.logger = None
 
@@ -59,7 +60,13 @@ class IRM(nn.Module):
         curr_batch_size = x.size()[0]
         self.weights = self.basic_forward(x).view(curr_batch_size, -1, self.hidden_size, self.num_layers)
         if self.do_logging:
+            print("Tensor shape: ", self.weights.size())
             self.logger.add_tensor(self.weights)
+            
+			# Weights.size() tells you how many layers you have.
+            
+			# The final dimension is the layers, so you can index the weights by layer.  self.weights[:,:,:,:0] would give you the weights for the first layer.
+        
 
     def get_layer_weights(self, layer_id):
         return self.weights[:, :, :, self.injection_layers.index(layer_id)]
