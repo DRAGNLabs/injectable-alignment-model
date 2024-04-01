@@ -13,7 +13,8 @@ from transformers import (
     LlamaConfig as HFConfig
 )
 
-original_checkpoint_path = "/grphome/grp_inject/compute/hf_weights/hf_llama_7b.ckpt"
+# original_checkpoint_path = "/grphome/grp_inject/compute/hf_weights/hf_llama_7b.ckpt"
+original_checkpoint_path = "/grphome/grp_inject/compute/hf_7b-chat_weights/Llama-2-7b-chat-hf.ckpt"
 
 def checkpoint_name_suff(injection_location):
     return "_".join([str(loc) for loc in injection_location])
