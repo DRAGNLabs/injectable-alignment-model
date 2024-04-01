@@ -109,6 +109,18 @@ def main():
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
+    # Print the config file for future reference
+    s = "" # I append it all to one string so it'll print out together without interruption when running on multiple nodes
+    for k in config:
+            if k == "model_config":
+                s += f"\n{k}:\n"
+                for l in config[k]:
+                    s += f"  {l}: {config[k][l]}\n"
+            else:
+                s += f"{k}: {config[k]}\n"
+
+    print(f"{s}")
+
     # Convert args dict to object
     config = Struct(**config)
 
