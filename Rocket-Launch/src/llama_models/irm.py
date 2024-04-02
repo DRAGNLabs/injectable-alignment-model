@@ -27,11 +27,7 @@ class IRM(nn.Module):
         self.weights: torch.Tensor = []
         self.device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
         self.do_logging = config.do_logging
-        if self.do_logging:
-            self.logger = module.tensor_logger(config.num_hidden_layers, config.experiment_name)
-            # Pass self.num_layers and self.injection_layers to the tensor_logger constructor
-        else:
-            self.logger = None
+        
 
         self.vocab_size = config.vocab_size
         self.hidden_size = config.model_config["hidden_size"]
@@ -44,6 +40,12 @@ class IRM(nn.Module):
         self.injection_layers = config.IRM_layers
         self.num_layers = len(self.injection_layers)
         self.active_irm = True
+
+        if self.do_logging:
+            self.logger = module.tensor_logger(config.num_hidden_layers, config.experiment_name, self.injection_layers)
+            # Pass self.num_layers and self.injection_layers to the tensor_logger constructor
+        else:
+            self.logger = None
 
         self.basic_forward = nn.Sequential(
             nn.Linear(self.hidden_size, self.linear_size),
@@ -84,10 +86,10 @@ class IRM(nn.Module):
             return llm_output
 
     def logModel(self):
-        self.logger.new_prompt()
-        
-        self.logger.write_log()
-        self.logger.generate_heatmap()
+        #self.logger.new_prompt()
+        print("howdy")
+        #self.logger.write_log()
+        #self.logger.generate_heatmap()
         # self.logger.generate_histograms()
         # self.logger.hard_coded_graph()
 
