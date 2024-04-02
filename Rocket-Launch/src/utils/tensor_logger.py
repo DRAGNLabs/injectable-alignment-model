@@ -33,6 +33,7 @@ class tensor_logger:
         self.store_prompt_indices = torch.empty(0).to(self.device)
         self.tensor_length = 0
         self.token_number = 1
+        self.prompt_number = 1
 
         self.prompt_df = pd.DataFrame()
 
@@ -80,6 +81,7 @@ class tensor_logger:
         self.store_prompt_indices = torch.empty(0).to(self.device)
         self.prompt_df = pd.DataFrame()
         self.token_number += 1
+        self.prompt_number += 1
 
     def assign_layer(self, tensor):
         tensor_divisor = self.tensor_length // self.num_hidden_layers
@@ -94,6 +96,12 @@ class tensor_logger:
         
     def get_layer_weights(self, tensor, layer_id):
         return tensor[:, :, :, self.layers.index(layer_id)]
+    
+    def write_csv(self, df):
+        name_of_csv = f'index_value_layer_{self.token_number}.csv'
+        self.output_path = os.path.join(self.base_output_path, self.experiment_name, "Prompt{}_CSVs".format(self.prompt_number))
+        os.makedirs(self.output_path, exist_ok=True)
+        df.to_csv(os.path.join(self.output_path,name_of_csv), index=False)
         
     def add_tensor(self, tensor: torch.Tensor):
 
@@ -135,9 +143,9 @@ class tensor_logger:
 
         #print(self.prompt_df)
         
-        name_of_csv = f'index_value_layer_{self.token_number}.csv'
-        #token_df.to_csv(os.path.join(self.base_output_path,self.experiment_name,name_of_csv), index=False)
-        self.generate_index_value_layer_heatmap()
+        #name_of_csv = f'index_value_layer_{self.token_number}.csv'
+        self.write_csv(self.token_df)
+        #self.generate_index_value_layer_heatmap()
         self.token_number += 1
         #self.map_layers(tensor)
 
@@ -233,81 +241,90 @@ class tensor_logger:
             f.write("Top 10 frequent values of the top 1000 weights: {}\n".format(self.modes.cpu().detach().numpy()))
 
 
+    def recursively_generate_heatmap(self, path):
+        data = []
+        if os.path.isdir(path):
+            print("Path: ", path, flush = True)
+            for file in os.listdir(path):
+                if os.path.isdir(os.path.join(path, file)):
+                    self.recursively_generate_heatmap(os.path.join(path, file))
+                else:
+                    print("File: ", file, flush = True)
+                    data.append(pd.read_csv(os.path.join(path, file)))
+
+        i = 1
+        for df in data:
+            print("Dataframe{}:\n".format(i), flush = True)
+            print(df.head(), flush = True)
+            max_index = df['value'].idxmax()
+            print("Max value and index: ", df.loc[max_index], flush = True)
+            min_index = df['value'].idxmin()
+            print("Min value and index: ", df.loc[min_index], flush = True)
+            i+=1
+        max_value = max([df['value'].max() for df in data])
+        print("Max value:{}".format(max_value), flush = True)
+        min_value = min([df['value'].min() for df in data])
+        print("Min Value:{}".format(min_value), flush = True)
+        
+        i = 1
+        for df in data:
+            pivot_df = df.pivot(index="layer", columns="index", values="value")
+            print("Pivoted dataframe:\n", flush = True)
+            print(pivot_df.head(), flush = True)
+            pivot_df = pivot_df.iloc[:self.num_hidden_layers] 
+            pivot_df_filled = pivot_df.fillna(0)
+            #print(pivot_df_filled, flush=True)
+
+            heatmap_file_name = f'index_layer_value_heatmap_{i}.png'
+            print("\n\n\n MIN : {}\n\n\n".format(pivot_df.min().min()), flush = True)
+            # Create the heatmap
+            plt.figure(figsize=(14, 8))
+            # Use a colormap (cmap) that distinguishes your filled value (-1) from the rest, e.g., 'coolwarm'
+            # You may need to adjust the colormap or the fill value depending on your data range and preferences
+            sns.heatmap(pivot_df_filled, cmap="coolwarm", cbar_kws={'label': 'Value'}, vmin=pivot_df.min().min(), vmax=pivot_df.max().max()) # norm=plt.Normalize(vmin=pivot_df_filled.min().min(), vmax=pivot_df_filled.max().max()
+
+            plt.title('Heatmap of Values')
+            plt.ylabel('Layer')
+            plt.xlabel('Index')
+            plt.show()
+            output_path = os.path.join(self.base_output_path, self.experiment_name, 'images/', "prompt_{}".format(self.prompt_number))
+            os.makedirs(output_path, exist_ok=True)
+            plt.savefig(os.path.join(output_path, heatmap_file_name))
+            plt.close()
+            i += 1
+
+        result = pd.concat(data).groupby(['layer', 'index'])['value'].mean().reset_index()
+        print("Result:\n", flush = True)
+        print(result.head(), flush = True)
+        pivot_df = result.pivot(index="layer", columns="index", values="value")
+        print("Pivoted final dataframe:\n", flush = True)
+        print(pivot_df.head(), flush = True)
+        pivot_df = pivot_df.iloc[:self.num_hidden_layers] 
+        pivot_df_filled = pivot_df.fillna(0)
+        #print(pivot_df_filled, flush=True)
+
+        heatmap_file_name = f'Average_value_heatmap_{self.token_number}.png'
+
+        # Create the heatmap
+        plt.figure(figsize=(14, 8))
+        print("\n\n\n MIN : {}\n\n\n".format(pivot_df.min()), flush = True)
+        # Use a colormap (cmap) that distinguishes your filled value (-1) from the rest, e.g., 'coolwarm'
+        # You may need to adjust the colormap or the fill value depending on your data range and preferences
+        sns.heatmap(pivot_df_filled, cmap="coolwarm", cbar_kws={'label': 'Value'}, vmin=pivot_df.min().min(), vmax=pivot_df.max().max()) # norm=plt.Normalize(vmin=pivot_df_filled.min().min(), vmax=pivot_df_filled.max().max()
+
+        plt.title('Heatmap of Average Values')
+        plt.ylabel('Layer')
+        plt.xlabel('Index')
+        plt.show()
+        #os.makedirs(os.path.join(self.base_output_path, self.experiment_name, 'images/', "prompt_{}".format(self.prompt_number)), exist_ok=True)
+        plt.savefig(os.path.join(output_path, heatmap_file_name))
+
+
+    def generate_heatmap_1(self):
+        self.recursively_generate_heatmap(self.output_path)
+
     # Generates a heatmap showing the locations of the largest and the smallest weights for the layers.  Will require some additional packages to be installed.
     def generate_heatmap(self):
-        # images_dir = os.path.join(self.base_output_path, self.experiment_name, "images")
-        # os.makedirs(images_dir, exist_ok=True)
-        
-        # # Convert PyTorch tensors to NumPy arrays, detaching them from the computation graph
-        # large_tensor_index_np = self.large_tensors_index.cpu().detach().numpy()
-        # large_tensor_index_np = large_tensor_index_np.astype(int)
-        # large_tensor_value_np = self.large_tensors.cpu().detach().numpy()
-
-        # # Assuming you know the original shape of the data, 'dims'
-        # dims = (4000, 4000)  # Example, adjust to your actual dimensions
-
-        # # Create an empty 2D array for the heatmap
-        # layered_tensor = np.zeros(dims)
-
-        # # Fill in the heatmap data using the indices and values
-        # for idx, value in zip(large_tensor_index_np, large_tensor_value_np):
-        #     row, col = np.unravel_index(idx, dims)
-        #     layered_tensor[row, col] = value
-
-        # # Generate and save the heatmap
-        # fig = px.imshow(layered_tensor, color_continuous_scale='Viridis', labels={'color': 'Value'})
-        # fig.update_layout(title="Large Tensor Values Heatmap")
-        # fig.write_image(os.path.join(images_dir, "large_tensor_heatmap.png"))
-
-        
-        # # Convert PyTorch tensors to NumPy arrays, detaching them from the computation graph
-        # small_tensor_index_np = self.small_tensors_index.cpu().detach().numpy()
-        # small_tensor_index_np = small_tensor_index_np.astype(int)
-        # small_tensor_value_np = self.small_tensors.cpu().detach().numpy()
-
-        # # Assuming you know the original shape of the data, 'dims'
-        # dims = (4000, 4000)  # Example, adjust to your actual dimensions
-
-        # # Create an empty 2D array for the heatmap
-        # layered_tensor = np.zeros(dims)
-
-        # # Fill in the heatmap data using the indices and values
-        # for idx, value in zip(small_tensor_index_np, small_tensor_value_np):
-        #     row, col = np.unravel_index(idx, dims)
-        #     layered_tensor[row, col] = value
-
-        # # Generate and save the heatmap
-        # fig = px.imshow(layered_tensor, color_continuous_scale='Viridis', labels={'color': 'Value'})
-        # fig.update_layout(title="Small Tensor Values Heatmap")
-        # fig.write_image(os.path.join(images_dir, "small_tensor_heatmap.png"))
-        
-        # os.makedirs(os.path.join(self.base_output_path, self.experiment_name, "images"))
-        # large_df = pd.DataFrame(zip(self.large_tensors_index, self.large_tensors), columns=['Index', 'Value'])
-        # fig = px.imshow(large_df, x='Index', y='Value')
-        # fig.write_image(os.path.join(self.base_output_path, self.experiment_name, "images/large_heatmap.png"))
-
-        # small_df = pd.DataFrame(zip(self.small_tensors_index, self.small_tensors), columns=['Index', 'Value'])
-        # fig_1 = px.imshow(small_df, x='Index', y='Value')
-        # fig_1.write_image(os.path.join(self.base_output_path, self.experiment_name, "images/small_heatmap.png"))
-        # Reshape the data for 2D visualization
-
-        # Assuming self.layered_tensor is a numpy array and self.num_hidden_layers is defined
-        # num_indices_per_layer is calculated as shown
-
-
-    #     # Reshape heatmap_data if necessary 
-    #     if len(self.heatmap_data.shape) > 2:
-    #         print("Reshaping heatmap_data for visualization")
-    #         self.heatmap_data = self.heatmap_data.reshape(self.heatmap_data.shape[0], -1) 
-
-    #    # Create the heatmap
-    #     plt.figure(figsize=(10, 6))  # Adjust figure size as needed
-    #     plt.imshow(self.heatmap_data.cpu(), cmap='hot')  # 'hot' is a standard heatmap colormap
-    #     plt.colorbar()
-    #     plt.title('Heatmap')
-    #     plt.show()
-    #     plt.savefig(os.path.join(self.base_output_path, self.experiment_name, 'images/test_heatmap.png'))  # Adjust path as needed
-
 
         layered_tensor = self.heatmap_data.cpu().detach().numpy()
         num_indices_per_layer = len(layered_tensor) // self.num_hidden_layers

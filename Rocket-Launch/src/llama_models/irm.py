@@ -88,8 +88,9 @@ class IRM(nn.Module):
     def logModel(self):
         #self.logger.new_prompt()
         print("howdy")
-        #self.logger.write_log()
+        self.logger.write_log()
         #self.logger.generate_heatmap()
+        self.logger.generate_heatmap_1()
         # self.logger.generate_histograms()
         # self.logger.hard_coded_graph()
 
