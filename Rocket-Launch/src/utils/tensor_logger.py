@@ -5,8 +5,11 @@ import plotly.express as px
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.colors as mcolors
 import seaborn as sns
+from PIL import Image
 
 
 # Must run pip install plotly and pip install -U kaleido
@@ -28,6 +31,9 @@ class tensor_logger:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Determine device
         self.num_hidden_layers = num_hidden_layers
         self.layers = layers
+
+        self.fig = plt.figure(figsize=(16, 8))
+        self.ax = self.fig.add_subplot(111, projection='3d')
 
         self.store_prompt_values = torch.empty(0).to(self.device)
         self.store_prompt_indices = torch.empty(0).to(self.device)
@@ -227,18 +233,93 @@ class tensor_logger:
         
         # Now, open the file to append the logs
         with open(log_file_path, 'a') as f:
-            f.write("Current model weights means: {}\n".format(self.means))
+            f.write("Current model weights means:\n")
+            f.write(self.means.cpu().__str__())
            # f.write("Means of the top 1000 weights: {}\n".format(self.means_large))
 
-            f.write("Current model weights standard deviation: {}\n".format(self.std_dev.cpu().detach().numpy()))
+            f.write("Current model weights standard deviation:\n")
+            f.write(np.array2string(self.std_dev.cpu().detach().numpy()))
             #f.write("Standard deviation of the top 1000 weights: {}\n".format(self.std_dev_large))
 
-            f.write("Current model weights sparsity: {}\n\n".format(self.sparsity.cpu().detach().numpy()))
+            f.write("Current model weights sparsity:\n")
+            f.write(np.array2string(self.sparsity.cpu().detach().numpy()))
 
-            f.write("Current model maximum activation: {}\n".format(self.max_activations.cpu().detach().numpy()))
-            f.write("Current model minimum activation: {}\n\n".format(self.min_activations.cpu().detach().numpy()))
+            f.write("Current model maximum activation: {}\n".format(np.array2string(self.max_activations.cpu().detach().numpy())))
+            f.write("Current model minimum activation: {}\n\n".format(np.array2string(self.min_activations.cpu().detach().numpy())))
 
-            f.write("Top 10 frequent values of the top 1000 weights: {}\n".format(self.modes.cpu().detach().numpy()))
+            f.write("Top 10 frequent values of the top 1000 weights: {}\n".format(np.array2string(self.modes.cpu().detach().numpy())))
+
+    def generate_frame(self, num, dataframes, pivoted_dfs):
+    # Generates a single frame of the animation
+        self.fig.clf()  # Clear the previous figure
+        self.ax = self.fig.add_subplot(111, projection='3d')
+
+        df = pivoted_dfs[num]  # Get data for the current frame 
+
+        # Plotting logic (similar to before)
+        x_pos, y_pos = np.meshgrid(df.columns, df.index)
+        x_pos = x_pos.flatten()
+        y_pos = y_pos.flatten()
+        z_pos = np.zeros_like(x_pos)  # 0 on the 'floor'
+
+        # Get the bar heights and colors
+        dz = df.to_numpy().flatten()  
+        color_map = plt.cm.get_cmap('viridis')  # Choose a colormap
+
+        # Create the 3D bars
+        self.ax.bar3d(x_pos, y_pos, z_pos, dx=0.5, dy=0.5, dz=dz, color=color_map(dz))
+
+        # Labels and adjustments
+        #self.ax.set_ylim3d(0, len(self.layers))
+        self.ax.set_zlim3d(self.min_value, self.max_value)
+        self.ax.set_xlabel('Layer')
+        self.ax.set_ylabel('Index')
+        self.ax.set_zlabel('Value')
+        plt.title('3D Heatmap')
+
+        self.fig.canvas.draw()  # Draw the current frame
+
+        # Convert the matplotlib figure to a Pillow Image
+        img = Image.frombytes('RGB', self.fig.canvas.get_width_height(),
+                            self.fig.canvas.tostring_rgb())
+        return img  # Return the Pillow Image
+
+
+    def generate_anim(self, data):
+
+        pivoted_dfs = []
+        for df in data:
+
+            pivoted_df = df.pivot(index='index', columns='layer', values='value')
+            pivoted_dfs.append(pivoted_df)
+
+        # Get positions for the bars
+        x_pos, y_pos = np.meshgrid(pivoted_df.columns, pivoted_df.index)
+        x_pos = x_pos.flatten()
+        y_pos = y_pos.flatten()
+        z_pos = np.zeros_like(x_pos)  # 0 on the 'floor'
+
+        # Get the bar heights and colors
+        dz = pivoted_df.to_numpy().flatten()  
+        color_map = plt.cm.get_cmap('viridis')  # Choose a colormap
+
+        # Create the 3D bars
+        self.ax.bar3d(x_pos, y_pos, z_pos, dx=0.5, dy=0.5, dz=dz, color=color_map(dz))
+
+
+        # Labels and adjustments
+        self.ax.set_xlabel('Layer')
+        self.ax.set_ylabel('Index')
+        self.ax.set_zlabel('Value')
+        plt.title('3D Heatmap')
+
+        frames = []  # Store the generated frames as Pillow Images
+        for num in range(len(pivoted_dfs)):
+            frames.append(self.generate_frame(num, data, pivoted_dfs))
+
+        # Save the animation
+        frames[0].save('heatmap_animation1.gif', format='GIF', append_images=frames[1:], 
+                    save_all=True, duration=1000, loop=0)
 
 
     def recursively_generate_heatmap(self, path):
@@ -261,12 +342,14 @@ class tensor_logger:
             min_index = df['value'].idxmin()
             print("Min value and index: ", df.loc[min_index], flush = True)
             i+=1
-        max_value = max([df['value'].max() for df in data])
-        print("Max value:{}".format(max_value), flush = True)
-        min_value = min([df['value'].min() for df in data])
-        print("Min Value:{}".format(min_value), flush = True)
+        self.max_value = max([df['value'].max() for df in data])
+        print("Max value:{}".format(self.max_value), flush = True)
+        self.min_value = min([df['value'].min() for df in data])
+        print("Min Value:{}".format(self.min_value), flush = True)
         
         i = 1
+        print("Generating 3D heatmap", flush = True)
+        self.generate_anim(data)
         for df in data:
             pivot_df = df.pivot(index="layer", columns="index", values="value")
             print("Pivoted dataframe:\n", flush = True)
@@ -296,7 +379,8 @@ class tensor_logger:
         result = pd.concat(data).groupby(['layer', 'index'])['value'].mean().reset_index()
         print("Result:\n", flush = True)
         print(result.head(), flush = True)
-        pivot_df = result.pivot(index="layer", columns="index", values="value")
+        #pivot_df = result.pivot(index="layer", columns="index", values="value")
+        pivot_df = result.unstack()
         print("Pivoted final dataframe:\n", flush = True)
         print(pivot_df.head(), flush = True)
         pivot_df = pivot_df.iloc[:self.num_hidden_layers] 
@@ -322,6 +406,7 @@ class tensor_logger:
 
     def generate_heatmap_1(self):
         self.recursively_generate_heatmap(self.output_path)
+        
 
     # Generates a heatmap showing the locations of the largest and the smallest weights for the layers.  Will require some additional packages to be installed.
     def generate_heatmap(self):
