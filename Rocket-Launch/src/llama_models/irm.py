@@ -60,6 +60,7 @@ class IRM(nn.Module):
 
     def forward(self, x: torch.Tensor):
         curr_batch_size = x.size()[0]
+        print("Tensor shape before basic forward: ", x.size())
         self.weights = self.basic_forward(x).view(curr_batch_size, -1, self.hidden_size, self.num_layers)
         if self.do_logging:
             print("Tensor shape: ", self.weights.size())
@@ -86,7 +87,7 @@ class IRM(nn.Module):
             return llm_output
 
     def logModel(self):
-        #self.logger.new_prompt()
+        self.logger.new_prompt()
         print("howdy")
         self.logger.write_log()
         #self.logger.generate_heatmap()

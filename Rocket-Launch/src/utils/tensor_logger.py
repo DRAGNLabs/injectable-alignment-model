@@ -10,7 +10,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.colors as mcolors
 import seaborn as sns
 from PIL import Image
-
+from natsort import natsorted
 
 # Must run pip install plotly and pip install -U kaleido
 
@@ -64,28 +64,28 @@ class tensor_logger:
         os.makedirs(os.path.join(self.base_output_path, self.experiment_name), exist_ok=True)
 
     def new_prompt(self):
-        indices = self.make_layer_indicies(self.store_prompt_indices.cpu().flatten()).detach().numpy()
-        values = self.store_prompt_values.flatten().cpu().detach().numpy()
+        # indices = self.make_layer_indicies(self.store_prompt_indices.cpu().flatten()).detach().numpy()
+        # values = self.store_prompt_values.flatten().cpu().detach().numpy()
         
-		## TODO: Look at this code ##
-        layers = self.assign_layer(self.store_prompt_indices.flatten()).cpu().detach().numpy()
+		# ## TODO: Look at this code ##
+        # layers = self.assign_layer(self.store_prompt_indices.flatten()).cpu().detach().numpy()
 
-        self.prompt_df =  pd.DataFrame({'index': indices, 'value': values, 'layer': layers})
-        #print(self.prompt_df, flush=True)
-        self.prompt_df = self.prompt_df.groupby(['index', 'layer'], as_index=False)['value'].mean()
-        #print(self.prompt_df, flush=True)
+        # self.prompt_df =  pd.DataFrame({'index': indices, 'value': values, 'layer': layers})
+        # #print(self.prompt_df, flush=True)
+        # self.prompt_df = self.prompt_df.groupby(['index', 'layer'], as_index=False)['value'].mean()
+        # #print(self.prompt_df, flush=True)
 
-        #print(self.prompt_df)
+        # #print(self.prompt_df)
         
-        name_of_csv = f'index_value_layer_{self.token_number}.csv'
-        self.prompt_df.to_csv(os.path.join(self.base_output_path,self.experiment_name,name_of_csv), index=False)
+        # name_of_csv = f'index_value_layer_{self.token_number}.csv'
+        # #self.prompt_df.to_csv(os.path.join(self.base_output_path,self.experiment_name,name_of_csv), index=False)
 
-        self.generate_index_value_layer_heatmap()
+        # #self.generate_index_value_layer_heatmap()
 
-        self.store_prompt_values = torch.empty(0).to(self.device)
-        self.store_prompt_indices = torch.empty(0).to(self.device)
-        self.prompt_df = pd.DataFrame()
-        self.token_number += 1
+        # self.store_prompt_values = torch.empty(0).to(self.device)
+        # self.store_prompt_indices = torch.empty(0).to(self.device)
+        # self.prompt_df = pd.DataFrame()
+        self.token_number = 1
         self.prompt_number += 1
 
     def assign_layer(self, tensor):
@@ -115,6 +115,12 @@ class tensor_logger:
         # 1.5. Divide up by sequence length? 
         # 2. Flatten the tensor
         # 3. Make heatmap boiz - at each individual token and averaged across the prompt
+        print(tensor.shape[1], flush=True)
+        if tensor.shape[1] > 1:
+            print("Splitting tensor", flush=True)
+            tensors = torch.split(tensor, 1, dim=1)
+            for tensor in tensors:
+                self.add_tensor(tensor)
         
         
         weights = torch.flatten(tensor, start_dim=0, end_dim=2).cpu().detach().numpy()
@@ -127,7 +133,7 @@ class tensor_logger:
         for i in range(weights.shape[1]):
             curr_weights = weights[:, i]
             curr_layer = self.layers[i]
-            dataFrames.append(pd.DataFrame({'index': range(len(curr_weights)), 'value': curr_weights, 'layer': [curr_layer for j in range(len(curr_weights))]}))
+            dataFrames.append(pd.DataFrame({'index': range(len(curr_weights)),  'layer': [curr_layer for j in range(len(curr_weights))], 'value': curr_weights}))
         self.token_df =  pd.concat(dataFrames)
 
 
@@ -268,13 +274,26 @@ class tensor_logger:
         # Create the 3D bars
         self.ax.bar3d(x_pos, y_pos, z_pos, dx=0.5, dy=0.5, dz=dz, color=color_map(dz))
 
+        
+
+         # Create a smaller axes for the colorbar
+        cax = self.fig.add_axes([0.9, 0.1, 0.03, 0.8])  # Adjust position as needed
+
+        # Create a scalar mappable for the legend
+        norm = plt.Normalize(self.min_value, self.max_value)  # Normalize colors 
+        sm = plt.cm.ScalarMappable(cmap=color_map, norm=norm)
+        sm.set_array([])  # This is necessary to avoid a potential bug
+
+        # Add the colorbar and its label
+        cbar = self.fig.colorbar(sm, cax=cax, label="Value") 
+
         # Labels and adjustments
         #self.ax.set_ylim3d(0, len(self.layers))
         self.ax.set_zlim3d(self.min_value, self.max_value)
         self.ax.set_xlabel('Layer')
         self.ax.set_ylabel('Index')
         self.ax.set_zlabel('Value')
-        plt.title('3D Heatmap')
+        self.ax.set_title("3D Heatmap {}".format(num))
 
         self.fig.canvas.draw()  # Draw the current frame
 
@@ -305,31 +324,39 @@ class tensor_logger:
         # Create the 3D bars
         self.ax.bar3d(x_pos, y_pos, z_pos, dx=0.5, dy=0.5, dz=dz, color=color_map(dz))
 
+    
 
         # Labels and adjustments
         self.ax.set_xlabel('Layer')
         self.ax.set_ylabel('Index')
         self.ax.set_zlabel('Value')
-        plt.title('3D Heatmap')
+        self.ax.set_title("3D Heatmap ")
 
         frames = []  # Store the generated frames as Pillow Images
         for num in range(len(pivoted_dfs)):
             frames.append(self.generate_frame(num, data, pivoted_dfs))
 
+        output_path = os.path.join(self.base_output_path, self.experiment_name, 'images/', "prompt_{}".format(self.prompt_number))
+        os.makedirs(output_path, exist_ok=True)
         # Save the animation
-        frames[0].save('heatmap_animation1.gif', format='GIF', append_images=frames[1:], 
-                    save_all=True, duration=1000, loop=0)
+        frames[0].save(os.path.join(output_path, "heatmap_animation{}.gif".format(self.prompt_number)), format='GIF', append_images=frames[1:], 
+                    save_all=True, duration=200, loop=0)
 
 
     def recursively_generate_heatmap(self, path):
         data = []
         if os.path.isdir(path):
-            print("Path: ", path, flush = True)
-            for file in os.listdir(path):
+            print("Path: ", path, flush=True)
+            files = os.listdir(path)
+
+            # Sort files using natural sorting
+            files = natsorted(files) 
+
+            for file in files:
                 if os.path.isdir(os.path.join(path, file)):
-                    self.recursively_generate_heatmap(os.path.join(path, file))
+                    self.recursively_generate_heatmap(os.path.join(path, file)) 
                 else:
-                    print("File: ", file, flush = True)
+                    print("File: ", file, flush=True)
                     data.append(pd.read_csv(os.path.join(path, file)))
 
         i = 1
@@ -347,13 +374,17 @@ class tensor_logger:
         print("Min Value:{}".format(self.min_value), flush = True)
         
         i = 1
+
+        ### IF YOU WANT TO GENERATE A 3D HEATMAP, UNCOMMENT THE FOLLOWING LINE ###
+
         print("Generating 3D heatmap", flush = True)
         self.generate_anim(data)
+
         for df in data:
             pivot_df = df.pivot(index="layer", columns="index", values="value")
             print("Pivoted dataframe:\n", flush = True)
             print(pivot_df.head(), flush = True)
-            pivot_df = pivot_df.iloc[:self.num_hidden_layers] 
+            #pivot_df = pivot_df.iloc[:self.num_hidden_layers] 
             pivot_df_filled = pivot_df.fillna(0)
             #print(pivot_df_filled, flush=True)
 
@@ -378,8 +409,8 @@ class tensor_logger:
         result = pd.concat(data).groupby(['layer', 'index'])['value'].mean().reset_index()
         print("Result:\n", flush = True)
         print(result.head(), flush = True)
-        #pivot_df = result.pivot(index="layer", columns="index", values="value")
-        pivot_df = result.unstack()
+        pivot_df = result.pivot(index="layer", columns="index", values="value")
+        #pivot_df = result.unstack()
         print("Pivoted final dataframe:\n", flush = True)
         print(pivot_df.head(), flush = True)
         pivot_df = pivot_df.iloc[:self.num_hidden_layers] 
