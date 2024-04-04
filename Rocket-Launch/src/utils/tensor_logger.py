@@ -63,7 +63,6 @@ class tensor_logger:
         self.experiment_name = experiment_name  # config.experiment_name?
         os.makedirs(os.path.join(self.base_output_path, self.experiment_name), exist_ok=True)
 
-
     def new_prompt(self):
         indices = self.make_layer_indicies(self.store_prompt_indices.cpu().flatten()).detach().numpy()
         values = self.store_prompt_values.flatten().cpu().detach().numpy()
@@ -523,7 +522,37 @@ class tensor_logger:
 
         plt.savefig('/grphome/grp_inject/compute/logging/test/images/compare_different_alignments_hard_coded.png') 
 
-    def sparcity_graph(self):
-        pass
+    def sparcity_graph_per_token(self):
+        # read csv
+        for i in range(1, self.num_hidden_layers):
+            df = pd.read_csv(f'/grphome/grp_inject/compute/logging/test6_config_boy_Llama-2-7b-hf_anger_QA_13b_2.pkl_0_1_2_3_4/Prompt1_CSVs/index_value_layer_{i}.csv')
+            sparsity_df = df.groupby('layer')['value'].apply(calculate_sparsity).reset_index(name='sparsity')
+
+            print(sparsity_df)
+            sparcity_df
+            
+            cmap = plt.get_cmap('viridis')
+            colors = cmap(np.linspace(0, 1, len(sparsity_df_sorted['layer'])))
+
+            # Plotting the histogram with the colormap
+            plt.figure(figsize=(12, 8))
+            plt.bar(sparsity_df_sorted['layer'], sparsity_df_sorted['sparsity'], color=colors)
+            plt.xlabel('Layer')
+            plt.ylabel('Sparsity (%)')
+            plt.title('Histogram of Sparsity for Values < 0.05 by Layer')
+            plt.xticks(rotation=45, ha="right")  # Rotate labels to avoid overlap
+            plt.tight_layout()  # Adjust layout to make room for the rotated x-axis labels
+            plt.show()
+            
+            plt.savefig('/grphome/grp_inject/compute/logging/test6_config_boy_Llama-2-7b-hf_anger_QA_13b_2.pkl_0_1_2_3_4/Sparsity_Plots/sparsity_{i}.png') 
+            
+        
+        # make scarsity graphs for each token
+        
+    def sparcity_graph_overall(self):
+        pass        
+
+    def calculate_sparsity(values):
+        return (values < 0.01).mean() * 100
 
         
