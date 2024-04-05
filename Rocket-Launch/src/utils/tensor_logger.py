@@ -57,19 +57,13 @@ class tensor_logger:
 
         self.modes = torch.empty(0).to(self.device)
 
-        # Must make sure this directory exists, I was thinking we could create an experiment name field
-        # in the config file and then use it to store our results more easily.
         self.base_output_path = "/grphome/grp_inject/compute/logging"
         self.experiment_name = experiment_name  # config.experiment_name?
         os.makedirs(os.path.join(self.base_output_path, self.experiment_name), exist_ok=True)
 
 
     def new_prompt(self):
-        # indices = self.make_layer_indicies(self.store_prompt_indices.cpu().flatten()).detach().numpy()
-        # values = self.store_prompt_values.flatten().cpu().detach().numpy()
-        
 		# ## TODO: Look at this code ##
-        # layers = self.assign_layer(self.store_prompt_indices.flatten()).cpu().detach().numpy()
 
         # self.prompt_df =  pd.DataFrame({'index': indices, 'value': values, 'layer': layers})
         # #print(self.prompt_df, flush=True)
@@ -88,20 +82,6 @@ class tensor_logger:
         # self.prompt_df = pd.DataFrame()
         self.token_number = 1
         self.prompt_number += 1
-
-    def assign_layer(self, tensor):
-        tensor_divisor = self.tensor_length // self.num_hidden_layers
-
-        print("Tensor divisor: {}".format(tensor_divisor), flush=True)
-        return (tensor // tensor_divisor) + 1
-
-    def make_layer_indicies(self, tensor):
-        tensor_divisor = self.tensor_length // self.num_hidden_layers
-
-        return tensor % tensor_divisor
-        
-    def get_layer_weights(self, tensor, layer_id):
-        return tensor[:, :, :, self.layers.index(layer_id)]
     
     def write_csv(self, df):
         name_of_csv = f'index_value_layer_{self.token_number}.csv'
@@ -116,6 +96,7 @@ class tensor_logger:
         # 1.5. Divide up by sequence length? 
         # 2. Flatten the tensor
         # 3. Make heatmap boiz - at each individual token and averaged across the prompt
+
         print(tensor.shape[1], flush=True)
         if tensor.shape[1] > 1:
             print("Splitting tensor", flush=True)
@@ -138,30 +119,11 @@ class tensor_logger:
         self.token_df =  pd.concat(dataFrames)
 
 
-        # for layer in self.layers:
-        #     layer_weights = self.get_layer_weights(tensor, layer)
-
-        # ## TODO: Comment this out probably ##
-        #     weights = layer_weights.flatten(start_dim=0, en).cpu().detach().numpy()
-            # indices = 
-            # values = self.store_prompt_values.flatten().cpu().detach().numpy()
-            
-            ## TODO: Look at this code ##
-            #layers = self.assign_layer(self.store_prompt_indices.flatten()).cpu().detach().numpy()
-
-        #print(self.prompt_df, flush=True)
-        #token_df = token_df.groupby(['index', 'layer'], as_index=False)['value'].mean()
-        #print(self.prompt_df, flush=True)
-
-        #print(self.prompt_df)
-        
-        #name_of_csv = f'index_value_layer_{self.token_number}.csv'
         self.write_csv(self.token_df)
         #self.generate_index_value_layer_heatmap()
         self.token_number += 1
-        #self.map_layers(tensor)
 
-        #self.all = tensor
+
         ## TODO: CHECK THIS CODE! ##
         #self.tensor_length = self.all.size(0)
         #print("Tensor length: {}".format(self.tensor_length), flush=True)
@@ -204,26 +166,6 @@ class tensor_logger:
         # torch.cat((self.min_activations, min_activation), dim=0)
 
         # torch.cat((self.modes, modes), dim=0)
-
-    def map_layers(self, tensor: torch.Tensor):
-        print("Tensor size: {}".format(tensor.size()), flush=True)
-        divided_tensors = tensor.chunk(self.num_hidden_layers, dim=0)
-
-        self.layered_tensor = torch.stack(divided_tensors)
-        #print(self.layered_tensor.dim())
-
-        divided_tensors = [t.squeeze(0) for t in divided_tensors]
-
-        self.heatmap_data = torch.cat(divided_tensors, dim=0)
-
-        #print("Heatmap Data\n", self.heatmap_data., flush=True)
-
-        return self.layered_tensor
-
-        # self.map_layers = {
-        #     layer: [(i, divided_tensors[layer - 1][i]) for i in range(len(divided_tensors[layer - 1]))]  # 1000 important weights per layer
-        #     for layer in range(1, self.num_hidden_layers + 1)
-        # }
 
 
     def write_log(self):
@@ -526,33 +468,6 @@ class tensor_logger:
         plt.savefig('/grphome/grp_inject/compute/logging/test/images/bar_graph_of_largest_by_layer.png') 
         pass
 
-    def hard_coded_graph(self):
-        layer_counts_1 = np.array([90, 85, 80, 95, 100, 105, 110, 105, 100, 95, 80, 55])  # Example distribution that sums to 1000
-        layer_counts_2 = np.array([55, 80, 95, 100, 105, 110, 105, 100, 95, 80, 85, 90]) 
-
-        num_layers = len(layer_counts_1)  # Assuming both tensors have counts for the same number of layers
-        layers = np.arange(1, num_layers + 1)
-        bar_width = 0.35  # Width of the bars
-
-        # Create the bar chart
-        fig, ax = plt.subplots(figsize=(12, 8))
-
-        # Plotting both distributions
-        bar1 = ax.bar(layers - bar_width/2, layer_counts_1, bar_width, label='Anger Alignment IRM', color='skyblue')
-        bar2 = ax.bar(layers + bar_width/2, layer_counts_2, bar_width, label='Cheerful Alignment IRM', color='orange')
-
-        # Add some text for labels, title, and custom x-axis tick labels, etc.
-        ax.set_xlabel('Layer')
-        ax.set_ylabel('Count of Top 1000 Values')
-        ax.set_title('Comparison of Top 1000 Values Distribution Across Layers')
-        ax.set_xticks(layers)
-        ax.set_xticklabels([f'Layer {i}' for i in layers])
-        ax.legend()
-
-        # Finally, show the plot
-        plt.show()
-
-        plt.savefig('/grphome/grp_inject/compute/logging/test/images/compare_different_alignments_hard_coded.png') 
 
     def sparcity_graph(self):
         pass
