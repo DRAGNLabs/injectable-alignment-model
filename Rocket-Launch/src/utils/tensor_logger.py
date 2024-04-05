@@ -57,8 +57,8 @@ class tensor_logger:
 
         self.modes = torch.empty(0).to(self.device)
 
-        # Must make sure this directory exists, I was thinking we could create an experiment name field
-        # in the config file and then use it to store our results more easily.
+        Must make sure this directory exists, I was thinking we could create an experiment name field
+        in the config file and then use it to store our results more easily.
         self.base_output_path = "/grphome/grp_inject/compute/logging"
         self.experiment_name = experiment_name  # config.experiment_name?
         os.makedirs(os.path.join(self.base_output_path, self.experiment_name), exist_ok=True)
@@ -87,17 +87,6 @@ class tensor_logger:
         # self.prompt_df = pd.DataFrame()
         self.token_number = 1
         self.prompt_number += 1
-
-    def assign_layer(self, tensor):
-        tensor_divisor = self.tensor_length // self.num_hidden_layers
-
-        print("Tensor divisor: {}".format(tensor_divisor), flush=True)
-        return (tensor // tensor_divisor) + 1
-
-    def make_layer_indicies(self, tensor):
-        tensor_divisor = self.tensor_length // self.num_hidden_layers
-
-        return tensor % tensor_divisor
         
     def get_layer_weights(self, tensor, layer_id):
         return tensor[:, :, :, self.layers.index(layer_id)]
@@ -109,7 +98,6 @@ class tensor_logger:
         df.to_csv(os.path.join(self.output_path,name_of_csv), index=False)
         
     def add_tensor(self, tensor: torch.Tensor):
-
         ## ROADMAP ##
         # 1. Split tensor into layers
         # 1.5. Divide up by sequence length? 
@@ -122,9 +110,7 @@ class tensor_logger:
             for tensor in tensors:
                 self.add_tensor(tensor)
         
-        
         weights = torch.flatten(tensor, start_dim=0, end_dim=2).cpu().detach().numpy()
-        
         
         print("Weights shape: {}\n\n".format(weights.shape), flush=True)
         #print("Weights: {}\n\n".format(weights.head()), flush=True)
@@ -203,26 +189,6 @@ class tensor_logger:
         # torch.cat((self.min_activations, min_activation), dim=0)
 
         # torch.cat((self.modes, modes), dim=0)
-
-    def map_layers(self, tensor: torch.Tensor):
-        print("Tensor size: {}".format(tensor.size()), flush=True)
-        divided_tensors = tensor.chunk(self.num_hidden_layers, dim=0)
-
-        self.layered_tensor = torch.stack(divided_tensors)
-        #print(self.layered_tensor.dim())
-
-        divided_tensors = [t.squeeze(0) for t in divided_tensors]
-
-        self.heatmap_data = torch.cat(divided_tensors, dim=0)
-
-        #print("Heatmap Data\n", self.heatmap_data., flush=True)
-
-        return self.layered_tensor
-
-        # self.map_layers = {
-        #     layer: [(i, divided_tensors[layer - 1][i]) for i in range(len(divided_tensors[layer - 1]))]  # 1000 important weights per layer
-        #     for layer in range(1, self.num_hidden_layers + 1)
-        # }
 
 
     def write_log(self):
@@ -345,6 +311,7 @@ class tensor_logger:
 
     def recursively_generate_heatmap(self, path):
         data = []
+        csv_identifiers = []
         if os.path.isdir(path):
             print("Path: ", path, flush=True)
             files = os.listdir(path)
@@ -357,7 +324,15 @@ class tensor_logger:
                     self.recursively_generate_heatmap(os.path.join(path, file)) 
                 else:
                     print("File: ", file, flush=True)
-                    data.append(pd.read_csv(os.path.join(path, file)))
+                    df = pd.read_csv(os.path.join(path, file))
+                    df['csv_number'] = csv_counter
+                    data.append(df)
+                    csv_identifiers.append(csv_counter)
+                    csv_counter += 1
+
+        self.generate_histograms(data)
+        self.calculate_and_plot_sparsity(data)
+        self.create_histogram_of_top_values_by_csv(data, csv_identifiers)
 
         i = 1
         for df in data:
@@ -478,53 +453,94 @@ class tensor_logger:
         # Save the figure to a file
         plt.savefig(os.path.join(self.base_output_path, self.experiment_name, "images/test_heatmap{}.png".format(self.token_number)))  # Adjust path as needed
 
-    def generate_index_value_layer_heatmap(self):
-        pivot_df = self.token_df.pivot(index="layer", columns="index", values="value")
-        #print("Pivoted dataframe\n", flush=True)
-        print(pivot_df.head(), flush = True)
-        pivot_df = pivot_df.iloc[:self.num_hidden_layers] 
-        pivot_df_filled = pivot_df.fillna(0)
-        #print(pivot_df_filled, flush=True)
+    def generate_histograms(self, data):
+        combined_df = pd.concat(data)
 
-        heatmap_file_name = f'index_layer_value_heatmap_{self.token_number}.png'
+        # Extract the top 1000 values
+        top_1000 = combined_df.nlargest(1000, 'value')
 
-        # Create the heatmap
-        plt.figure(figsize=(16, 8))
-        # Use a colormap (cmap) that distinguishes your filled value (-1) from the rest, e.g., 'coolwarm'
-        # You may need to adjust the colormap or the fill value depending on your data range and preferences
-        sns.heatmap(pivot_df_filled, cmap="coolwarm", cbar_kws={'label': 'Value'}) # norm=plt.Normalize(vmin=pivot_df_filled.min().min(), vmax=pivot_df_filled.max().max()
+        # Generate frequency distribution of these values by layer
+        freq_distribution = top_1000['layer'].value_counts().sort_index()
 
-        plt.title('Heatmap of Values')
-        plt.ylabel('Layer')
-        plt.xlabel('Index')
-        plt.show()
-        os.makedirs(os.path.join(self.base_output_path, self.experiment_name, 'images/'), exist_ok=True)
-        plt.savefig(os.path.join(self.base_output_path, self.experiment_name, 'images/' + heatmap_file_name))
-
-    def generate_histograms(self):
-
-        num_indices_per_layer = len(self.layered_tensor) // self.num_hidden_layers
-        values, indices = torch.topk(self.all, 1000)
-
-        # Determine which layer each top value belongs to
-        layer_indices = (indices / num_indices_per_layer).floor().long()
-
-        # Count the occurrences of top values in each layer
-        layer_counts = np.bincount(layer_indices.numpy(), minlength=self.num_hidden_layers)
-
-        # Generate the bar chart
-        layers = np.arange(1, self.num_hidden_layers + 1)
+        # Plotting the histogram
         plt.figure(figsize=(10, 6))
-        plt.bar(layers, layer_counts, color='skyblue')
+        freq_distribution.plot(kind='bar')
+        plt.title('Frequency of Top 1000 Values by Layer')
         plt.xlabel('Layer')
-        plt.ylabel('Count of Top 1000 Values')
-        plt.title('Top 1000 Values Distribution Across Layers')
-        plt.xticks(layers)
+        plt.ylabel('Frequency')
+        
+        plt.savefig(os.path.join(self.base_output_path, self.experiment_name, "images/histogram_per_layer.png".format(self.token_number)))
+        
+    def create_histogram_of_top_values_by_csv(self, data, csv_identifiers):
+        combined_df = pd.concat(data)
+
+        # Extract the top 1000 values across all combined data
+        top_1000 = combined_df.nlargest(1000, 'value')
+
+        # Generate frequency distribution by CSV number
+        freq_distribution_by_csv = top_1000['csv_number'].value_counts().reindex(csv_identifiers, fill_value=0)
+
+        # Plotting the histogram
+        plt.figure(figsize=(12, 7))
+        freq_distribution_by_csv.plot(kind='bar')
+        plt.title('Frequency of Overall Top 1000 Values by CSV Number')
+        plt.xlabel('CSV Number')
+        plt.ylabel('Frequency')
+        plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
+        plt.tight_layout()  # Adjust layout to not cut off labels
         plt.show()
+        
+        plt.savefig(os.path.join(self.base_output_path, self.experiment_name, "images/histogram_per_token.png".format(self.token_number)))
+        
+    
+     def calculate_and_plot_sparsity(self, data):
+        # Combine all dataframes into one
+        combined_df = pd.concat(data)
+        
+        # Calculate sparsity for each layer
+        # Considering a value sparse if it is exactly 0
+        sparsity_df = combined_df.assign(is_sparse=lambda x: x['value'] < 0.001)
+        layer_sparsity = sparsity_df.groupby('layer')['is_sparse'].mean()
 
-        plt.savefig('/grphome/grp_inject/compute/logging/test/images/bar_graph_of_largest_by_layer.png') 
-        pass
+        # Plotting the sparsity
+        plt.figure(figsize=(12, 7))
+        layer_sparsity.plot(kind='bar')
+        plt.title('Overall Sparsity by Layer')
+        plt.xlabel('Layer')
+        plt.ylabel('Sparsity (%)')
+        plt.ylim(0, 1)  # Ensure y-axis is from 0 to 1 to represent percentage
+        plt.tight_layout()
+        
+        plt.savefig(os.path.join(self.base_output_path, self.experiment_name, "images/average_sparsity.png".format(self.token_number)))
+               
 
+    def sparcity_graph_per_token(self):
+        # read csv
+        for i in range(1, 88):
+            df = pd.read_csv(f'/grphome/grp_inject/compute/logging/test6_config_boy_Llama-2-7b-hf_anger_QA_13b_2.pkl_0_1_2_3_4/Prompt1_CSVs/index_value_layer_{i}.csv')
+            sparsity_df = df.groupby('layer')['value'].apply(self.calculate_sparsity).reset_index(name='sparsity')
+
+            
+            cmap = plt.get_cmap('viridis')
+            colors = cmap(np.linspace(0, 1, len(sparsity_df['layer'])))
+
+            # Plotting the histogram with the colormap
+            plt.figure(figsize=(12, 8))
+            plt.bar(sparsity_df['layer'], sparsity_df['sparsity'], color=colors)
+            plt.xlabel('Layer')
+            plt.ylabel('Sparsity (%)')
+            plt.title('Histogram of Sparsity for Values < 0.01 by Layer')
+            plt.xticks(rotation=45, ha="right")  # Rotate labels to avoid overlap
+            plt.tight_layout()  # Adjust layout to make room for the rotated x-axis labels
+            
+            plt.savefig(f'/grphome/grp_inject/compute/logging/test6_config_boy_Llama-2-7b-hf_anger_QA_13b_2.pkl_0_1_2_3_4/Sparsity_Plots/sparsity_{i}.png') 
+            
+               
+
+    def calculate_sparsity(self, values):
+        return (values < 0.01).mean() * 100
+    
+    
     def hard_coded_graph(self):
         layer_counts_1 = np.array([90, 85, 80, 95, 100, 105, 110, 105, 100, 95, 80, 55])  # Example distribution that sums to 1000
         layer_counts_2 = np.array([55, 80, 95, 100, 105, 110, 105, 100, 95, 80, 85, 90]) 
@@ -552,38 +568,5 @@ class tensor_logger:
         plt.show()
 
         plt.savefig('/grphome/grp_inject/compute/logging/test/images/compare_different_alignments_hard_coded.png') 
-
-    def sparcity_graph_per_token(self):
-        # read csv
-        for i in range(1, self.num_hidden_layers):
-            df = pd.read_csv(f'/grphome/grp_inject/compute/logging/test6_config_boy_Llama-2-7b-hf_anger_QA_13b_2.pkl_0_1_2_3_4/Prompt1_CSVs/index_value_layer_{i}.csv')
-            sparsity_df = df.groupby('layer')['value'].apply(calculate_sparsity).reset_index(name='sparsity')
-
-            print(sparsity_df)
-            sparcity_df
-            
-            cmap = plt.get_cmap('viridis')
-            colors = cmap(np.linspace(0, 1, len(sparsity_df_sorted['layer'])))
-
-            # Plotting the histogram with the colormap
-            plt.figure(figsize=(12, 8))
-            plt.bar(sparsity_df_sorted['layer'], sparsity_df_sorted['sparsity'], color=colors)
-            plt.xlabel('Layer')
-            plt.ylabel('Sparsity (%)')
-            plt.title('Histogram of Sparsity for Values < 0.05 by Layer')
-            plt.xticks(rotation=45, ha="right")  # Rotate labels to avoid overlap
-            plt.tight_layout()  # Adjust layout to make room for the rotated x-axis labels
-            plt.show()
-            
-            plt.savefig('/grphome/grp_inject/compute/logging/test6_config_boy_Llama-2-7b-hf_anger_QA_13b_2.pkl_0_1_2_3_4/Sparsity_Plots/sparsity_{i}.png') 
-            
-        
-        # make scarsity graphs for each token
-        
-    def sparcity_graph_overall(self):
-        pass        
-
-    def calculate_sparsity(values):
-        return (values < 0.01).mean() * 100
 
         
