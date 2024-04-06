@@ -456,41 +456,37 @@ class tensor_logger:
     def generate_histograms(self, data):
         combined_df = pd.concat(data)
 
-        # Extract the top 1000 values
-        top_1000 = combined_df.nlargest(1000, 'value')
+        combined_df['abs_value'] = combined_df['value'].abs()
+        top_2000 = combined_df.nlargest(2000, 'abs_value')
 
-        # Generate frequency distribution of these values by layer
-        freq_distribution = top_1000['layer'].value_counts().sort_index()
+        freq_distribution = top_2000['layer'].value_counts().sort_index()
 
-        # Plotting the histogram
         plt.figure(figsize=(10, 6))
         freq_distribution.plot(kind='bar')
-        plt.title('Frequency of Top 1000 Values by Layer')
+        plt.title('Frequency of Top 2000 Absolute Values by Layer')
         plt.xlabel('Layer')
         plt.ylabel('Frequency')
         
-        plt.savefig(os.path.join(self.base_output_path, self.experiment_name, "images/histogram_per_layer.png".format(self.token_number)))
+        plt.savefig(os.path.join(self.base_output_path, self.experiment_name, "images/histogram_per_layer.png"))
         
     def create_histogram_of_top_values_by_csv(self, data, csv_identifiers):
         combined_df = pd.concat(data)
 
-        # Extract the top 1000 values across all combined data
-        top_1000 = combined_df.nlargest(1000, 'value')
+        combined_df['abs_value'] = combined_df['value'].abs()
 
-        # Generate frequency distribution by CSV number
-        freq_distribution_by_csv = top_1000['csv_number'].value_counts().reindex(csv_identifiers, fill_value=0)
+        top_2000 = combined_df.nlargest(2000, 'abs_value')
+        freq_distribution_by_csv = top_2000['csv_number'].value_counts().reindex(csv_identifiers, fill_value=0)
 
         # Plotting the histogram
         plt.figure(figsize=(12, 7))
         freq_distribution_by_csv.plot(kind='bar')
-        plt.title('Frequency of Overall Top 1000 Values by CSV Number')
+        plt.title('Frequency of Overall Top 2000 Absolute Values by CSV Number')
         plt.xlabel('CSV Number')
         plt.ylabel('Frequency')
         plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
         plt.tight_layout()  # Adjust layout to not cut off labels
-        plt.show()
         
-        plt.savefig(os.path.join(self.base_output_path, self.experiment_name, "images/histogram_per_token.png".format(self.token_number)))
+        plt.savefig(os.path.join(self.base_output_path, self.experiment_name, "images/histogram_per_token_{}.png".format(self.token_number)))
         
     
      def calculate_and_plot_sparsity(self, data):
