@@ -2,6 +2,18 @@
 
 ## Introduction
 
+### Workflow
+
+0. Set up your Environment
+1. Prepare a Base Model
+2. Get Training Data
+3. Create a Config File
+4. Tokenize the Training Data
+5. Create an Injected Checkpoiint
+6. Run the training Script
+7. Run Inference
+8. Analysis
+
 ## Setup
 
 ### Environment Setup
@@ -50,7 +62,47 @@ Configuration YAML files are used to define all paths, settings, and hyperparame
 #### Config Creation Script
 There are a lot of details that need to be aligned in the config files, and the [config creation script](./src/utils/new_config_create.py) makes it easier to get all the details right when creating a large number of scripts.
 
-To use this script, 
+This script is useful if you need to make many different scripts that are slightly different (for example, training several IRMs, each injected in different places, each on several datasets), but if you are only running one model, it might be easier to just change one config file.
+
+To use this script:
+
+* Change the file as specified below.
+* Run `python3 ./src/utils/new_config_create` from `.`
+* The config file(s) should appear in the [configs/](./configs/) directory.
+
+In the `main` function:
+
+1. Specify `model_name` as the model you'd like to inject into, which should correspond to an entry in the `model_size_directories` dictionary (located in the `create_config_dict` function).
+
+2. Specify `file_name_prefix` as the first part of the name of the config file, checkpoint, and logger folder.
+
+*Note: The ith index in each of the following lists corresponds to the ith config file that will be generated*
+
+3. Specify the injection layers in `injection_locations`.
+
+4. Specify your train, test, and val dataset files in their `####_dataset_file_names` lists.  These should end in .pkl, even if they are not tokenized yet (the script will write .csv and .pkl in their corresponding places in preparation for tokenization).
+
+5. Specify the number of epochs for each corresponding config file in `dataset_file_epochs`
+
+In the `create_config_dict` function:
+
+1. Ensure the `model_size_directories` dictionary maps each model name to the directory where its model weights are stored
+
+2. Specify `tokenizer_type` and `tokenizer_path`:
+    * To use locally saved tokenizer weights, change `tokenizer_path` to the filepath of your tokenizer weights and  `tokenizer_type` to `"sp"` (for SentencePiece)
+    
+        OR
+    * To use a Hugging Face tokenizer, change `tokenizer_path` to the Hugging Face tokenizer identifier and  `tokenizer_type` to `"hf"`
+
+3. Ensure that each of the dataset paths leads to the correct directory.
+
+4. Update the settings under #GPU to match the settings in your slurm scripts
+
+5. Update any other settings, including batch size, inference path, or validation settings.
+
+If you are using a model other than the Llama models for which HFConfigs are included in the `get_HF_config` function, you may need to add the config.  This can be done by printing out the model.config member of an instantiated model.  Be sure to change boolean config values to `"true"` or `"false"`, `null` to `~`, and small floats to their number version.
+
+
 
 # Rocket-Launch
 
