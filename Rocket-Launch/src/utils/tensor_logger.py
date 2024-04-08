@@ -57,8 +57,8 @@ class tensor_logger:
 
         self.modes = torch.empty(0).to(self.device)
 
-        Must make sure this directory exists, I was thinking we could create an experiment name field
-        in the config file and then use it to store our results more easily.
+        # Must make sure this directory exists, I was thinking we could create an experiment name field
+        # in the config file and then use it to store our results more easily.
         self.base_output_path = "/grphome/grp_inject/compute/logging"
         self.experiment_name = experiment_name  # config.experiment_name?
         os.makedirs(os.path.join(self.base_output_path, self.experiment_name), exist_ok=True)
