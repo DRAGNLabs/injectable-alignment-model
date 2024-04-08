@@ -312,6 +312,7 @@ class tensor_logger:
     def recursively_generate_heatmap(self, path):
         data = []
         csv_identifiers = []
+        csv_counter = 1
         if os.path.isdir(path):
             print("Path: ", path, flush=True)
             files = os.listdir(path)
@@ -471,7 +472,7 @@ class tensor_logger:
         
         plt.savefig(os.path.join(self.base_output_path, self.experiment_name, "images/histogram_per_layer.png"))
         
-    def generate_average_histograms(data):
+    def generate_average_histograms(self, data):
         grouped_data = [data[i:i + 4] for i in range(0, len(data), 4)]
         group_counter = 1
         for group in grouped_data:
@@ -485,7 +486,7 @@ class tensor_logger:
             plt.xlabel('Index')
 
             heatmap_file_name = f'average_heatmap_group_{group_counter}.png'
-            output_path = os.path.join(self.base_output_path, self.experiment_name, 'images', f"prompt_{self.prompt_number}")
+            output_path = os.path.join(self.base_output_path, self.experiment_name, 'images', f"prompt_{self.prompt_number - 1}")
             os.makedirs(output_path, exist_ok=True)
             plt.savefig(os.path.join(output_path, heatmap_file_name))
             plt.close()
@@ -518,7 +519,7 @@ class tensor_logger:
 
         # Calculate sparsity for each layer
         # Considering a value sparse if it is exactly 0
-        sparsity_df = combined_df.assign(is_sparse=lambda x: x['value'] < 0.001)
+        sparsity_df = combined_df.assign(is_sparse=lambda x: x['value'] < 0.00001)
         layer_sparsity = sparsity_df.groupby('layer')['is_sparse'].mean()
 
         # Plotting the sparsity
