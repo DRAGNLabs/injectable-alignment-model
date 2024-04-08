@@ -512,10 +512,10 @@ class tensor_logger:
         plt.savefig(os.path.join(self.base_output_path, self.experiment_name, "images/histogram_per_token_{}.png".format(self.token_number)))
         
     
-     def calculate_and_plot_sparsity(self, data):
+    def calculate_and_plot_sparsity(self, data):
         # Combine all dataframes into one
         combined_df = pd.concat(data)
-        
+
         # Calculate sparsity for each layer
         # Considering a value sparse if it is exactly 0
         sparsity_df = combined_df.assign(is_sparse=lambda x: x['value'] < 0.001)
@@ -529,7 +529,7 @@ class tensor_logger:
         plt.ylabel('Sparsity (%)')
         plt.ylim(0, 1)  # Ensure y-axis is from 0 to 1 to represent percentage
         plt.tight_layout()
-        
+
         plt.savefig(os.path.join(self.base_output_path, self.experiment_name, "images/average_sparsity.png".format(self.token_number)))
                
 
