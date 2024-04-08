@@ -333,6 +333,8 @@ class tensor_logger:
         self.generate_histograms(data)
         self.calculate_and_plot_sparsity(data)
         self.create_histogram_of_top_values_by_csv(data, csv_identifiers)
+        self.generate_average_histograms(data)
+        
 
         i = 1
         for df in data:
@@ -468,6 +470,27 @@ class tensor_logger:
         plt.ylabel('Frequency')
         
         plt.savefig(os.path.join(self.base_output_path, self.experiment_name, "images/histogram_per_layer.png"))
+        
+    def generate_average_histograms(data):
+        grouped_data = [data[i:i + 4] for i in range(0, len(data), 4)]
+        group_counter = 1
+        for group in grouped_data:
+            combined_df = pd.concat(group).groupby(['layer', 'index'], as_index=False).mean()
+            pivot_df = combined_df.pivot(index="layer", columns="index", values="value").fillna(0)
+
+            plt.figure(figsize=(14, 8))
+            sns.heatmap(pivot_df, cmap="coolwarm", cbar_kws={'label': 'Value'}, vmin=pivot_df.min().min(), vmax=pivot_df.max().max())
+            plt.title(f'Heatmap of Average Values for Group {group_counter}')
+            plt.ylabel('Layer')
+            plt.xlabel('Index')
+
+            heatmap_file_name = f'average_heatmap_group_{group_counter}.png'
+            output_path = os.path.join(self.base_output_path, self.experiment_name, 'images', f"prompt_{self.prompt_number}")
+            os.makedirs(output_path, exist_ok=True)
+            plt.savefig(os.path.join(output_path, heatmap_file_name))
+            plt.close()
+
+            group_counter += 1
         
     def create_histogram_of_top_values_by_csv(self, data, csv_identifiers):
         combined_df = pd.concat(data)
