@@ -94,6 +94,9 @@ class IRM(nn.Module):
         self.logger.generate_heatmap_1()
         # self.logger.generate_histograms()
         # self.logger.hard_coded_graph()
+        
+    def logSparsityPlot(self):
+        self.logger.sparcity_graph_per_token()
 
 
 if __name__ == "__main__":
@@ -101,7 +104,7 @@ if __name__ == "__main__":
     # # model.forward(torch.randn((1,1024,512)))
     #model.forward(torch.randn((1,1024,512)))
     # print(model.weights[3])
-    # model = IRM(LlamaConfig(vocab_size=30522, max_position_embeddings=512, hidden_size=768, intermediate_size=3072, num_hidden_layers=12, num_attention_heads=12))
+    # model = IRM(LlamaConfig(vocab_size=30522, max_position_embeddings=512, hidden_size=768, intermediate_size=3072, num_hidden_layers=32, num_attention_heads=12))
     # test_input = torch.randn((1, 1024, 768)).to(model.device)
     # test_input2 = torch.randn((1, 1024, 768)).to(model.device)
     # test_input3 = torch.randn((1, 1024, 768)).to(model.device)
