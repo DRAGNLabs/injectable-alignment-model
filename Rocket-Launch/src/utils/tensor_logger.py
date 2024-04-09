@@ -533,8 +533,6 @@ class tensor_logger:
             
                
 
-<<<<<<< HEAD
-=======
     def calculate_sparsity(self, values):
         return (values < 0.01).mean() * 100
     
@@ -566,6 +564,5 @@ class tensor_logger:
         plt.show()
 
         plt.savefig('/grphome/grp_inject/compute/logging/test/images/compare_different_alignments_hard_coded.png') 
->>>>>>> 55013234292f5cd3c026a5ecc5cc1ae98b32cecb
 
         
