@@ -81,12 +81,9 @@ class tensor_logger:
         # self.prompt_df = pd.DataFrame()
         self.token_number = 1
         self.prompt_number += 1
-<<<<<<< HEAD
-=======
         
     def get_layer_weights(self, tensor, layer_id):
         return tensor[:, :, :, self.layers.index(layer_id)]
->>>>>>> 55013234292f5cd3c026a5ecc5cc1ae98b32cecb
     
     def write_csv(self, df):
         name_of_csv = f'index_value_layer_{self.token_number}.csv'
@@ -334,8 +331,8 @@ class tensor_logger:
 
         ### IF YOU WANT TO GENERATE A 3D HEATMAP, UNCOMMENT THE FOLLOWING LINE ###
 
-        print("Generating 3D heatmap", flush = True)
-        self.generate_anim(data)
+        # print("Generating 3D heatmap", flush = True)
+        # self.generate_anim(data)
 
         for df in data:
             pivot_df = df.pivot(index="layer", columns="index", values="value")
