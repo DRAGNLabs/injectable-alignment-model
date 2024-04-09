@@ -57,18 +57,12 @@ class tensor_logger:
 
         self.modes = torch.empty(0).to(self.device)
 
-        # Must make sure this directory exists, I was thinking we could create an experiment name field
-        # in the config file and then use it to store our results more easily.
         self.base_output_path = "/grphome/grp_inject/compute/logging"
         self.experiment_name = experiment_name  # config.experiment_name?
         os.makedirs(os.path.join(self.base_output_path, self.experiment_name), exist_ok=True)
 
     def new_prompt(self):
-        # indices = self.make_layer_indicies(self.store_prompt_indices.cpu().flatten()).detach().numpy()
-        # values = self.store_prompt_values.flatten().cpu().detach().numpy()
-        
 		# ## TODO: Look at this code ##
-        # layers = self.assign_layer(self.store_prompt_indices.flatten()).cpu().detach().numpy()
 
         # self.prompt_df =  pd.DataFrame({'index': indices, 'value': values, 'layer': layers})
         # #print(self.prompt_df, flush=True)
@@ -103,6 +97,7 @@ class tensor_logger:
         # 1.5. Divide up by sequence length? 
         # 2. Flatten the tensor
         # 3. Make heatmap boiz - at each individual token and averaged across the prompt
+
         print(tensor.shape[1], flush=True)
         if tensor.shape[1] > 1:
             print("Splitting tensor", flush=True)
@@ -123,30 +118,11 @@ class tensor_logger:
         self.token_df =  pd.concat(dataFrames)
 
 
-        # for layer in self.layers:
-        #     layer_weights = self.get_layer_weights(tensor, layer)
-
-        # ## TODO: Comment this out probably ##
-        #     weights = layer_weights.flatten(start_dim=0, en).cpu().detach().numpy()
-            # indices = 
-            # values = self.store_prompt_values.flatten().cpu().detach().numpy()
-            
-            ## TODO: Look at this code ##
-            #layers = self.assign_layer(self.store_prompt_indices.flatten()).cpu().detach().numpy()
-
-        #print(self.prompt_df, flush=True)
-        #token_df = token_df.groupby(['index', 'layer'], as_index=False)['value'].mean()
-        #print(self.prompt_df, flush=True)
-
-        #print(self.prompt_df)
-        
-        #name_of_csv = f'index_value_layer_{self.token_number}.csv'
         self.write_csv(self.token_df)
         #self.generate_index_value_layer_heatmap()
         self.token_number += 1
-        #self.map_layers(tensor)
 
-        #self.all = tensor
+
         ## TODO: CHECK THIS CODE! ##
         #self.tensor_length = self.all.size(0)
         #print("Tensor length: {}".format(self.tensor_length), flush=True)
