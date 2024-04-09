@@ -356,7 +356,7 @@ class tensor_logger:
         ### IF YOU WANT TO GENERATE A 3D HEATMAP, UNCOMMENT THE FOLLOWING LINE ###
 
         print("Generating 3D heatmap", flush = True)
-        self.generate_anim(data)
+        # self.generate_anim(data)
 
         for df in data:
             pivot_df = df.pivot(index="layer", columns="index", values="value")
@@ -460,13 +460,13 @@ class tensor_logger:
         combined_df = pd.concat(data)
 
         combined_df['abs_value'] = combined_df['value'].abs()
-        top_2000 = combined_df.nlargest(2000, 'abs_value')
+        top_2000 = combined_df.nlargest(100, 'abs_value')
 
         freq_distribution = top_2000['layer'].value_counts().sort_index()
 
         plt.figure(figsize=(10, 6))
         freq_distribution.plot(kind='bar')
-        plt.title('Frequency of Top 2000 Absolute Values by Layer')
+        plt.title('Frequency of Top 100 Absolute Values by Layer')
         plt.xlabel('Layer')
         plt.ylabel('Frequency')
         
@@ -498,13 +498,13 @@ class tensor_logger:
 
         combined_df['abs_value'] = combined_df['value'].abs()
 
-        top_2000 = combined_df.nlargest(2000, 'abs_value')
+        top_2000 = combined_df.nlargest(1000, 'abs_value')
         freq_distribution_by_csv = top_2000['csv_number'].value_counts().reindex(csv_identifiers, fill_value=0)
 
         # Plotting the histogram
         plt.figure(figsize=(12, 7))
         freq_distribution_by_csv.plot(kind='bar')
-        plt.title('Frequency of Overall Top 2000 Absolute Values by CSV Number')
+        plt.title('Frequency of Overall Top 1000 Absolute Values by Token')
         plt.xlabel('CSV Number')
         plt.ylabel('Frequency')
         plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
@@ -519,7 +519,7 @@ class tensor_logger:
 
         # Calculate sparsity for each layer
         # Considering a value sparse if it is exactly 0
-        sparsity_df = combined_df.assign(is_sparse=lambda x: x['value'] < 0.00001)
+        sparsity_df = combined_df.assign(is_sparse=lambda x: x['value'].abs() < 0.0001)
         layer_sparsity = sparsity_df.groupby('layer')['is_sparse'].mean()
 
         # Plotting the sparsity
