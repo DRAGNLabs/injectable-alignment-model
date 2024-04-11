@@ -45,38 +45,51 @@ def generate_next(model, prompt_tokens, max_gen_len):
 # Decodes each token in a list, leaves it as a list
 def tokenized_to_decoded_token_list(out_tokens):
     dec_tok_ls = [tokenizer.decode([individual_tok]) for individual_tok in out_tokens]
+    # Clean the decoded tokens so they'll show up right in the VB script
     for i in range(len(dec_tok_ls)):
         if dec_tok_ls[i] == "\n":
             dec_tok_ls[i] = "\\n"
+        if dec_tok_ls[i] == "\"":
+            dec_tok_ls[i] = "\" & Chr(34) & \"" # It seems hacky because it is
+        
 
     return dec_tok_ls
 
 def resize(base_out, irm_out, base_seq):
     sizes = defaultdict(int)
     sep = " "
+
+    # In VB, you can't type some special characters, so the decoded token must be written as Chr(##) for that character,
+    # but it'll still only show up as one character on the page. I didn't just do this for fun.
+    def len_fun(x):
+        if "Chr(" in x:
+            return 1
+        else:
+            return len(x)
+
     # Calculate max sizes
     for i in range(len(base_out)):
-        if len(base_out[i]) > sizes[i]:
-            sizes[i] = len(base_out[i])
+        if len_fun(base_out[i]) > sizes[i]:
+            sizes[i] = len_fun(base_out[i])
 
     for i in range(len(irm_out)):
-        if len(irm_out[i]) > sizes[i]:
-            sizes[i] = len(irm_out[i])
+        if len_fun(irm_out[i]) > sizes[i]:
+            sizes[i] = len_fun(irm_out[i])
 
     for seq in base_seq:
         for i in range(len(seq)):
-            if len(seq[i]) > sizes[i]:
-                sizes[i] = len(seq[i])
+            if len_fun(seq[i]) > sizes[i]:
+                sizes[i] = len_fun(seq[i])
     # Resize
     for i in range(len(base_out)):
-        base_out[i] += sep * (sizes[i] - len(base_out[i]))
+        base_out[i] += sep * (sizes[i] - len_fun(base_out[i]))
 
     for i in range(len(irm_out)):
-        irm_out[i] += sep * (sizes[i] - len(irm_out[i]))
+        irm_out[i] += sep * (sizes[i] - len_fun(irm_out[i]))
 
     for seq in base_seq:
         for i in range(len(seq)):
-            seq[i] += sep * (sizes[i] - len(seq[i]))
+            seq[i] += sep * (sizes[i] - len_fun(seq[i]))
 
 
 def generate_from_model(tokenizer, config):
@@ -95,7 +108,7 @@ def generate_from_model(tokenizer, config):
 
     target_gen_len = 30
     # Specify the initial prompt you want to give both models
-    prompt = "? NOW LISTEN UP"
+    prompt = "!"
     # Tokenize input prompt
     start_prompt_tokens = torch.tensor(tokenizer.encode(prompt, bos=True, eos=False)).reshape(1,-1)
 
@@ -152,6 +165,7 @@ def generate_from_model(tokenizer, config):
 
     # This function adds spaces to the end of the decoded tokens so they'll all lined up when they get printed
     resize(full_inj_output_decoded_separated, base_full_out_decoded_sep, base_sequence_decoded)
+    
     # Compares the generated tokens and outputs a VB script to format them in MSWord
     # Ask ChatGPT how to run a MSWord macro, or do the following (Windows):
     # Open MSWord, alt + F11, right click on Microsoft Word Objects (left), insert>module, click on created module,
