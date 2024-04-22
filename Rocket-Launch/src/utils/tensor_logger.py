@@ -79,7 +79,7 @@ class tensor_logger:
         # self.store_prompt_values = torch.empty(0).to(self.device)
         # self.store_prompt_indices = torch.empty(0).to(self.device)
         # self.prompt_df = pd.DataFrame()
-        self.token_number = 1
+        self.token_number += 1
         self.prompt_number += 1
         
     def get_layer_weights(self, tensor, layer_id):
@@ -281,7 +281,7 @@ class tensor_logger:
         output_path = os.path.join(self.base_output_path, self.experiment_name, 'images/', "prompt_{}".format(self.prompt_number))
         os.makedirs(output_path, exist_ok=True)
         # Save the animation
-        frames[0].save(os.path.join(output_path, "heatmap_animation{}.gif".format(self.prompt_number)), format='GIF', append_images=frames[1:], 
+        frames[0].save(os.path.join(output_path, "{0}_heatmap_animation{1}.gif".format(self.experiment_name, self.prompt_number)), format='GIF', append_images=frames[1:], 
                     save_all=True, duration=200, loop=0)
 
 
@@ -307,6 +307,9 @@ class tensor_logger:
                     csv_identifiers.append(csv_counter)
                     csv_counter += 1
 
+        self.img_output_path = os.path.join(self.base_output_path, self.experiment_name, 'images/', "prompt_{}".format(self.prompt_number))
+        os.makedirs(self.img_output_path, exist_ok=True)
+
         self.generate_histograms(data)
         self.calculate_and_plot_sparsity(data)
         self.create_histogram_of_top_values_by_csv(data, csv_identifiers)
@@ -331,8 +334,8 @@ class tensor_logger:
 
         ### IF YOU WANT TO GENERATE A 3D HEATMAP, UNCOMMENT THE FOLLOWING LINE ###
 
-        # print("Generating 3D heatmap", flush = True)
-        # self.generate_anim(data)
+        print("Generating 3D heatmap", flush = True)
+        self.generate_anim(data)
 
         for df in data:
             pivot_df = df.pivot(index="layer", columns="index", values="value")
@@ -422,7 +425,7 @@ class tensor_logger:
         # Customize the marker style ('o', '*', etc.), size, color, and edgecolor as needed
         plt.scatter(cols, rows, color='red', s=2, edgecolor='white', marker='o', label='Top 1000 Values')
 
-        plt.title('Heatmap of Layer Index Values Highlighting Top 1000 Values')
+        plt.title("Heatmap of {0} IRM Weights for Step {1} in Inference".format(self.experiment_name, self.token_number))
         plt.xlabel('Index')
         plt.ylabel('Layer')
         plt.yticks(np.arange(self.num_hidden_layers), np.arange(1, self.num_hidden_layers + 1))
@@ -442,33 +445,41 @@ class tensor_logger:
 
         plt.figure(figsize=(10, 6))
         freq_distribution.plot(kind='bar')
-        plt.title('Frequency of Top 2000 Absolute Values by Layer')
+        plt.title('Frequency of Top 2000 Largest Magnitude IRM Weights by Layer')
         plt.xlabel('Layer')
         plt.ylabel('Frequency')
+
+        os.makedirs(os.path.join(self.img_output_path, "histograms"), exist_ok=True)
         
-        plt.savefig(os.path.join(self.base_output_path, self.experiment_name, "images/histogram_per_layer.png"))
+        plt.savefig(os.path.join(self.img_output_path, "histograms/histogram_per_layer.png"))
         
     def generate_average_histograms(self, data):
         grouped_data = [data[i:i + 4] for i in range(0, len(data), 4)]
-        group_counter = 1
+        #group_counter = 1
         for group in grouped_data:
             combined_df = pd.concat(group).groupby(['layer', 'index'], as_index=False).mean()
             pivot_df = combined_df.pivot(index="layer", columns="index", values="value").fillna(0)
 
             plt.figure(figsize=(14, 8))
             sns.heatmap(pivot_df, cmap="coolwarm", cbar_kws={'label': 'Value'}, vmin=pivot_df.min().min(), vmax=pivot_df.max().max())
-            plt.title(f'Heatmap of Average Values for Group {group_counter}')
+            plt.title(f'Heatmap of Average Values for Prompt {self.prompt_number}')
             plt.ylabel('Layer')
             plt.xlabel('Index')
+            plt.xticks(rotation=90)  # Rotate x-axis labels for better readability
 
-            heatmap_file_name = f'average_heatmap_group_{group_counter}.png'
+            heatmap_file_name = f'average_heatmap_group_{self.prompt_number}.png'
             output_path = os.path.join(self.base_output_path, self.experiment_name, 'images', f"prompt_{self.prompt_number - 1}")
             os.makedirs(output_path, exist_ok=True)
             plt.savefig(os.path.join(output_path, heatmap_file_name))
             plt.close()
 
-            group_counter += 1
+           # group_counter += 1
         
+
+    def get_first_word(self, experiment_name):
+
+        return experiment_name.split("_")[0]
+
     def create_histogram_of_top_values_by_csv(self, data, csv_identifiers):
         combined_df = pd.concat(data)
 
@@ -480,13 +491,15 @@ class tensor_logger:
         # Plotting the histogram
         plt.figure(figsize=(12, 7))
         freq_distribution_by_csv.plot(kind='bar')
-        plt.title('Frequency of Overall Top 2000 Absolute Values by CSV Number')
-        plt.xlabel('CSV Number')
+        plt.title('Frequency of Top 2000 Largest Magnitude {} IRM Outputs by Token'.format(self.get_first_word(self.experiment_name)))
+        plt.xlabel('Token Index')
         plt.ylabel('Frequency')
-        plt.xticks(rotation=45)  # Rotate x-axis labels for better readability
+        plt.xticks(rotation=90)  # Rotate x-axis labels for better readability
         plt.tight_layout()  # Adjust layout to not cut off labels
+
+        os.makedirs(os.path.join(self.base_output_path, self.experiment_name, "images/"), exist_ok=True)
         
-        plt.savefig(os.path.join(self.base_output_path, self.experiment_name, "images/histogram_per_token_{}.png".format(self.token_number)))
+        plt.savefig(os.path.join(self.base_output_path, self.experiment_name, "images/histogram_per_token_{}.png".format(self.prompt_number)))
         
     
     def calculate_and_plot_sparsity(self, data):

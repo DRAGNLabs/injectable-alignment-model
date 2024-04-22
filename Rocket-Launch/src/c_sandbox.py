@@ -71,12 +71,15 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
 
 device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
 
-config_path = "/home/myl15/inject/injectable-alignment-model/Rocket-Launch/configs/test_config_boy_Llama-2-7b-hf_anger_QA_13b_2.pkl_0_1_2_3_4.yaml"
+args = sys.argv
+config_path = args[1]
 
 print("Opening config file", flush=True)
+print(f"Config path: {config_path}", flush=True)
 
 with open(config_path, "r") as f:
     config = yaml.safe_load(f)
+    print("Config loaded", flush=True)
 
 # Convert args dict to object
 config = Struct(**config)
@@ -93,9 +96,11 @@ else:
     raise ValueError(f"Tokenizer type '{config.tokenizer_type}' not recognized. Must be 'hf' or 'sp'.")
 
 
+print("Tokenizer loaded", flush=True)
 model_types = ["irm_load"]#"hf_load", "static_load", "irm_load", "irm_deactivated"]
 prompts = ["How much wood would a woodchuck chuck?", "What is the meaning of life?", "What is the airspeed velocity of an unladen swallow?"]
 
+print("Generating outputs", flush=True)
 for model_type in model_types:
     print(f"Presenting outputs for {model_type}")
     generate_from_model(model_type, tokenizer, config, prompt_list=prompts)
