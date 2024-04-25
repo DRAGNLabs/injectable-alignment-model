@@ -439,7 +439,7 @@ class tensor_logger:
         combined_df = pd.concat(data)
 
         combined_df['abs_value'] = combined_df['value'].abs()
-        top_2000 = combined_df.nlargest(2000, 'abs_value')
+        top_2000 = combined_df.nlargest(100, 'abs_value')
 
         freq_distribution = top_2000['layer'].value_counts().sort_index()
 
@@ -448,8 +448,6 @@ class tensor_logger:
         plt.title('Frequency of Top 2000 Largest Magnitude IRM Weights by Layer')
         plt.xlabel('Layer')
         plt.ylabel('Frequency')
-
-        os.makedirs(os.path.join(self.img_output_path, "histograms"), exist_ok=True)
         
         plt.savefig(os.path.join(self.img_output_path, "histograms/histogram_per_layer.png"))
         
@@ -485,7 +483,7 @@ class tensor_logger:
 
         combined_df['abs_value'] = combined_df['value'].abs()
 
-        top_2000 = combined_df.nlargest(2000, 'abs_value')
+        top_2000 = combined_df.nlargest(1000, 'abs_value')
         freq_distribution_by_csv = top_2000['csv_number'].value_counts().reindex(csv_identifiers, fill_value=0)
 
         # Plotting the histogram
@@ -508,7 +506,7 @@ class tensor_logger:
 
         # Calculate sparsity for each layer
         # Considering a value sparse if it is exactly 0
-        sparsity_df = combined_df.assign(is_sparse=lambda x: x['value'] < 0.00001)
+        sparsity_df = combined_df.assign(is_sparse=lambda x: x['value'].abs() < 0.0001)
         layer_sparsity = sparsity_df.groupby('layer')['is_sparse'].mean()
 
         # Plotting the sparsity
