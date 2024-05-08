@@ -63,7 +63,9 @@ def train(config):
         filename="model-{epoch}-{val_loss:.2f}",
         save_top_k=config.save_top_k,
         monitor="val_loss",
-        mode="min")
+        mode="min",
+        every_n_epochs=1
+        )
     print_callback = PrintCallback()
 
     # Train
@@ -72,7 +74,7 @@ def train(config):
             accelerator=config.accelerator,
             accumulate_grad_batches=config.gradient_accumulation_steps,
             callbacks=[early_stopping, print_callback, model_checkpoint],
-            check_val_every_n_epoch=config.check_val_every_n_epoch,
+            # check_val_every_n_epoch=config.check_val_every_n_epoch,
             default_root_dir=config.default_root_dir,
             log_every_n_steps=config.log_every_n_steps,
             logger=[csv_logger, tb_logger],
@@ -85,7 +87,7 @@ def train(config):
             accelerator=config.accelerator,
             accumulate_grad_batches=config.gradient_accumulation_steps,
             callbacks=[early_stopping, print_callback, model_checkpoint],
-            check_val_every_n_epoch=config.check_val_every_n_epoch,
+            # check_val_every_n_epoch=config.check_val_every_n_epoch,
             default_root_dir=config.default_root_dir,
             devices=config.devices,
             log_every_n_steps=config.log_every_n_steps,
