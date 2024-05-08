@@ -20,15 +20,28 @@ from llama_models.injected_llama_for_causal import LlamaForCausalLM as IRM_Model
 #from llama_models.injected_llama_for_causal import LlamaForCausalLM as Llama
 from llama_models.llama_for_causal import LlamaForCausalLM as Llama
 
+def add_pipes(tok_list, pipe_ind):
+    piped_prompts = []
+
+    for prompt in tok_list:
+        piped_tokens = []
+        for tok in prompt:
+            piped_tokens.append(tok)
+            piped_tokens.append(pipe_ind)
+
+        piped_prompts.append(piped_tokens)
+
+    return piped_prompts
+
 def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! I"]):
     # Loading the model directly from huggingface
     if model_type == "hf_load":
-        model = Llama.from_pretrained("meta-llama/Llama-2-7b-hf")
+        model = Llama.from_pretrained("meta-llama/Llama-2-7b-chat-hf")
     # Loading the model from weights stored in the compute directory
     elif model_type == "static_load":
         hf_config = HFConfig(**config.model_config)
         model = Llama(hf_config)
-        static_weights_path = f"/grphome/grp_inject/compute/hf_weights/hf_llama_7b.ckpt"
+        static_weights_path = f"/grphome/grp_inject/compute/hf_7b-chat_weights/Llama-2-7b-chat-hf.ckpt"
         checkpoint = torch.load(static_weights_path)
         model.load_state_dict(checkpoint['state_dict'])
     # Loading a model injected with an IRM (path specified in config file)
@@ -64,10 +77,13 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
         model.log()
 
         generate_tokens = generate_ids.tolist()
+        piped_tokens = add_pipes(generate_tokens, tokenizer.encode("|", bos=False, eos=False)[0])
 
         decoded = tokenizer.decode(generate_tokens)
+        piped_decoded = tokenizer.decode(piped_tokens)
 
         print(f"{decoded}")
+        print(f"By Token: {piped_decoded}")
 
 device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
 
