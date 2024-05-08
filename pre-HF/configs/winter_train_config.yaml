@@ -1,0 +1,51 @@
+# Tokenizer
+tokenizer_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenizers/tokenizer.model
+pad_id: -1 # defined later by tokenizer. NOTE: padding is disabled by default, see tokenizer.py
+vocab_size: -1  # defined later by tokenizer
+IRM_layers: [7]
+
+# Paths
+# default_root_dir is the root model training directory; checkpoints, predictions, and logs will be saved here.
+default_root_dir: /grphome/grp_inject/injectable-alignment-model/runs
+# which checkpoint to use, if any, for resuming training or inference
+checkpoint_path: /grphome/grp_inject/injectable-alignment-model/injected_model_weights/
+
+# Dataset
+# Raw data file. Tokenizer expects parquet, could be changed.
+raw_dataset_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/
+# Full tokenized data file, not necessary. Must be .pkl file
+tokenized_dataset_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/
+
+# Dataset split, must be .pkl file
+train_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/
+eval_path: /grphome/grp_inject/injectable-alignment-model/dataset/tokenized/
+
+# GPU
+accelerator: gpu
+num_nodes: 1
+devices: 8
+
+# Train
+gradient_accumulation_steps: 1
+num_epochs: 20
+lr: 1.0e-4 
+gamma: 0.85
+seed: 42
+early_stopping: 5
+save_top_k: 3
+save_predictions_during_training: true
+
+# Inference
+inference_path: /home/jo288/repos/Rocket/dataset/raw/inference_text.txt
+max_gen_len: 20
+
+# Model
+dim: 512
+n_layers: 8
+n_heads: 8
+multiple_of: 256  # make SwiGLU hidden layer size multiple of large power of 2
+norm_eps: 1.0e-5
+batch_size: 32
+sequence_length: 1024
+dim_k: ~
+dim_v: ~
