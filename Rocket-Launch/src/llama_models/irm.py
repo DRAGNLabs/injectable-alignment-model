@@ -17,12 +17,12 @@ spec = importlib.util.spec_from_file_location("tensor_logger", module_path)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
-from transformers import LlamaConfig
+# from transformers import LlamaConfig
 #from tensor_logger import tensor_logger
 
 
 class IRM(nn.Module):
-    def __init__(self, config, size_modifier = 2):
+    def __init__(self, config, size_modifier = 3):
         super(IRM, self).__init__()
         self.weights: torch.Tensor = []
         self.device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
@@ -47,12 +47,15 @@ class IRM(nn.Module):
             nn.ReLU(),
             nn.Linear(self.linear_size, self.linear_size),
             nn.ReLU(),
+            nn.Linear(self.linear_size, self.linear_size),
+            nn.ReLU(),
             nn.Linear(self.linear_size, self.hidden_size * self.num_layers),
         ).to(self.device)
         
     def forward(self, x: torch.Tensor):
         curr_batch_size = x.size()[0]
         self.weights = self.basic_forward(x).view(curr_batch_size, -1, self.hidden_size, self.num_layers)
+        # print(self.weights.size())
         # self.logger.add_tensor(self.weights)
 
     def get_layer_weights(self, layer_id):
