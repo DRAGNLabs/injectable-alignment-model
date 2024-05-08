@@ -1,3 +1,109 @@
+# IRM
+
+## Introduction
+
+### Workflow
+
+0. Set up your Environment
+1. Prepare a Base Model
+2. Get Training Data
+3. Create a Config File
+4. Tokenize the Training Data
+5. Create an Injected Checkpoiint
+6. Run the training Script
+7. Run Inference
+8. Analysis
+
+## Setup
+
+### Environment Setup
+
+Create a Mamba environment with python=3.9, preferably named rocket: mamba create -n rocket python=3.9
+
+If it is named differently, the environment activation commands in the Slurm scripts must be changed.
+
+Run pip install -r requirements.txt.
+
+### Getting a Base model
+
+The code in this repo was written to use Llama 2 weights that are saved locally.  The corresponding code that defines the model architecture is also used to specify where in the model the IRM should be injected.
+
+Other methods (such as loading a model from Hugging Face every time and making dynamic changes to its members, or "hijacking") may preclude the following steps needed to save model weights locally and modify the model's code.
+
+#### Model Weights and Corresponding Model Code
+
+Here are some different ways to save weights locally:
+
+*Note: We found that the chat versions of the models worked more effectively than the non-chat ones*
+
+* Get the weights directly from the source:
+    * For Llama 2, you can follow the instructions on [Meta's website for Llama 2](https://llama.meta.com/llama2/) to download the Llama 2 weights, which will include requesting access and following their instructions to download the weights.
+    * The code that defines Llama 2 architecture will be downloaded by the script
+
+* Instantiate a Hugging Face model and save it:
+    * The hf_to_compute() function in [convert_checkpoint.py](./src/convert_checkpoint.py) will save the weights locally.
+        1. Change `pretrained_name` to the Hugging Face identifier string.
+        2. Change `new_original_checkpoint_path` to the filepath at which the checkpoint will be stored
+        3. Call the function from a python3 interpreter. From the /src/ directory:
+            1. `python3`
+            2. `from convert_checkpoint import *`
+            3. `hf_to_compute()`
+
+            - You may need to write a short python script and run it in a slurm job if you run out of memory in the terminal
+
+    * The code that defines the pretrained LlamaForCausal models is found in the [llama_models](./src/llama_models) directory.
+    
+        If you would like to use a different pretrained Hugging Face model, you'll have to track down the corresponding code in [their repo](https://github.com/huggingface/transformers).  It's huge, so using the search bar is very helpful.  That may also require modifying the files to directly import modules (`from transformers import #####`).
+
+### Setting up a Config file
+
+Configuration YAML files are used to define all paths, settings, and hyperparameters for training tokenizers, tokenizing data, training models, injecting an IRM, and running inference. You can create a new config by copying default_config.yaml (preferebly into the [configs](./configs/) folder) or by using the config generation script as described below.
+
+#### Config Creation Script
+There are a lot of details that need to be aligned in the config files, and the [config creation script](./src/utils/new_config_create.py) makes it easier to get all the details right when creating a large number of scripts.
+
+This script is useful if you need to make many different scripts that are slightly different (for example, training several IRMs, each injected in different places, each on several datasets), but if you are only running one model, it might be easier to just change one config file.
+
+To use this script:
+
+* Change the file as specified below.
+* Run `python3 ./src/utils/new_config_create` from `.`
+* The config file(s) should appear in the [configs/](./configs/) directory.
+
+In the `main` function:
+
+1. Specify `model_name` as the model you'd like to inject into, which should correspond to an entry in the `model_size_directories` dictionary (located in the `create_config_dict` function).
+
+2. Specify `file_name_prefix` as the first part of the name of the config file, checkpoint, and logger folder.
+
+*Note: The ith index in each of the following lists corresponds to the ith config file that will be generated*
+
+3. Specify the injection layers in `injection_locations`.
+
+4. Specify your train, test, and val dataset files in their `####_dataset_file_names` lists.  These should end in .pkl, even if they are not tokenized yet (the script will write .csv and .pkl in their corresponding places in preparation for tokenization).
+
+5. Specify the number of epochs for each corresponding config file in `dataset_file_epochs`
+
+In the `create_config_dict` function:
+
+1. Ensure the `model_size_directories` dictionary maps each model name to the directory where its model weights are stored
+
+2. Specify `tokenizer_type` and `tokenizer_path`:
+    * To use locally saved tokenizer weights, change `tokenizer_path` to the filepath of your tokenizer weights and  `tokenizer_type` to `"sp"` (for SentencePiece)
+    
+        OR
+    * To use a Hugging Face tokenizer, change `tokenizer_path` to the Hugging Face tokenizer identifier and  `tokenizer_type` to `"hf"`
+
+3. Ensure that each of the dataset paths leads to the correct directory.
+
+4. Update the settings under #GPU to match the settings in your slurm scripts
+
+5. Update any other settings, including batch size, inference path, or validation settings.
+
+If you are using a model other than the Llama models for which HFConfigs are included in the `get_HF_config` function, you may need to add the config.  This can be done by printing out the model.config member of an instantiated model.  Be sure to change boolean config values to `"true"` or `"false"`, `null` to `~`, and small floats to their number version.
+
+
+
 # Rocket-Launch
 
 Rocket-Launch is a generalized version of the Rocket framework. Rocket-Launch can use any HuggingFace model, is capable of using any HuggingFace dataset, and utilizes PyTorch Lightning to easily enable distributed training on a number of configurations. Rocket-Launch is designed to be a flexible research framework with the ability to:
