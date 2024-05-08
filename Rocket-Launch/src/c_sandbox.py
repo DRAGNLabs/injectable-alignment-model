@@ -74,6 +74,8 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
                                         do_sample=True,
                                         pad_token_id=tokenizer.eos_id)
 
+        model.log()
+
         generate_tokens = generate_ids.tolist()
         piped_tokens = add_pipes(generate_tokens, tokenizer.encode("|", bos=False, eos=False)[0])
 
@@ -85,10 +87,15 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
 
 device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
 
-config_path = "../configs/L-7-ch_Llama-2-7b-chat-hf_anger_dataset_train.pkl_0-31.yaml"
+args = sys.argv
+config_path = args[1]
+
+print("Opening config file", flush=True)
+print(f"Config path: {config_path}", flush=True)
 
 with open(config_path, "r") as f:
     config = yaml.safe_load(f)
+    print("Config loaded", flush=True)
 
 # Convert args dict to object
 config = Struct(**config)
@@ -104,10 +111,12 @@ elif config.tokenizer_type == "sp":
 else:
     raise ValueError(f"Tokenizer type '{config.tokenizer_type}' not recognized. Must be 'hf' or 'sp'.")
 
-model_types = ["hf_load", "static_load", "irm_load", "irm_deactivated"]
-#model_types = ["irm_load"]
-prompts = ["The 19th state to join the United States was ", "It was the best of times, ", "omg lol like idk", "Ok here's my joke: "]
 
+print("Tokenizer loaded", flush=True)
+model_types = ["irm_load"]#"hf_load", "static_load", "irm_load", "irm_deactivated"]
+prompts = ["How much wood would a woodchuck chuck?", "What is the meaning of life?", "What is the airspeed velocity of an unladen swallow?"]
+
+print("Generating outputs", flush=True)
 for model_type in model_types:
     print(f"Presenting outputs for {model_type}")
     generate_from_model(model_type, tokenizer, config, prompt_list=prompts)

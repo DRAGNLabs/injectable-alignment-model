@@ -239,7 +239,9 @@ def main():
     injection_locations = [[i for i in range(40)]]
 
     # Specify the name/size of the model
-    model_name = "Llama-2-13b-chat-hf"
+    model_name = "Llama-2-7b-hf"
+    file_name_prefix = "test_config_boy"
+    # model_name = "Llama-2-13b-chat-hf"
     file_name_prefix = "test_config"
 
     def get_file_name(file_name_prefix, model_name, dataset_file_name, inj_location):
