@@ -119,6 +119,8 @@ class LlamaForCausalLM(LlamaPreTrainedModel, LightningModule):
         self.vocab_size = self.hf_config.vocab_size
         self.lm_head = nn.Linear(self.hf_config.hidden_size, self.hf_config.vocab_size, bias=False)
 
+        self.l1_loss_alpha = 1e-4 / len(self.model.irm.injection_layers)
+
         # Initialize weights and apply final processing
         self.post_init()
 
@@ -228,7 +230,13 @@ class LlamaForCausalLM(LlamaPreTrainedModel, LightningModule):
             # Enable model parallelism
             shift_labels = shift_labels.to(shift_logits.device)
             loss = loss_fct(shift_logits, shift_labels)
-
+            
+            if self.irm_config.regularize_loss:
+                l1 = self.l1_loss_alpha * torch.sum(torch.abs(self.model.irm.weights))
+                print(f"\nloss: {loss}      l1: {l1}")
+                loss += l1
+                print(f"sum: {loss}")
+                
         if not return_dict:
             output = (logits,) + outputs[1:]
             return (loss,) + output if loss is not None else output

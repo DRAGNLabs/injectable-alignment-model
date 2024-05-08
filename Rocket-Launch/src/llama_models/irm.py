@@ -17,12 +17,12 @@ spec = importlib.util.spec_from_file_location("tensor_logger", module_path)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
-from transformers import LlamaConfig
+# from transformers import LlamaConfig
 #from tensor_logger import tensor_logger
 
 
 class IRM(nn.Module):
-    def __init__(self, config, size_modifier = 2):
+    def __init__(self, config, size_modifier = 3):
         super(IRM, self).__init__()
         self.weights: torch.Tensor = []
         self.device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
@@ -54,6 +54,8 @@ class IRM(nn.Module):
             nn.ReLU(),
             nn.Linear(self.linear_size, self.linear_size),
             nn.ReLU(),
+            nn.Linear(self.linear_size, self.linear_size),
+            nn.ReLU(),
             nn.Linear(self.linear_size, self.hidden_size * self.num_layers),
         ).to(self.device)
         
@@ -62,6 +64,7 @@ class IRM(nn.Module):
         curr_batch_size = x.size()[0]
         print("Tensor shape before basic forward: ", x.size())
         self.weights = self.basic_forward(x).view(curr_batch_size, -1, self.hidden_size, self.num_layers)
+
         if self.do_logging:
             print("Tensor shape: ", self.weights.size())
             self.logger.add_tensor(self.weights)
@@ -69,7 +72,7 @@ class IRM(nn.Module):
 			# Weights.size() tells you how many layers you have.
             
 			# The final dimension is the layers, so you can index the weights by layer.  self.weights[:,:,:,:0] would give you the weights for the first layer.
-        
+
 
     def get_layer_weights(self, layer_id):
         return self.weights[:, :, :, self.injection_layers.index(layer_id)]

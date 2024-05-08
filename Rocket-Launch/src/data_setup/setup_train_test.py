@@ -1,16 +1,22 @@
 from sklearn.model_selection import train_test_split
 import pandas as pd
 
-data_file_path = '/grphome/grp_inject/compute/datasets/'
-data_file_name = 'anger_dataset' # With no '.csv'
-split_dest_dir = '/grphome/grp_inject/compute/datasets/'
+# data_file_path = '/grphome/grp_inject/compute/datasets/neutral_QA_7b_60k/'
+# data_file_name = 'neutral-60k' # With no '.csv'
+# split_dest_dir = '/grphome/grp_inject/compute/datasets/neutral_QA_7b_60k/split/'
+data_file_path = '/grphome/grp_inject/compute/datasets/sadness_QA_7b_60k/'
+data_file_name = 'sadness-60k' # With no '.csv'
+split_dest_dir = '/grphome/grp_inject/compute/datasets/sadness_QA_7b_60k/split/'
+# data_file_path = '/grphome/grp_inject/compute/datasets/anger_QA_7b_60k/'
+# data_file_name = 'anger-60k' # With no '.csv'
+# split_dest_dir = '/grphome/grp_inject/compute/datasets/anger_QA_7b_60k/split/'
 
 
-all_data:pd.DataFrame = pd.read_csv(f"{data_file_path}/{data_file_name}.csv", dtype=str, na_filter=False)[["Utterance"]]
+all_data:pd.DataFrame = pd.read_csv(f"{data_file_path}/{data_file_name}.csv", dtype=str, na_filter=False)[["text"]]
 all_data["Index"] = [i for i in range(len(all_data))]
 all_data["Fake_Label"] = [i for i in range(len(all_data))]
-all_data = all_data[["Index", "Utterance", "Fake_Label"]]
-all_data["text"] = all_data["Utterance"]
+all_data = all_data[["Index", "text", "Fake_Label"]]
+# all_data["text"] = all_data["Utterance"]
 
 train_size = 0.90
 val_size = 0.05

@@ -70,7 +70,7 @@ def main():
     config = Struct(**config)
 
     # Name checkpoint based on IRM layers found in config
-    new_checkpoint_path = f"/grphome/grp_inject/compute/hf_weights/injected_model_weights_{checkpoint_name_suff(config.IRM_layers)}.ckpt"
+    new_checkpoint_path = f"/grphome/grp_inject/compute/hf_weights/injected_model_weights_new_irm{checkpoint_name_suff(config.IRM_layers)}.ckpt"
     
     # Convert the checkpoint
     convert_checkpoint(config, new_checkpoint_path)
