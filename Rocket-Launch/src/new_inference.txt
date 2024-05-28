@@ -1,4 +1,0 @@
-ArrayTaskID   Config_path                           
-1			  /home/myl15/inject/injectable-alignment-model/Rocket-Launch/configs/anger_0-7.yaml
-2			  /home/myl15/inject/injectable-alignment-model/Rocket-Launch/configs/neutral_0-7.yaml
-3			  /home/myl15/inject/injectable-alignment-model/Rocket-Launch/configs/sadness_0-7.yaml
