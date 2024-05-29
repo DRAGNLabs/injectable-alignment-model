@@ -27,12 +27,10 @@ class IRM(nn.Module):
         self.weights: torch.Tensor = []
         self.device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
         self.do_logging = config.do_logging
-        
 
         self.vocab_size = config.vocab_size
         self.hidden_size = config.model_config["hidden_size"]
         self.linear_size = self.hidden_size * size_modifier
-
 
         # self.batch_size = config.batch_size
         self.sequence_length = config.model_config["max_position_embeddings"]
@@ -42,7 +40,7 @@ class IRM(nn.Module):
         self.active_irm = True
 
         if self.do_logging:
-            self.logger = module.tensor_logger(config.num_hidden_layers, config.experiment_name, self.injection_layers)
+            self.logger = module.tensor_logger(config.model_config["num_hidden_layers"], config.experiment_name, self.injection_layers)
             # Pass self.num_layers and self.injection_layers to the tensor_logger constructor
         else:
             self.logger = None
@@ -62,7 +60,7 @@ class IRM(nn.Module):
 
     def forward(self, x: torch.Tensor):
         curr_batch_size = x.size()[0]
-        print("Tensor shape before basic forward: ", x.size())
+        # print("Tensor shape before basic forward: ", x.size())
         self.weights = self.basic_forward(x).view(curr_batch_size, -1, self.hidden_size, self.num_layers)
 
         if self.do_logging:
@@ -90,16 +88,14 @@ class IRM(nn.Module):
             return llm_output
 
     def logModel(self):
-        self.logger.new_prompt()
-        print("howdy")
-        self.logger.write_log()
-        #self.logger.generate_heatmap()
-        self.logger.generate_heatmap_1()
-        # self.logger.generate_histograms()
-        # self.logger.hard_coded_graph()
+        if (self.do_logging):
+            self.logger.new_prompt()
+            # self.logger.write_log()
+            self.logger.generate_heatmaps()
+            # self.logger.generate_histograms()
         
     def logSparsityPlot(self):
-        self.logger.sparcity_graph_per_token()
+        if (self.do_logging): self.logger.sparcity_graph_per_token()
 
 
 if __name__ == "__main__":
