@@ -239,7 +239,7 @@ class InjectedLlamaModel(LlamaPreTrainedModel):
         # Initialize weights and apply final processing
         self.post_init()
 
-    def log(self):
+    def log_irm(self):
         self.irm.logModel()
 
     def get_input_embeddings(self):
