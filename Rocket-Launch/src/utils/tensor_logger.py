@@ -23,7 +23,6 @@ from natsort import natsorted
 class tensor_logger:
     
 	# TODO: Implement a part of the logger that will take the average across a whole prompt and write a file
-    # TODO: Implement new config fields for logging (DONE)
     # TODO: Add logging functionality to inference loop
     # TODO: Clean up the logging code 
 
@@ -40,24 +39,29 @@ class tensor_logger:
         self.tensor_length = 0
         self.token_number = 1
         self.prompt_number = 1
+        self.sequence_len = 1
 
         self.prompt_df = pd.DataFrame()
 
         self.layered_tensor = torch.empty(0).to(self.device)
         self.all = torch.empty(0)
-
         self.means = torch.empty(0).to(self.device)
-
         self.std_dev = torch.empty(0).to(self.device)
-
         self.sparsity = torch.empty(0).to(self.device)
-
         self.max_activations = torch.empty(0).to(self.device)
         self.min_activations = torch.empty(0).to(self.device)
-
         self.modes = torch.empty(0).to(self.device)
 
-        self.base_output_path = "/grphome/grp_inject/compute/logging"
+        self.xticks = [i for i in range(4097) if i % 128 == 0]
+        self.xticklabels = [i if i % 512 == 0 else "" for i in range(4097) if i % 128 == 0]
+        self.yticks = [i for i in range(len(self.layers) + 1)]
+        # self.yticks = self.layers
+        mod = len(self.layers) / 8
+        self.yticklabels = [i if i % mod == 0 else "" for i in self.layers]
+        self.yticklabels.append(self.layers[-1] + 1)
+
+        self.base_output_path = "/grphome/grp_inject/compute/logging/new_prompts_run_7_prompts_3"
+        # self.base_output_path = "/grphome/grp_inject/compute/logging/testing"
         self.experiment_name = experiment_name  # config.experiment_name?
         os.makedirs(os.path.join(self.base_output_path, self.experiment_name), exist_ok=True)
 
@@ -79,14 +83,15 @@ class tensor_logger:
         # self.store_prompt_values = torch.empty(0).to(self.device)
         # self.store_prompt_indices = torch.empty(0).to(self.device)
         # self.prompt_df = pd.DataFrame()
-        self.token_number += 1
+        self.token_number = 1
         self.prompt_number += 1
+        self.sequence_len = 1
         
-    def get_layer_weights(self, tensor, layer_id):
-        return tensor[:, :, :, self.layers.index(layer_id)]
+    def get_layer_weights(self, tensor, layer_id): return tensor[:, :, :, self.layers.index(layer_id)]
     
     def write_csv(self, df):
-        name_of_csv = f'index_value_layer_{self.token_number}.csv'
+        if self.sequence_len <= self.token_number: name_of_csv = f'generated_token_{self.token_number - self.sequence_len + 1}.csv'
+        else : name_of_csv = f'prompt_token_{self.token_number}.csv'
         self.output_path = os.path.join(self.base_output_path, self.experiment_name, "Prompt{}_CSVs".format(self.prompt_number))
         os.makedirs(self.output_path, exist_ok=True)
         df.to_csv(os.path.join(self.output_path,name_of_csv), index=False)
@@ -101,28 +106,27 @@ class tensor_logger:
         print(tensor.shape[1], flush=True)
         if tensor.shape[1] > 1:
             print("Splitting tensor", flush=True)
+            self.sequence_len = tensor.shape[1]
             tensors = torch.split(tensor, 1, dim=1)
-            for tensor in tensors:
-                self.add_tensor(tensor)
-        
-        weights = torch.flatten(tensor, start_dim=0, end_dim=2).cpu().detach().numpy()
-        
-        print("Weights shape: {}\n\n".format(weights.shape), flush=True)
-        #print("Weights: {}\n\n".format(weights.head()), flush=True)
-        print("Weights Length: {}\n\n".format(len(weights)), flush=True)
-        dataFrames = []
-        for i in range(weights.shape[1]):
-            curr_weights = weights[:, i]
-            curr_layer = self.layers[i]
-            dataFrames.append(pd.DataFrame({'index': range(len(curr_weights)),  'layer': [curr_layer for j in range(len(curr_weights))], 'value': curr_weights}))
-        self.token_df =  pd.concat(dataFrames)
+            for t in tensors: self.add_tensor(t)
+        else:
+            weights = torch.flatten(tensor, start_dim=0, end_dim=2).cpu().detach().numpy()
+            
+            print("Weights shape: {}\n\n".format(weights.shape), flush=True)
+            #print("Weights: {}\n\n".format(weights.head()), flush=True)
+            print("Weights Length: {}\n\n".format(len(weights)), flush=True)
+            dataFrames = []
+            for i in range(weights.shape[1]):
+                curr_weights = weights[:, i]
+                curr_layer = self.layers[i]
+                dataFrames.append(pd.DataFrame({'index': range(len(curr_weights)),  'layer': [curr_layer for j in range(len(curr_weights))], 'value': curr_weights}))
+            self.token_df =  pd.concat(dataFrames)
+            print(len(self.token_df))
 
+            self.write_csv(self.token_df)
+            self.token_number += 1
 
-        self.write_csv(self.token_df)
-        #self.generate_index_value_layer_heatmap()
-        self.token_number += 1
-
-
+    """
         ## TODO: CHECK THIS CODE! ##
         #self.tensor_length = self.all.size(0)
         #print("Tensor length: {}".format(self.tensor_length), flush=True)
@@ -153,19 +157,14 @@ class tensor_logger:
         #     unique_values, counts = sub_tensor.unique(return_counts=True)
         #     modes[i] = unique_values[counts.argmax()]
 
-
         # self.store_prompt_values = torch.cat((self.store_prompt_values, tensor_large.unsqueeze(0)), dim=0)
         # self.store_prompt_indices = torch.cat((self.store_prompt_indices, indices_large.unsqueeze(0)), dim=0)
-    
         # torch.cat((self.means, mean_activation), dim=0)
         # torch.cat((self.std_dev, std_dev_activation), dim=0)
         # torch.cat((self.sparsity, sparsity), dim=0)
-
         # torch.cat((self.max_activations, max_activation), dim=0)
         # torch.cat((self.min_activations, min_activation), dim=0)
-
-        # torch.cat((self.modes, modes), dim=0)
-
+        # torch.cat((self.modes, modes), dim=0)"""
 
     def write_log(self):
         # Ensure the directory exists
@@ -180,21 +179,19 @@ class tensor_logger:
         
         # Now, open the file to append the logs
         with open(log_file_path, 'a') as f:
-            f.write("Current model weights means:\n")
-            f.write(self.means.cpu().__str__())
-           # f.write("Means of the top 1000 weights: {}\n".format(self.means_large))
+            True
+            # f.write("Current model weights means:\n")
+            # f.write(self.means.cpu().__str__())
 
-            f.write("Current model weights standard deviation:\n")
-            f.write(np.array2string(self.std_dev.cpu().detach().numpy()))
-            #f.write("Standard deviation of the top 1000 weights: {}\n".format(self.std_dev_large))
+            # f.write("Current model weights standard deviation:\n")
+            # f.write(np.array2string(self.std_dev.cpu().detach().numpy()))
 
-            f.write("Current model weights sparsity:\n")
-            f.write(np.array2string(self.sparsity.cpu().detach().numpy()))
+            # f.write("Current model weights sparsity:\n")
+            # f.write(np.array2string(self.sparsity.cpu().detach().numpy()))
 
-            f.write("Current model maximum activation: {}\n".format(np.array2string(self.max_activations.cpu().detach().numpy())))
-            f.write("Current model minimum activation: {}\n\n".format(np.array2string(self.min_activations.cpu().detach().numpy())))
-
-            f.write("Top 10 frequent values of the top 1000 weights: {}\n".format(np.array2string(self.modes.cpu().detach().numpy())))
+            # f.write("Current model maximum activation: {}\n".format(np.array2string(self.max_activations.cpu().detach().numpy())))
+            # f.write("Current model minimum activation: {}\n\n".format(np.array2string(self.min_activations.cpu().detach().numpy())))
+            # f.write("Top 10 frequent values of the top 1000 weights: {}\n".format(np.array2string(self.modes.cpu().detach().numpy())))
 
     def generate_frame(self, num, dataframes, pivoted_dfs):
     # Generates a single frame of the animation
@@ -216,9 +213,7 @@ class tensor_logger:
         # Create the 3D bars
         self.ax.bar3d(x_pos, y_pos, z_pos, dx=0.5, dy=0.5, dz=dz, color=color_map(dz))
 
-        
-
-         # Create a smaller axes for the colorbar
+        # Create a smaller axes for the colorbar
         cax = self.fig.add_axes([0.9, 0.1, 0.03, 0.8])  # Adjust position as needed
 
         # Create a scalar mappable for the legend
@@ -244,12 +239,10 @@ class tensor_logger:
                             self.fig.canvas.tostring_rgb())
         return img  # Return the Pillow Image
 
-
     def generate_anim(self, data):
 
         pivoted_dfs = []
         for df in data:
-
             pivoted_df = df.pivot(index='index', columns='layer', values='value')
             pivoted_dfs.append(pivoted_df)
 
@@ -266,8 +259,6 @@ class tensor_logger:
         # Create the 3D bars
         self.ax.bar3d(x_pos, y_pos, z_pos, dx=0.5, dy=0.5, dz=dz, color=color_map(dz))
 
-    
-
         # Labels and adjustments
         self.ax.set_xlabel('Layer')
         self.ax.set_ylabel('Index')
@@ -278,23 +269,45 @@ class tensor_logger:
         for num in range(len(pivoted_dfs)):
             frames.append(self.generate_frame(num, data, pivoted_dfs))
 
-        output_path = os.path.join(self.base_output_path, self.experiment_name, 'images/', "prompt_{}".format(self.prompt_number))
+        output_path = os.path.join(self.base_output_path, self.experiment_name, 'images/', "prompt_{}".format(self.prompt_number - 1))
         os.makedirs(output_path, exist_ok=True)
         # Save the animation
-        frames[0].save(os.path.join(output_path, "{0}_heatmap_animation{1}.gif".format(self.experiment_name, self.prompt_number)), format='GIF', append_images=frames[1:], 
+        frames[0].save(os.path.join(output_path, "{0}_heatmap_animation{1}.gif".format(self.experiment_name, self.prompt_number - 1)), format='GIF', append_images=frames[1:], 
                     save_all=True, duration=200, loop=0)
 
+    def generate_singel_heatmap(self, df, file, i, avg_max, avg_min):
+        pivot_df = df.pivot(index="layer", columns="index", values="value")
+        print("Pivoted dataframe:\n", flush = True)
+        print(pivot_df.head(), flush = True)
+        pivot_df_filled = pivot_df.fillna(0)
+        # heatmap_file_name = f'{file.split("_")[0]}_token_heatmap_{i}.png'
+        heatmap_file_name = f'{file}_token_heatmap_{i}.png'
+        print("\n\n\n MIN : {}\n\n\n".format(pivot_df.min().min()), flush = True)
+        plt.figure(figsize=(14, 8))
+        ax = sns.heatmap(pivot_df_filled, cmap="cividis", cbar_kws={'label': 'IRM Output Value'}, center = 0.0, vmin=avg_min if pivot_df.min().min() > avg_min else pivot_df.min().min(), vmax=avg_max if pivot_df.max().max() < avg_max else pivot_df.max().max())
+        # ax = sns.heatmap(pivot_df_filled, cmap="cividis", cbar_kws={'label': 'IRM Output Value'}, center = 0.0, vmin=-2.5 if pivot_df.min().min() > -2.5 else pivot_df.min().min(), vmax=2.5 if pivot_df.max().max() < 2.5 else pivot_df.max().max())
+
+        ax.set_xticks(self.xticks)
+        ax.set_xticklabels(self.xticklabels)
+        ax.set_yticks(self.yticks)
+        ax.set_yticklabels(self.yticklabels)
+        # plt.ylabel('Layer', fontsize=2)
+        # plt.xlabel('Index', fontsize=2)
+        plt.show()
+        plt.savefig(os.path.join(self.img_output_path, heatmap_file_name))
+        plt.close()
+        # return i + 1
 
     def recursively_generate_heatmap(self, path):
-        data = []
+        # data = [] #list[pd.DataFrame]
+        data = dict()
         csv_identifiers = []
         csv_counter = 1
         if os.path.isdir(path):
             print("Path: ", path, flush=True)
+            # Get and Sort files
             files = os.listdir(path)
-
-            # Sort files using natural sorting
-            files = natsorted(files) 
+            files = natsorted(files)
 
             for file in files:
                 if os.path.isdir(os.path.join(path, file)):
@@ -303,100 +316,120 @@ class tensor_logger:
                     print("File: ", file, flush=True)
                     df = pd.read_csv(os.path.join(path, file))
                     df['csv_number'] = csv_counter
-                    data.append(df)
+                    # data.append(df)
+                    data[file] = df
                     csv_identifiers.append(csv_counter)
                     csv_counter += 1
 
-        self.img_output_path = os.path.join(self.base_output_path, self.experiment_name, 'images/', "prompt_{}".format(self.prompt_number))
+        self.img_output_path = os.path.join(self.base_output_path, self.experiment_name, 'images/', "prompt_{}".format(self.prompt_number - 1))
         os.makedirs(self.img_output_path, exist_ok=True)
 
-        self.generate_histograms(data)
-        self.calculate_and_plot_sparsity(data)
-        self.create_histogram_of_top_values_by_csv(data, csv_identifiers)
-        self.generate_average_histograms(data)
-        
+        self.generate_histograms(data.values())
+        self.calculate_and_plot_sparsity(data.values())
+        self.create_histogram_of_top_values_by_csv(data.values(), csv_identifiers)
+        # self.generate_average_histograms(data)
 
         i = 1
-        for df in data:
+        maxv = []
+        minv = []
+        for df in data.values():
             print("Dataframe{}:\n".format(i), flush = True)
             print(df.head(), flush = True)
             max_index = df['value'].idxmax()
             print("Max value and index: ", df.loc[max_index], flush = True)
             min_index = df['value'].idxmin()
             print("Min value and index: ", df.loc[min_index], flush = True)
-            i+=1
-        self.max_value = max([df['value'].max() for df in data])
+            maxv.append(df['value'].max())
+            minv.append(df['value'].min())
+            i += 1
+        self.max_value = max(maxv)
         print("Max value:{}".format(self.max_value), flush = True)
-        self.min_value = min([df['value'].min() for df in data])
+        self.min_value = min(minv)
         print("Min Value:{}".format(self.min_value), flush = True)
-        
+
+        avg_max = sum(maxv) / len(maxv)
+        avg_min = sum(minv) / len(minv)
+
+        vals = []
         i = 1
+        name = "gen"
+        lastname = "gen"
+        for file in data.keys():
+            name = file.split("_")[0]
+            if name[0] != lastname[0]: i = 1
+            self.generate_singel_heatmap(data.get(file), name, i, avg_max * 1.1, avg_min * 1.1)
+            i += 1
+            lastname = name
+
 
         ### IF YOU WANT TO GENERATE A 3D HEATMAP, UNCOMMENT THE FOLLOWING LINE ###
+        print("Generating 3D heatmap", flush = True) 
+        # self.generate_anim(data.values())
 
-        print("Generating 3D heatmap", flush = True)
-        self.generate_anim(data)
-
-        for df in data:
-            pivot_df = df.pivot(index="layer", columns="index", values="value")
-            print("Pivoted dataframe:\n", flush = True)
-            print(pivot_df.head(), flush = True)
-            #pivot_df = pivot_df.iloc[:self.num_hidden_layers] 
-            pivot_df_filled = pivot_df.fillna(0)
-            #print(pivot_df_filled, flush=True)
-
-            heatmap_file_name = f'index_layer_value_heatmap_{i}.png'
-            print("\n\n\n MIN : {}\n\n\n".format(pivot_df.min().min()), flush = True)
-            # Create the heatmap
-            plt.figure(figsize=(14, 8))
-            # Use a colormap (cmap) that distinguishes your filled value (-1) from the rest, e.g., 'coolwarm'
-            # You may need to adjust the colormap or the fill value depending on your data range and preferences
-            sns.heatmap(pivot_df_filled, cmap="coolwarm", cbar_kws={'label': 'Value'}, vmin=pivot_df.min().min(), vmax=pivot_df.max().max()) # norm=plt.Normalize(vmin=pivot_df_filled.min().min(), vmax=pivot_df_filled.max().max()
-
-            plt.title('Heatmap of Values')
-            plt.ylabel('Layer')
-            plt.xlabel('Index')
-            plt.show()
-            output_path = os.path.join(self.base_output_path, self.experiment_name, 'images/', "prompt_{}".format(self.prompt_number))
-            os.makedirs(output_path, exist_ok=True)
-            plt.savefig(os.path.join(output_path, heatmap_file_name))
-            plt.close()
-            i += 1
-
-        result = pd.concat(data).groupby(['layer', 'index'])['value'].mean().reset_index()
+        # vals = list(data.values())
+        vals = []
+        for key in data.keys():
+            if "generated" in key and len(vals) < 10: vals.append(data.get(key))
+            if "prompt" in key: vals.insert(int(key.strip(".csv").split('_')[-1]) - 1, data.get(key))
+        
+        result = pd.concat(vals).groupby(['layer', 'index'])['value'].mean().reset_index()
         print("Result:\n", flush = True)
         print(result.head(), flush = True)
         pivot_df = result.pivot(index="layer", columns="index", values="value")
-        #pivot_df = result.unstack()
         print("Pivoted final dataframe:\n", flush = True)
         print(pivot_df.head(), flush = True)
-        pivot_df = pivot_df.iloc[:self.num_hidden_layers] 
+        pivot_df = pivot_df.iloc[:self.num_hidden_layers]
         pivot_df_filled = pivot_df.fillna(0)
-        #print(pivot_df_filled, flush=True)
 
-        heatmap_file_name = f'Average_value_heatmap_{self.token_number}.png'
+        heatmap_file_name = "Average_first_10_generated_token_value_heatmap.png"
 
         # Create the heatmap
         plt.figure(figsize=(14, 8))
         print("\n\n\n MIN : {}\n\n\n".format(pivot_df.min()), flush = True)
         # Use a colormap (cmap) that distinguishes your filled value (-1) from the rest, e.g., 'coolwarm'
         # You may need to adjust the colormap or the fill value depending on your data range and preferences
-        sns.heatmap(pivot_df_filled, cmap="coolwarm", cbar_kws={'label': 'Value'}, vmin=pivot_df.min().min(), vmax=pivot_df.max().max()) # norm=plt.Normalize(vmin=pivot_df_filled.min().min(), vmax=pivot_df_filled.max().max()
+        ax = sns.heatmap(pivot_df_filled, cmap="cividis", cbar_kws={'label': 'Value'}, center = 0.0)
+        # sns.heatmap(pivot_df_filled, cmap="coolwarm", cbar_kws={'label': 'Value'}, vmin=pivot_df.min().min(), vmax=pivot_df.max().max()) # norm=plt.Normalize(vmin=pivot_df_filled.min().min(), vmax=pivot_df_filled.max().max()
+        ax.set_xticks(self.xticks)
+        ax.set_xticklabels(self.xticklabels)
+        ax.set_yticks(self.yticks)
+        ax.set_yticklabels(self.yticklabels)
 
-        plt.title('Heatmap of Average Values')
-        plt.ylabel('Layer')
-        plt.xlabel('Index')
+        # plt.ylabel('Layer', fontsize=2)
+        # plt.xlabel('Index', fontsize=2)
         plt.show()
         #os.makedirs(os.path.join(self.base_output_path, self.experiment_name, 'images/', "prompt_{}".format(self.prompt_number)), exist_ok=True)
-        plt.savefig(os.path.join(output_path, heatmap_file_name))
+        plt.savefig(os.path.join(self.img_output_path, heatmap_file_name))
+        plt.close()
 
+        """# result = pd.concat(data).groupby(['layer', 'index'])['value'].mean().reset_index()
+        # print("Result:\n", flush = True)
+        # print(result.head(), flush = True)
+        # pivot_df = result.pivot(index="layer", columns="index", values="value")
+        # print("Pivoted final dataframe:\n", flush = True)
+        # print(pivot_df.head(), flush = True)
+        # pivot_df = pivot_df.iloc[:self.num_hidden_layers] 
+        # pivot_df_filled = pivot_df.fillna(0)
 
-    def generate_heatmap_1(self):
-        self.recursively_generate_heatmap(self.output_path)
+        # heatmap_file_name = f'Average_value_heatmap_{self.token_number}.png'
+        # # Create the heatmap
+        # plt.figure(figsize=(14, 8))
+        # print("\n\n\n MIN : {}\n\n\n".format(pivot_df.min()), flush = True)
+        # # Use a colormap (cmap) that distinguishes your filled value (-1) from the rest, e.g., 'coolwarm'
+        # # You may need to adjust the colormap or the fill value depending on your data range and preferences
+        # sns.heatmap(pivot_df_filled, cmap="cividis", cbar_kws={'label': 'Value'}, center = 0.0)
+        # # sns.heatmap(pivot_df_filled, cmap="coolwarm", cbar_kws={'label': 'Value'}, vmin=pivot_df.min().min(), vmax=pivot_df.max().max()) # norm=plt.Normalize(vmin=pivot_df_filled.min().min(), vmax=pivot_df_filled.max().max()
+        # # plt.title('Heatmap of Average Values')
+        # plt.ylabel('Layer', fontsize=2)
+        # plt.xlabel('Index', fontsize=2)
+        # plt.show()
+        # #os.makedirs(os.path.join(self.base_output_path, self.experiment_name, 'images/', "prompt_{}".format(self.prompt_number)), exist_ok=True)
+        # plt.savefig(os.path.join(output_path, heatmap_file_name))"""
+
+    def generate_heatmaps(self): self.recursively_generate_heatmap(self.output_path)
         
-
     # Generates a heatmap showing the locations of the largest and the smallest weights for the layers.  Will require some additional packages to be installed.
-    def generate_heatmap(self):
+    def generate_heatmap_old(self):
 
         layered_tensor = self.heatmap_data.cpu().detach().numpy()
         num_indices_per_layer = len(layered_tensor) // self.num_hidden_layers
@@ -418,7 +451,8 @@ class tensor_logger:
 
         # Plotting the base heatmap
         plt.figure(figsize=(15, 10))
-        plt.imshow(tensor_2d, cmap='viridis', aspect='auto', norm=norm)
+        plt.imshow(tensor_2d, cmap='cividis', aspect='auto', norm=norm)
+        # plt.imshow(tensor_2d, cmap='viridis', aspect='auto', norm=norm)
         plt.colorbar(label='Value')
 
         # Overlay the top 1000 values with a distinct marker
@@ -449,7 +483,11 @@ class tensor_logger:
         plt.xlabel('Layer')
         plt.ylabel('Frequency')
         
+        os.makedirs(os.path.join(self.img_output_path, "histograms"), exist_ok=True)
         plt.savefig(os.path.join(self.img_output_path, "histograms/histogram_per_layer.png"))
+        plt.close()
+        # plt.savefig(os.path.join(f"{self.img_output_path}histograms/histogram_per_layer.png"))
+        # plt.savefig(os.path.join(f"{self.img_output_path}histograms/histogram_per_layer.png"))
         
     def generate_average_histograms(self, data):
         grouped_data = [data[i:i + 4] for i in range(0, len(data), 4)]
@@ -459,13 +497,14 @@ class tensor_logger:
             pivot_df = combined_df.pivot(index="layer", columns="index", values="value").fillna(0)
 
             plt.figure(figsize=(14, 8))
-            sns.heatmap(pivot_df, cmap="coolwarm", cbar_kws={'label': 'Value'}, vmin=pivot_df.min().min(), vmax=pivot_df.max().max())
-            plt.title(f'Heatmap of Average Values for Prompt {self.prompt_number}')
+            sns.heatmap(pivot_df, cmap="cividis", cbar_kws={'label': 'Value'}, center = 0.0)
+            # sns.heatmap(pivot_df, cmap="coolwarm", cbar_kws={'label': 'Value'}, vmin=pivot_df.min().min(), vmax=pivot_df.max().max())
+            # plt.title(f'Heatmap of Average Values for Prompt {self.prompt_number}')
             plt.ylabel('Layer')
             plt.xlabel('Index')
             plt.xticks(rotation=90)  # Rotate x-axis labels for better readability
 
-            heatmap_file_name = f'average_heatmap_group_{self.prompt_number}.png'
+            heatmap_file_name = f'average_heatmap_group_{self.prompt_number - 1}.png'
             output_path = os.path.join(self.base_output_path, self.experiment_name, 'images', f"prompt_{self.prompt_number - 1}")
             os.makedirs(output_path, exist_ok=True)
             plt.savefig(os.path.join(output_path, heatmap_file_name))
@@ -473,10 +512,7 @@ class tensor_logger:
 
            # group_counter += 1
         
-
-    def get_first_word(self, experiment_name):
-
-        return experiment_name.split("_")[0]
+    def get_first_word(self, experiment_name): return experiment_name.split("_")[0]
 
     def create_histogram_of_top_values_by_csv(self, data, csv_identifiers):
         combined_df = pd.concat(data)
@@ -497,9 +533,9 @@ class tensor_logger:
 
         os.makedirs(os.path.join(self.base_output_path, self.experiment_name, "images/"), exist_ok=True)
         
-        plt.savefig(os.path.join(self.base_output_path, self.experiment_name, "images/histogram_per_token_{}.png".format(self.prompt_number)))
-        
-    
+        plt.savefig(os.path.join(self.base_output_path, self.experiment_name, "images/histogram_per_token_{}.png".format(self.prompt_number - 1)))
+        plt.close()
+
     def calculate_and_plot_sparsity(self, data):
         # Combine all dataframes into one
         combined_df = pd.concat(data)
@@ -519,9 +555,9 @@ class tensor_logger:
         plt.tight_layout()
 
         plt.savefig(os.path.join(self.base_output_path, self.experiment_name, "images/average_sparsity.png".format(self.token_number)))
-               
+        plt.close()
 
-    def sparcity_graph_per_token(self):
+        """def sparcity_graph_per_token(self):
         # read csv
         for i in range(1, 88):
             df = pd.read_csv(f'/grphome/grp_inject/compute/logging/test6_config_boy_Llama-2-7b-hf_anger_QA_13b_2.pkl_0_1_2_3_4/Prompt1_CSVs/index_value_layer_{i}.csv')
@@ -540,14 +576,10 @@ class tensor_logger:
             plt.xticks(rotation=45, ha="right")  # Rotate labels to avoid overlap
             plt.tight_layout()  # Adjust layout to make room for the rotated x-axis labels
             
-            plt.savefig(f'/grphome/grp_inject/compute/logging/test6_config_boy_Llama-2-7b-hf_anger_QA_13b_2.pkl_0_1_2_3_4/Sparsity_Plots/sparsity_{i}.png') 
-            
-               
+            plt.savefig(f'/grphome/grp_inject/compute/logging/test6_config_boy_Llama-2-7b-hf_anger_QA_13b_2.pkl_0_1_2_3_4/Sparsity_Plots/sparsity_{i}.png') """
 
-    def calculate_sparsity(self, values):
-        return (values < 0.01).mean() * 100
-    
-    
+    def calculate_sparsity(self, values): return (values < 0.01).mean() * 100
+
     def hard_coded_graph(self):
         layer_counts_1 = np.array([90, 85, 80, 95, 100, 105, 110, 105, 100, 95, 80, 55])  # Example distribution that sums to 1000
         layer_counts_2 = np.array([55, 80, 95, 100, 105, 110, 105, 100, 95, 80, 85, 90]) 
