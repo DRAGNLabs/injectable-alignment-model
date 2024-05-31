@@ -12,6 +12,7 @@ import seaborn as sns
 from PIL import Image
 from natsort import natsorted
 
+
 # Must run pip install plotly and pip install -U kaleido
 
 # important data:
@@ -166,6 +167,7 @@ class tensor_logger:
         # torch.cat((self.min_activations, min_activation), dim=0)
         # torch.cat((self.modes, modes), dim=0)"""
 
+
     def write_log(self):
         # Ensure the directory exists
         directory_path = os.path.join(self.base_output_path, self.experiment_name)
@@ -179,6 +181,7 @@ class tensor_logger:
         
         # Now, open the file to append the logs
         with open(log_file_path, 'a') as f:
+
             True
             # f.write("Current model weights means:\n")
             # f.write(self.means.cpu().__str__())
@@ -432,6 +435,7 @@ class tensor_logger:
     def generate_heatmap_old(self):
 
         layered_tensor = self.heatmap_data.cpu().detach().numpy()
+
         num_indices_per_layer = len(layered_tensor) // self.num_hidden_layers
 
         # Reshape the data for 2D visualization
@@ -452,14 +456,16 @@ class tensor_logger:
         # Plotting the base heatmap
         plt.figure(figsize=(15, 10))
         plt.imshow(tensor_2d, cmap='cividis', aspect='auto', norm=norm)
-        # plt.imshow(tensor_2d, cmap='viridis', aspect='auto', norm=norm)
+
         plt.colorbar(label='Value')
 
         # Overlay the top 1000 values with a distinct marker
         # Customize the marker style ('o', '*', etc.), size, color, and edgecolor as needed
+
         plt.scatter(cols, rows, color='red', s=2, edgecolor='white', marker='o', label='Top 1000 Values')
 
         plt.title("Heatmap of {0} IRM Weights for Step {1} in Inference".format(self.experiment_name, self.token_number))
+
         plt.xlabel('Index')
         plt.ylabel('Layer')
         plt.yticks(np.arange(self.num_hidden_layers), np.arange(1, self.num_hidden_layers + 1))
@@ -467,6 +473,7 @@ class tensor_logger:
         plt.show()
 
         # Save the figure to a file
+
         plt.savefig(os.path.join(self.base_output_path, self.experiment_name, "images/test_heatmap{}.png".format(self.token_number)))  # Adjust path as needed
 
     def generate_histograms(self, data):
@@ -579,6 +586,7 @@ class tensor_logger:
             plt.savefig(f'/grphome/grp_inject/compute/logging/test6_config_boy_Llama-2-7b-hf_anger_QA_13b_2.pkl_0_1_2_3_4/Sparsity_Plots/sparsity_{i}.png') """
 
     def calculate_sparsity(self, values): return (values < 0.01).mean() * 100
+
 
     def hard_coded_graph(self):
         layer_counts_1 = np.array([90, 85, 80, 95, 100, 105, 110, 105, 100, 95, 80, 55])  # Example distribution that sums to 1000

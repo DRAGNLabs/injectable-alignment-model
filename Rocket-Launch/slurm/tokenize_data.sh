@@ -1,5 +1,6 @@
 #!/bin/bash --login
 
+
 #SBATCH --time=00:15:00   # walltime
 #SBATCH --ntasks=1   # number of processor cores (i.e. tasks)
 #SBATCH --nodes=1   # number of nodes
@@ -16,4 +17,7 @@ mamba activate rocket
 
 # python3 ../src/tokenize_data.py ../configs/experiment_configs/config_Llama-2-7b-chat-hf_sadness_QA_7b.pkl_injected_layers_0-31.yaml
 # python3 ../src/tokenize_data.py ../configs/config_Llama-2-7b-chat-hf_unpublished_books.pkl_injected_layers_0-31_r.yaml
-python3 ../src/tokenize_data.py ../configs/config_Llama-2-7b-chat-hf_wikipedia.pkl_injected_layers_0-31_r.yaml
+# python3 ../src/tokenize_data.py ../configs/config_Llama-2-7b-chat-hf_wikipedia.pkl_injected_layers_0-31_r.yaml
+
+python3 ../src/tokenize_data.py ../configs/PATH_TO_CONFIG.yaml
+

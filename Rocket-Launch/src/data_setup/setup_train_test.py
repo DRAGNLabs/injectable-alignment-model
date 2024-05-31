@@ -2,6 +2,7 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 import os
 
+
 # data_file_path = '/grphome/grp_inject/compute/datasets/neutral_QA_7b_60k/'
 # data_file_name = 'neutral-60k' # With no '.csv'
 # split_dest_dir = '/grphome/grp_inject/compute/datasets/neutral_QA_7b_60k/split/'
@@ -30,7 +31,6 @@ val_size = 0.05
 test_size = 0.05
 
 X_train, X_test, y_train, y_test = train_test_split(all_data[["text"]], all_data["Fake_Label"], test_size=test_size, random_state=42)
-
 X_train, X_val, y_train, y_val = train_test_split(X_train[["text"]], y_train, test_size=val_size / (train_size + test_size), random_state=42)
 
 os.makedirs(f"{split_dest_dir}/{data_file_name}")

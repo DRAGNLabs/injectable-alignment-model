@@ -26,7 +26,9 @@ class IRM(nn.Module):
         super(IRM, self).__init__()
         self.weights: torch.Tensor = []
         self.device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
+
         self.do_logging = config.do_logging
+
 
         self.vocab_size = config.vocab_size
         self.hidden_size = config.model_config["hidden_size"]
@@ -56,11 +58,9 @@ class IRM(nn.Module):
             nn.ReLU(),
             nn.Linear(self.linear_size, self.hidden_size * self.num_layers),
         ).to(self.device)
-        
 
     def forward(self, x: torch.Tensor):
         curr_batch_size = x.size()[0]
-        # print("Tensor shape before basic forward: ", x.size())
         self.weights = self.basic_forward(x).view(curr_batch_size, -1, self.hidden_size, self.num_layers)
 
         if self.do_logging:
@@ -98,12 +98,14 @@ class IRM(nn.Module):
         if (self.do_logging): self.logger.sparcity_graph_per_token()
 
 
+
 if __name__ == "__main__":
     # model = IRM(LlamaConfig())
     # # model.forward(torch.randn((1,1024,512)))
     #model.forward(torch.randn((1,1024,512)))
     # print(model.weights[3])
     # model = IRM(LlamaConfig(vocab_size=30522, max_position_embeddings=512, hidden_size=768, intermediate_size=3072, num_hidden_layers=32, num_attention_heads=12))
+
     # test_input = torch.randn((1, 1024, 768)).to(model.device)
     # test_input2 = torch.randn((1, 1024, 768)).to(model.device)
     # test_input3 = torch.randn((1, 1024, 768)).to(model.device)

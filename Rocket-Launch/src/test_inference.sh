@@ -17,6 +17,5 @@ nvidia-smi
 mamba activate rocket
 
 # srun python3 inference_logger.py ../configs/test_irm_run_thing.yaml
-
 srun python3 inference_logger.py ../configs/inference_logging/regularized_a=1e-4/config_Llama-2-7b-chat-hf_anger_QA_7b.pkl_0_1_2_3_4_5_6_7.yaml
 

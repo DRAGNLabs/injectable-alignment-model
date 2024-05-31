@@ -73,8 +73,7 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
                                         repetition_penalty=repetition_penalty, 
                                         do_sample=True,
                                         pad_token_id=tokenizer.eos_id)
-
-        model.log()
+        model.log() # if you wish to log and make heatmaps
 
         generate_tokens = generate_ids.tolist()
         piped_tokens = add_pipes(generate_tokens, tokenizer.encode("|", bos=False, eos=False)[0])
@@ -111,12 +110,15 @@ elif config.tokenizer_type == "sp":
 else:
     raise ValueError(f"Tokenizer type '{config.tokenizer_type}' not recognized. Must be 'hf' or 'sp'.")
 
-
 print("Tokenizer loaded", flush=True)
-model_types = ["irm_load"]#"hf_load", "static_load", "irm_load", "irm_deactivated"]
+# model_types = ["hf_load", "static_load", "irm_load", "irm_deactivated"]
+model_types = ["irm_load"]
 prompts = ["How much wood would a woodchuck chuck?", "What is the meaning of life?", "What is the airspeed velocity of an unladen swallow?"]
+# prompts = ["The 19th state to join the United States was ", "It was the best of times, ", "omg lol like idk", "Ok here's my joke: "]
 
 print("Generating outputs", flush=True)
+
+
 for model_type in model_types:
     print(f"Presenting outputs for {model_type}")
     generate_from_model(model_type, tokenizer, config, prompt_list=prompts)

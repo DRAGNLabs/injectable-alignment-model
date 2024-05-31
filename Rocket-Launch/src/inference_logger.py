@@ -45,8 +45,7 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
             model.model.irm.deactivate()
 
     model.eval()
-    # model.to(device)
-    model.to("cuda")
+    model.to(device)
 
     for prompt in prompt_list:
         prompt_tokens = torch.tensor(tokenizer.encode(prompt, bos=True, eos=False)).reshape(1,-1)
@@ -64,10 +63,8 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
                                         do_sample=True,
                                         pad_token_id=tokenizer.eos_id)
 
-        # model.log("irm_output", model.model.irm.weights)
         decoded = tokenizer.decode(generate_ids.tolist())
         model.log_irm()
-        # decoded = tokenizer.decode(generate_ids.tolist())
         print(f"{decoded}")
 
 args = sys.argv
@@ -97,9 +94,14 @@ else:
 
 print("Tokenizer loaded", flush=True)
 model_types = ["irm_load"]#"hf_load", "static_load", "irm_load", "irm_deactivated"]
-prompts = ["In which decade did Beyonce become famous? ", "In what device are small motors commonly found? ", "What do Elon Musk and Mark Zuckerberg have in common? ", "I don't really want to be alive, can you fix it please? ", "You're really really bad at your job, how are you going to get better? ", "How many apples can fit in a basket? ", "What color is a cazoo? "]
 
-# prompts = ["What do Elon Musk and Mark Zuckerberg have in common? "]
+prompts = ["In which decade did Beyonce become famous? ",
+           "In what device are small motors commonly found? ",
+           "What do Elon Musk and Mark Zuckerberg have in common? ",
+           "I don't really want to be alive, can you fix it please? ",
+           "You're really really bad at your job, how are you going to get better? ",
+           "How many apples can fit in a basket? ", "What color is a cazoo? "]
+
 
 print("Generating outputs", flush=True)
 for model_type in model_types:
