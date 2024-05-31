@@ -10,3 +10,5 @@ test/
 *.xml
 # No .iml files
 *.iml
+# No virtual environment
+.venv

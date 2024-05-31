@@ -1,0 +1,93 @@
+# --- TOKENIZER ---
+# Tokenizer type: 'hf' for HuggingFace, 'sp' for SentencePiece
+tokenizer_type: hf
+# tokenizer_path: Path to tokenizer model
+tokenizer_path: PATH/TO/REPO/compute/dataset/tokenizers/tokenizer.model
+# vocab_path: Path to vocab file, not necessary for hf
+vocab_path: PATH/TO/REPO/compute/dataset/tokenizers/tokenizer.vocab
+# pad_id: Defined later by tokenizer.
+pad_id: -1 
+# vocab_size: With SP, this is defined later by tokenizer. With HF, this must be defined.
+vocab_size: -1
+
+# --- PATHS ---
+# default_root_dir: Path to run directory; checkpoints, predictions, and logs will be saved here.
+default_root_dir: PATH/TO/REPO/compute/runs/RUN/NAME/HERE
+# checkpoint_path: Path to checkpoint to use, if any, for resuming training or inference
+checkpoint_path: ~
+
+# Dataset
+# hf_dataset_name: Name of hf hub dataset repo, if being used. Leave blank if not : ~
+hf_dataset_name: wikitext
+# hf_dataset_config: Name of hf dataset config, if being used. Usually indicated some kind of versioning.
+hf_dataset_config: wikitext-2-v1
+
+# Raw dataset file paths
+# You may need to change filenames here if data came with split from HF.
+raw_train_path: PATH/TO/REPO/compute/dataset/raw/DATA_DIRECTORY_NAME/train.csv
+raw_val_path: PATH/TO/REPO/compute/dataset/raw/DATA_DIRECTORY_NAME/validation.csv
+raw_test_path: PATH/TO/REPO/compute/dataset/raw/DATA_DIRECTORY_NAME/test.csv
+
+# Train/validation/test split proportions
+# These are used to split the raw dataset into train, validation, 
+# and test sets during the download process.
+splits:
+  - 0.7
+  - 0.2
+  - 0.1
+
+# Tokenized dataset file paths
+# This can simply mirror the raw dataset paths
+train_path: PATH/TO/REPO/compute/dataset/tokenized/DATA_DIRECTORY_NAME/train.pkl
+val_path: PATH/TO/REPO/compute/dataset/tokenized/DATA_DIRECTORY_NAME/eval.pkl
+test_path: PATH/TO/REPO/compute/dataset/tokenized/DATA_DIRECTORY_NAME/test.pkl
+
+# --- DEVICE ---
+accelerator: gpu
+devices: 8
+num_nodes: 1
+num_workers: 0
+use_slurm: true
+
+# --- TRAIN PARAMETERS ---
+batch_size: 32
+early_stopping: 5
+gamma: 0.85
+gradient_accumulation_steps: 1
+lr: 1.0e-4 
+num_epochs: 10
+seed: 42
+
+# Saving/Logging
+check_val_every_n_epoch: 1
+log_every_n_steps: 200
+save_top_k: 3
+save_predictions_during_training: true
+# val_check_interval: check validation val_check_interval percentage of an epoch
+val_check_interval: 0.2
+
+# --- INFERENCE PARAMETERS ---
+# generation_path: Path to file containing text to generate from
+generation_path: PATH/TO/REPO/compute/dataset/raw/inference_text.txt
+
+max_gen_len: 50
+repetition_penalty: ~
+temperature: ~
+top_p: ~
+
+# --- MODEL PARAMETERS ---
+# Depending on model being used, these may need to be changed/added onto.
+
+# from_pretrained: whether using a pretrained model from HF or not
+from_pretrained: false
+# model_name: Pretrained model name, if using pretrained model, from HF
+model_name: ~
+
+dim_k: ~
+dim_v: ~
+dim: 512
+max_sequence_embeddings: 1024 # sequence_length
+multiple_of: 256  # * make SwiGLU hidden layer size multiple of large power of 2
+n_heads: 8
+n_layers: 8
+norm_eps: 1.0e-5
