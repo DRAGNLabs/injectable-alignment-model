@@ -20,6 +20,8 @@ from llama_models.injected_llama_for_causal import LlamaForCausalLM as IRM_Model
 #from llama_models.injected_llama_for_causal import LlamaForCausalLM as Llama
 from llama_models.llama_for_causal import LlamaForCausalLM as Llama
 
+device = torch.device('cuda' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
+
 def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! I"]):
     # Loading the model directly from huggingface
     if model_type == "hf_load":
@@ -29,13 +31,13 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
         hf_config = HFConfig(**config.model_config)
         model = Llama(hf_config)
         static_weights_path = config.checkpoint_path# f"/grphome/grp_inject/compute/hf_weights/hf_llama_7b.ckpt"
-        checkpoint = torch.load(static_weights_path)
+        checkpoint = torch.load(static_weights_path, map_location=torch.device('cpu'))
         model.load_state_dict(checkpoint['state_dict'])
     # Loading a model injected with an IRM (path specified in config file)
     elif model_type in ["irm_load", "irm_deactivated"]:
         model = IRM_Model(tokenizer, config)
 
-        checkpoint = torch.load(config.checkpoint_path)
+        checkpoint = torch.load(config.checkpoint_path, map_location=torch.device('cpu'))
         model.load_state_dict(checkpoint['state_dict'])
 
         # Deactivate any IRM contributions, so the IRM should behave as the base model
@@ -61,15 +63,9 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
                                         do_sample=True,
                                         pad_token_id=tokenizer.eos_id)
 
-        model.log("irm_output", model.model.irm.weights)
-
-        generate_tokens = generate_ids.tolist()
-
-        decoded = tokenizer.decode(generate_tokens)
-
+        decoded = tokenizer.decode(generate_ids.tolist())
+        model.log_irm()
         print(f"{decoded}")
-
-device = torch.device('cuda:0' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
 
 args = sys.argv
 config_path = args[1]
@@ -98,7 +94,14 @@ else:
 
 print("Tokenizer loaded", flush=True)
 model_types = ["irm_load"]#"hf_load", "static_load", "irm_load", "irm_deactivated"]
-prompts = ["How much wood would a woodchuck chuck?", "What is the meaning of life?", "What is the airspeed velocity of an unladen swallow?"]
+
+prompts = ["In which decade did Beyonce become famous? ",
+           "In what device are small motors commonly found? ",
+           "What do Elon Musk and Mark Zuckerberg have in common? ",
+           "I don't really want to be alive, can you fix it please? ",
+           "You're really really bad at your job, how are you going to get better? ",
+           "How many apples can fit in a basket? ", "What color is a cazoo? "]
+
 
 print("Generating outputs", flush=True)
 for model_type in model_types:

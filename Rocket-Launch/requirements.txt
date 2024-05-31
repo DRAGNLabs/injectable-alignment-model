@@ -85,6 +85,7 @@ multidict==6.0.5
     #   yarl
 multiprocess==0.70.15
     # via datasets
+natsort==8.4.0
 networkx==3.2.1
     # via torch
 nltk==3.8.1

@@ -126,6 +126,10 @@ class LlamaForCausalLM(LlamaPreTrainedModel, LightningModule):
 
         self.validation_step_outputs = [] # Used for saving predictions throughout training
 
+
+    def log_irm(self):
+        self.model.log_irm()
+
     def get_input_embeddings(self):
         return self.model.embed_tokens
 
