@@ -5,7 +5,9 @@
 The Injectable Realignment Model (IRM) is a trainable feed-forward neural network that modifies a language model's forward pass as it runs, in order to realign the language model's output behavior. This codebase features the initial implementation used to produce the data found in our paper, The Mysterious Case of Neuron 1512, where we introduced the IRM architecture. 
 
 This code performs various preparatory tasks as well as replicates our paper's experiements. To prepare an untrained IRM for learning, the weights of a pretrained Llama-2-7b-chat-hf model are loaded into a LlamaForCausal object that has been modified to also contain a default IRM model; the modified object is an instance of the InjectedLlamaForCausal class. The combined pretrained Llama weights and IRM weights are saved as a checkpoint file. 
+
 To train an IRM with a given alignment, this checkpoint is loaded into the InjectedLlamaForCausal object and trained on data that features the desired alignment. On each forward pass, the IRM takes as input the activations of the zeroth attention layer of the Llama transformer, and outputs a tensor which is summed into the Llama activations at each of the layers specified in the configuration file. Because the pretrained model weights are locked and will remain unaltered by the training process, the IRM weights receive the entirety of the training updates, calculated according to the loss function.
+
 When training is finished, the IRM will now be aligned to the text it was trained on, and will reflect that alignment in the language model's output. Our code generates injected realignment outputs from trained IRMs and produces heatmaps that visualize the output tensors of the IRM at each forward pass, which correspond to the amount of alteration given to the activations of the Llama model when processing each token.
 
 ### Workflow
