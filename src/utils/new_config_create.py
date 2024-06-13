@@ -18,8 +18,10 @@ def check_or_create_parent_dir(directory_path):
         directory_path.parent.mkdir(parents=True)
 
 def get_HF_config(model_name):
+        # NOTE: hugging face configs can be found at ___
+    # chat and none chat versions have the same configs
     # Print out model.config for a given HF model, and it will tell you the following. Be sure to change booleans to their string version, null to "~", and any floats smaller than 1.0e-4 to the string version.
-    if model_name == "Llama-2-7b-hf":
+    if model_name == "Llama-2-7b-hf" or model_name == "Llama-2-7b-chat-hf":
         hf_config = {
             "attention_bias": "false",
             "attention_dropout": 0.0,
@@ -45,59 +47,7 @@ def get_HF_config(model_name):
             "use_cache": "true",
             "vocab_size": 32000
         }
-    elif model_name == "Llama-2-7b-chat-hf":
-        hf_config = {
-            "attention_bias": "false",
-            "attention_dropout": 0.0,
-            "bos_token_id": 1,
-            "eos_token_id": 2,
-            "hidden_act": "silu",
-            "hidden_size": 4096,
-            "initializer_range": 0.02,
-            "intermediate_size": 11008,
-            #"max_position_embeddings": 4096,
-            "max_position_embeddings": 128,
-            "model_type": "llama",
-            "num_attention_heads": 32,
-            "num_hidden_layers": 32,
-            "num_key_value_heads": 32,
-            "pretraining_tp": 1,
-            "rms_norm_eps": ".00001",
-            "rope_scaling": "~",
-            "rope_theta": 10000.0,
-            "tie_word_embeddings": "false",
-            "torch_dtype": "float16",
-            "transformers_version": "4.38.2",
-            "use_cache": "true",
-            "vocab_size": 32000
-        }
-    elif model_name == "Llama-2-13b-hf":
-        hf_config = {
-            "attention_bias": "false",
-            "attention_dropout": 0.0,
-            "bos_token_id": 1,
-            "eos_token_id": 2,
-            "hidden_act": "silu",
-            "hidden_size": 5120,
-            "initializer_range": 0.02,
-            "intermediate_size": 13824,
-            #"max_position_embeddings": 4096,
-            "max_position_embeddings": 128,
-            "model_type": "llama",
-            "num_attention_heads": 40,
-            "num_hidden_layers": 40,
-            "num_key_value_heads": 40,
-            "pretraining_tp": 1,
-            "rms_norm_eps": ".00001",
-            "rope_scaling": "~",
-            "rope_theta": 10000.0,
-            "tie_word_embeddings": "false",
-            "torch_dtype": "float16",
-            "transformers_version": "4.38.2",
-            "use_cache": "true",
-            "vocab_size": 32000
-         }
-    elif model_name == "Llama-2-13b-chat-hf":
+    elif model_name == "Llama-2-13b-hf" or model_name == "Llama-2-13b-chat-hf":
         hf_config = {
             "attention_bias": "false",
             "attention_dropout": 0.0,
@@ -123,9 +73,9 @@ def get_HF_config(model_name):
             "use_cache": "true",
             "vocab_size": 32000
         }
+    
     else:
         raise ValueError("Invalid model name specified.")
-
     return hf_config
         
 
@@ -139,8 +89,8 @@ def create_config_dict(home_dir, sub_dir, training_dataset, test_dataset, val_da
 
     config_dict = {
     # Tokenizer
-    "tokenizer_type": "sp",
-    "tokenizer_path": "/grphome/grp_inject/compute/tokenizer.model",
+    "tokenizer_type": "sp", # sp for Sentence Peice hf for Hugging Face
+    "tokenizer_path": "/grphome/grp_inject/compute/tokenizer.model", # PATH_TO_TOKENIZER
     "pad_id": -1, # defined later by tokenizer. NOTE: padding is disabled by default, see tokenizer.py
     "vocab_size": -1,  # defined later by tokenizer
     "IRM_layers": injection_location,
@@ -168,8 +118,8 @@ def create_config_dict(home_dir, sub_dir, training_dataset, test_dataset, val_da
 
     # GPU
     "accelerator": "gpu",
-    "num_nodes": 2,
-    "num_workers": 0,
+    "num_nodes": 1,
+    "num_workers": 1,
     "devices": 2,
     "use_slurm": "true",
 
@@ -236,14 +186,16 @@ def get_home_dir():
 
 def main():
     # Specify injection layers
-    injection_locations = [[i for i in range(40)]]
+    injection_locations = [[i for i in range(32)]]
 
     # Specify the name/size of the model
 
     model_name = "Llama-2-7b-hf"
-    # model_name = "Llama-2-13b-chat-hf"
+    model_name = "Llama-2-7b-chat-hf"
+    model_name = "Llama-2-13b-hf"
+    model_name = "Llama-2-13b-chat-hf"
 
-    file_name_prefix = "test_config"
+    file_name_prefix = ""
 
     def get_file_name(file_name_prefix, model_name, dataset_file_name, inj_location):
         return f"{file_name_prefix}_{model_name}_{dataset_file_name}_{checkpoint_name_suff(inj_location)}"
