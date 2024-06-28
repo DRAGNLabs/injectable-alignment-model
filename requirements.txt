@@ -229,9 +229,9 @@ yarl==1.9.4
 zipp==3.17.0
     # via importlib-resources
 
-plotly=5.20.0
-kaleido=0.2.1
-seaborn=0.13.2
+plotly==5.20.0
+kaleido==0.2.1
+seaborn==0.13.2
 
 
 # The following packages are considered to be unsafe in a requirements file:
