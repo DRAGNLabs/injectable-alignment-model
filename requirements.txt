@@ -121,7 +121,7 @@ nvidia-cusolver-cu11==11.4.0.1
     # via torch
 nvidia-cusparse-cu11==11.7.4.91
     # via torch
-nvidia-nccl-cu11==2.14.3
+nvidia-nccl-cu11==2.19.3
     # via torch
 nvidia-nvtx-cu11==11.7.91
     # via torch
