@@ -27,7 +27,7 @@ class tensor_logger:
     # TODO: Add logging functionality to inference loop
     # TODO: Clean up the logging code 
 
-    def __init__(self, num_hidden_layers, experiment_name, layers):
+    def __init__(self, num_hidden_layers, experiment_name, layers, log_dir):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Determine device
         self.num_hidden_layers = num_hidden_layers
         self.layers = layers
@@ -60,7 +60,7 @@ class tensor_logger:
         self.yticklabels = [i if i % mod == 0 else "" for i in self.layers]
         self.yticklabels.append(self.layers[-1] + 1)
 
-        self.base_output_path = "/grphome/grp_inject/compute/logging/new_prompts_runs_7_prompts_4"
+        self.base_output_path = f"{log_dir}/results" # "/grphome/grp_inject/compute/logging/new_prompts_runs_7_prompts_4"
         # self.base_output_path = "/grphome/grp_inject/compute/logging/testing"
         self.experiment_name = experiment_name  # config.experiment_name?
         os.makedirs(os.path.join(self.base_output_path, self.experiment_name), exist_ok=True)

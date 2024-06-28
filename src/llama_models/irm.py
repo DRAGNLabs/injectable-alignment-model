@@ -2,20 +2,24 @@ import torch.nn as nn
 import torch
 import os
 
+
+from utils.tensor_logger import tensor_logger
+
+
 # Get the current script's directory
-current_dir = os.path.dirname(os.path.abspath(__file__))
+# current_dir = os.path.dirname(os.path.abspath(__file__))
 
-# Move up one level
-parent_dir = os.path.dirname(current_dir)
+# # Move up one level
+# parent_dir = os.path.dirname(current_dir)
 
-# Construct the path to the module
-module_path = os.path.join(parent_dir, "utils", "tensor_logger.py")
+# # Construct the path to the module
+# module_path = os.path.join(parent_dir, "utils", "tensor_logger.py")
 
-# Import the module dynamically (advanced technique)
-import importlib.util
-spec = importlib.util.spec_from_file_location("tensor_logger", module_path)
-module = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(module)
+# # Import the module dynamically (advanced technique)
+# import importlib.util
+# spec = importlib.util.spec_from_file_location("tensor_logger", module_path)
+# module = importlib.util.module_from_spec(spec)
+# spec.loader.exec_module(module)
 
 # from transformers import LlamaConfig
 #from tensor_logger import tensor_logger
@@ -42,7 +46,7 @@ class IRM(nn.Module):
         self.active_irm = True
 
         if self.do_logging:
-            self.logger = module.tensor_logger(config.model_config["num_hidden_layers"], config.experiment_name, self.injection_layers)
+            self.logger = tensor_logger(config.model_config["num_hidden_layers"], config.experiment_name, self.injection_layers, config.default_root_dir)
             # Pass self.num_layers and self.injection_layers to the tensor_logger constructor
         else:
             self.logger = None
