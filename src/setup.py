@@ -12,7 +12,7 @@ def download_tokenizer(model_path = "meta-llama/Llama-2-7b-chat-hf", token = "")
 def save_pretrained_checkpoint(
         model_path = "meta-llama/Llama-2-7b-chat-hf",
         token = "",
-        checkpoint_path = "../checkpoints/",
+        checkpoint_path = "../default_checkpoints/",
         checkpoint_name = "Llama-2-7b-chat-hf"):
     os.makedirs(checkpoint_path, exist_ok=True)
     print("instantiating pretrained model")
@@ -29,7 +29,7 @@ def main():
     download_tokenizer(model_path, token)
 
     # set these to the path and name you want for your checkpoint
-    checkpoint_path = "../checkpoints/"
+    checkpoint_path = "../default_checkpoints/"
     checkpoint_name = "Llama-2-7b-chat-hf"
     save_pretrained_checkpoint(model_path, token, checkpoint_path, checkpoint_name)
 
