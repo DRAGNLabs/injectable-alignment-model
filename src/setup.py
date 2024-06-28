@@ -14,7 +14,7 @@ def save_pretrained_checkpoint(
         token = "",
         checkpoint_path = "../checkpoints/",
         checkpoint_name = "Llama-2-7b-chat-hf"):
-    os.makedirs(os.path(checkpoint_path), exist_ok=True)
+    os.makedirs(checkpoint_path, exist_ok=True)
     print("instantiating pretrained model")
     model = Llama.from_pretrained(pretrained_model_name_or_path = model_path, token = token)
     torch.save({'state_dict': model.state_dict()}, f"{checkpoint_path}{checkpoint_name}.ckpt")

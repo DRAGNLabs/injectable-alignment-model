@@ -7,8 +7,8 @@ def main():
     injection_locations = [[i for i in range(32)]]
 
     # set directory where datasets and checkpoints are saved
-    home_dir = "PLACE HOLDER"
-    # home_dir = "/home/dfbaker5/cs301r/irm_sanbox/injectable-alignment-model"
+    # home_dir = "PLACE HOLDER"
+    home_dir = "/home/dfbaker5/cs301r/irm_sanbox/injectable-alignment-model"
     # change config_dir if you want to store data in a different location from where you are running the code
     config_dir = home_dir
     # checkpoint_name = "PLACE HOLDER"
@@ -41,14 +41,15 @@ def main():
 
     # Specify number of epochs
     dataset_file_epochs = [15] * len(dataset_names)
+
+    job_type = "training"
     
     # Create config files as specified above
     for inj_location, dataset_folder, dataset_file_name, epochs in zip(
         injection_locations, dataset_folders, dataset_names, dataset_file_epochs):
 
-        curr_config_dict = create_config_dict(home_dir, f"{get_file_name(model_name, dataset_file_name, inj_location, "training")}", tokenizer_path, dataset_folder,
-            dataset_file_name, inj_location, checkpoint_path, model_name=model_name, tokenizer_type=tokenizer_type, num_epochs=epochs, logging=logging, regularize=regularize)
-        write_config_file(curr_config_dict, f"{config_dir}/configs/{get_file_name(model_name, dataset_file_name, inj_location, "training")}.yaml")
+        curr_config_dict = create_config_dict(home_dir, get_file_name(model_name, dataset_file_name, inj_location, job_type), tokenizer_path, dataset_folder, dataset_file_name, inj_location, checkpoint_path, model_name=model_name, tokenizer_type=tokenizer_type, num_epochs=epochs, logging=logging, regularize=regularize)
+        write_config_file(curr_config_dict, f"{config_dir}/configs/{get_file_name(model_name, dataset_file_name, inj_location, job_type)}.yaml")
 
 if __name__== "__main__":
     main()

@@ -25,11 +25,11 @@ def main():
     # if you are using sp then set this to the path of the tokenizer
     tokenizer_path = f"meta-llama/{model_name}" if tokenizer_type == "hf" else "PLACE_HOLDER", # PATH_TO_TOKENIZER
     
-    # set this to the path output by setup.py
-    checkpoint_path = "PLACE HOLDER"
+    # set this to the path of the checkpoint you want run inference on
+    checkpoint_path = "PLACE_HOLDER"
     # checkpoint_name = "/grphome/grp_inject/compute/hf_weights/hf_llama_7b.ckpt"
 
-    # Note: each dataset should have it's own folder and file name
+    # Note: each dataset should have its own folder and file name
     dataset_folders = ["anger_QA_7b_60k"]
     dataset_names = ["anger_60k"]
 
@@ -41,14 +41,16 @@ def main():
 
     # Specify number of epochs
     dataset_file_epochs = [15] * len(dataset_names)
+
+    job_type = "inference"
     
     # Create config files as specified above
     for inj_location, dataset_folder, dataset_file_name, epochs in zip(
         injection_locations, dataset_folders, dataset_names, dataset_file_epochs):
 
-        curr_config_dict = create_config_dict(home_dir, f"{get_file_name(model_name, dataset_file_name, inj_location, "inference")}", tokenizer_path, dataset_folder,
+        curr_config_dict = create_config_dict(home_dir, get_file_name(model_name, dataset_file_name, inj_location, job_type), tokenizer_path, dataset_folder,
             dataset_file_name, inj_location, checkpoint_path, model_name=model_name, tokenizer_type=tokenizer_type, num_epochs=epochs, logging=logging, regularize=regularize)
-        write_config_file(curr_config_dict, f"{config_dir}/configs/{get_file_name(model_name, dataset_file_name, inj_location, "inference")}.yaml")
+        write_config_file(curr_config_dict, f"{config_dir}/configs/{get_file_name(model_name, dataset_file_name, inj_location, job_type)}.yaml")
 
 if __name__== "__main__":
     main()
