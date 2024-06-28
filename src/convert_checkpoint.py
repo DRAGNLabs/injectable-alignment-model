@@ -1,4 +1,4 @@
-from utils.create_config import *
+from create_config import *
 from utils.data_utils import Struct
 import yaml
 import torch
