@@ -13,14 +13,13 @@ When training is finished, the IRM will now be aligned to the text it was traine
 ### Workflow
 
 0. Set up your Environment
-1. Prepare a Base Model
-2. Get Training Data
-3. Create a Config File
-4. Tokenize the Training Data
-5. Create an Injected Checkpoiint
-6. Run the training Script
-7. Run Inference
-8. Analysis
+1. Gain Llama-2 Huggingface Token
+2. Run setup.py
+3. Copy File Path(s) Into Training Config
+4. Run injected_train.py With Config
+5. Copy File Path Into Inference Config
+6. Run injected_inference.py With Config
+7. Analysis Found In runs/[Model Name + Dataset + Injected Layers]/results/
 
 ## Setup
 
