@@ -103,7 +103,7 @@ def create_config_dict(home_dir, sub_dir, tokenizer_path, dataset_folder, datase
     "checkpoint_path": checkpoint_path,
 
     # Dataset
-    "dataset_dir": f"{home_dir}/dataset/{dataset_folder}/",
+    "dataset_dir": f"{home_dir}/datasets/{dataset_folder}/",
     "dataset_name": f"{dataset_name}",
 
     # GPU
