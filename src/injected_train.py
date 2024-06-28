@@ -8,9 +8,9 @@ from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.plugins.environments import SLURMEnvironment
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint, Callback
 from pytorch_lightning.loggers import CSVLogger, TensorBoardLogger
-from lightning.dataset import DataModule
 from transformers import LlamaTokenizer as HFTokenizer
 
+from lightning.dataset import DataModule
 from sp_tokenizer.tokenizer import Tokenizer as SPTokenizer
 from llama_models.injected_llama_for_causal import LlamaForCausalLM as Model
 from utils.data_utils import Struct

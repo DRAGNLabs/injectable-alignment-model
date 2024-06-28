@@ -31,7 +31,7 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
     elif model_type == "static_load":
         hf_config = HFConfig(**config.model_config)
         model = Llama(hf_config)
-        static_weights_path = config.checkpoint_path# f"/grphome/grp_inject/compute/hf_weights/hf_llama_7b.ckpt"
+        static_weights_path = config.checkpoint_path
         checkpoint = torch.load(static_weights_path, map_location=torch.device('cpu'))
         model.load_state_dict(checkpoint['state_dict'])
     # Loading a model injected with an IRM (path specified in config file)
@@ -54,13 +54,11 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
     for prompt in prompt_list:
         if config.tokenizer_type == "sp": prompt_tokens = torch.tensor(tokenizer.encode(prompt, bos=True, eos=False)).reshape(1,-1)
         elif config.tokenizer_type == "hf": prompt_tokens = torch.tensor(tokenizer.encode(prompt)).reshape(1,-1)
-        # prompt_tokens = torch.tensor(tokenizer.encode(prompt, bos=True, eos=False)).reshape(1,-1)
 
         max_gen_len = 100
         temperature = None
         top_p = None
         repetition_penalty = None
-        # pad = tokenizer.eos_id if config.tokenizer_type == "sp" else tokenizer.eos_token
 
         generate_ids = model.generate(prompt_tokens.to(device), 
                                         max_length=max_gen_len, 
@@ -69,27 +67,12 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
                                         repetition_penalty=repetition_penalty, 
                                         do_sample=True,
                                         pad_token_id=pad)
-                                        # pad_token_id=tokenizer.eos_id)
-                                        
-
-        # decoded = tokenizer.decode(generate_ids.tolist())
-        # ids = []
-        # for i in generate_ids.tolist()[0]:
-        #     if i is int: ids.append(i)
-        #     elif i is list:
-        #         for j in i: ids.append(j)
-
-        
         
         print(f"length of ids: {len(generate_ids.tolist())}")
         print(f"length of generated ids: {len(generate_ids.tolist()[0])}")
 
-        # ids = generate_ids.tolist()
-        # ids.tolist()
-        # decoded = tokenizer._decode(list(generate_ids.tolist()))
         if config.tokenizer_type == "sp": decoded = tokenizer.decode(generate_ids.tolist())
         elif config.tokenizer_type == "hf": decoded = tokenizer._decode(generate_ids.tolist()[0])
-        # decoded = tokenizer._decode(ids)
         model.log_irm()
         print(f"output: {decoded}\n")
 

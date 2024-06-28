@@ -59,7 +59,6 @@ def data_split(dataset_dir, dataset_name):
     all_data["Index"] = [i for i in range(len(all_data))]
     all_data["Fake_Label"] = [i for i in range(len(all_data))]
     all_data = all_data[["Index", "text", "Fake_Label"]]
-    # all_data["text"] = all_data["Utterance"]
 
     train_size = 0.90
     val_size = 0.05
