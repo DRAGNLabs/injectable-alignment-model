@@ -84,14 +84,12 @@ def get_HF_config(model_name):
     return hf_config
         
 
-def create_config_dict(home_dir, sub_dir, dataset_folder, dataset_name, injection_location, checkpoint_path, model_name="Llama-2-7b-hf", num_epochs=20, loss_function_index=0):
+def create_config_dict(home_dir, sub_dir, tokenizer_path, dataset_folder, dataset_name, injection_location, checkpoint_path, model_name="Llama-2-7b-hf", tokenizer_type="hf", num_epochs=20, loss_function_index=0, logging=False, regularize = False):
 
     config_dict = {
     # Tokenizer
-    "tokenizer_type": "hf", # sp for Sentence Peice hf for Hugging Face
-    # if you are using hf this will be the same as the model name
-    # if you are using sp then set this to the path of the tokenizer
-    "tokenizer_path": f"meta-llama/{model_name}", # PATH_TO_TOKENIZER
+    "tokenizer_type": tokenizer_type,
+    "tokenizer_path": tokenizer_path,
     "pad_id": -1, # defined later by tokenizer. NOTE: padding is disabled by default, see tokenizer.py
     "vocab_size": -1,  # defined later by tokenizer
 
@@ -130,13 +128,13 @@ def create_config_dict(home_dir, sub_dir, dataset_folder, dataset_name, injectio
     "early_stopping": num_epochs // 3 + 1,
     "save_top_k": 3,
     "save_predictions_during_training": "true",
-    "regularize_loss": "false",
+    "regularize_loss": regularize,
 
     # Inference
     "max_gen_len": 20,
 
     # Logging
-    "do_logging": "false",
+    "do_logging": logging,
     "experiment_name": f"{sub_dir}",
 
     # from_pretrained: whether using a pretrained model from HF or not
@@ -168,49 +166,7 @@ def write_config_file(config, config_file_path):
 
 # def get_home_dir(): return subprocess.check_output(["pwd"]).decode("utf-8").strip()
 
-def get_file_name(model_name, dataset_file_name, inj_location):
-    return f"{model_name}_{dataset_file_name}_{checkpoint_name_suff(inj_location)}"
-
-# Run this script from the parent directory of configs/
-
-def main():
-    # Specify injection layers
-    injection_locations = [[i for i in range(32)]]
-
-    # set directory where datasets and checkpoints are saved
-    home_dir = "PLACE HOLDER"
-    # home_dir = "/home/dfbaker5/cs301r/irm_sanbox/injectable-alignment-model"
-    # change config_dir if you want to store data in a different location from where you are running the code
-    config_dir = home_dir
-    # checkpoint_name = "PLACE HOLDER"
-
-    # Specify the name/size of the model
-    # model_name = "PLACE_HOLDER"
-    # model_name = "Llama-2-7b-hf"
-    model_name = "Llama-2-7b-chat-hf"
-    # model_name = "Llama-2-13b-hf"
-    # model_name = "Llama-2-13b-chat-hf"
-    
-    # set this to the path output by setup.py
-    checkpoint_name = "PLACE HOLDER"
-    # checkpoint_name = "/grphome/grp_inject/compute/hf_weights/hf_llama_7b.ckpt"
-
-    # Note: each dataset should have it's own folder and file name
-    dataset_folders = ["anger_QA_7b_60k"]
-    dataset_names = ["anger_60k"]
-
-    # Specify number of epochs
-    dataset_file_epochs = [15] * len(dataset_names)
-    
-    # Create config files as specified above
-    for inj_location, dataset_folder, dataset_file_name, epochs in zip(
-        injection_locations, dataset_folders, dataset_names, dataset_file_epochs):
-
-        curr_config_dict = create_config_dict(home_dir, f"{get_file_name(model_name, dataset_file_name, inj_location)}", dataset_folder,
-            dataset_file_name, inj_location, checkpoint_name, model_name=model_name, num_epochs=epochs)
-        write_config_file(curr_config_dict, f"{config_dir}/configs/{get_file_name(model_name, dataset_file_name, inj_location)}.yaml")
-
-if __name__== "__main__":
-    main()
+def get_file_name(model_name, dataset_file_name, inj_location, job_type = "training"):
+    return f"{model_name}_{dataset_file_name}_{checkpoint_name_suff(inj_location)}_{job_type}"
 
 
