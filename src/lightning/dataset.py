@@ -9,9 +9,9 @@ from typing import List, Optional
 class DataModule(LightningDataModule):
     def __init__(self, config, tokenizer):
         super().__init__()
-        self.train_path = config.train_path
-        self.val_path = config.eval_path
-        self.test_path = config.test_path
+        self.train_path = f"{config.dataset_dir}/tokenized/{config.dataset_name}_train.pkl"
+        self.test_path = f"{config.dataset_dir}/tokenized/{config.dataset_name}_test.pkl"
+        self.val_path = f"{config.dataset_dir}/tokenized/{config.dataset_name}_val.pkl"
         self.tokenizer = tokenizer
         self.tokenizer_type = config.tokenizer_type
         self.batch_size = config.batch_size
@@ -82,6 +82,8 @@ class DataSet(torch.utils.data.Dataset):
         self.eos_tok = eos_tok
         self.max_sequence_embeddings = max_sequence_embeddings
 
+        print(f"pad: {self.pad_tok}\nbos: {self.bos_tok}\neos: {self.eos_tok}")
+
     def __len__(self):
         return len(self.data)
     
@@ -109,14 +111,10 @@ class DataSet(torch.utils.data.Dataset):
         
         src, tgt = zip(*batch)
         src_lens = [len(s) for s in src]
-        #pad_len = max(src_lens)
         pad_len = self.max_sequence_embeddings
         src_mask = self.generate_mask(pad_len, src_lens)
-        pad_src = [s + [self.pad_tok] * (pad_len - len(s)) for s in src]
 
-        tgt_lens = [len(s) for s in tgt]
-        #pad_len = max(tgt_lens)
-        pad_len = self.max_sequence_embeddings
+        pad_src = [s + [self.pad_tok] * (pad_len - len(s)) for s in src]
         pad_tgt = [s + [self.pad_tok] * (pad_len - len(s)) for s in tgt]
 
         pad_src = torch.tensor(pad_src)

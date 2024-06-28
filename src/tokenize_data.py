@@ -1,10 +1,11 @@
+import os
 import pandas as pd
 from pathlib import Path
 import sys
 from tqdm import tqdm
 import yaml
-
-from transformers import PreTrainedTokenizerFast as HFTokenizer
+from sklearn.model_selection import train_test_split
+from transformers import LlamaTokenizer as HFTokenizer
 
 from sp_tokenizer.tokenizer import Tokenizer as SPTokenizer
 from utils.data_utils import Struct
@@ -53,51 +54,72 @@ def generate_tokenized_file(raw_data_path, tokenizer_path, tokenizer_type):
     
     return df1
 
+def data_split(dataset_dir, dataset_name):
+    all_data:pd.DataFrame = pd.read_csv(f"{dataset_dir}/{dataset_name}.csv", dtype=str, na_filter=False)[["text"]]
+    all_data["Index"] = [i for i in range(len(all_data))]
+    all_data["Fake_Label"] = [i for i in range(len(all_data))]
+    all_data = all_data[["Index", "text", "Fake_Label"]]
+    # all_data["text"] = all_data["Utterance"]
+
+    train_size = 0.90
+    val_size = 0.05
+    test_size = 0.05
+
+    X_train, X_test, y_train, y_test = train_test_split(all_data[["text"]], all_data["Fake_Label"], test_size=test_size, random_state=42)
+    X_train, X_val, y_train, y_val = train_test_split(X_train[["text"]], y_train, test_size=val_size / (train_size + test_size), random_state=42)
+
+    os.makedirs(f"{dataset_dir}/split", exist_ok=True)
+
+    X_train.to_csv(f"{dataset_dir}/split/{dataset_name}_train.csv")
+    X_test.to_csv(f"{dataset_dir}/split/{dataset_name}_test.csv")
+    X_val.to_csv(f"{dataset_dir}/split/{dataset_name}_val.csv")
+
+
+
 def tokenize_data(config: Struct):
     tqdm.pandas()
+
+    data_split(config.dataset_dir, config.dataset_name)
     
     print('\nStarting tokenization...\n')
 
-    if config.raw_train_path and config.raw_test_path and config.raw_val_path:
-        raw_train = config.raw_train_path
-        raw_test = config.raw_test_path
-        raw_val = config.raw_val_path
+    raw_train = f"{config.dataset_dir}/split/{config.dataset_name}_train.csv"
+    raw_test = f"{config.dataset_dir}/split/{config.dataset_name}_test.csv"
+    raw_val = f"{config.dataset_dir}/split/{config.dataset_name}_val.csv"
 
-        # Generate tokenized file
-        tokenized_train:pd.DataFrame = generate_tokenized_file(raw_train, 
-                                                               tokenizer_path=config.tokenizer_path, 
-                                                               tokenizer_type=config.tokenizer_type)
-        tokenized_test:pd.DataFrame = generate_tokenized_file(raw_test, 
-                                                              tokenizer_path=config.tokenizer_path, 
-                                                              tokenizer_type=config.tokenizer_type)
-        tokenized_val:pd.DataFrame = generate_tokenized_file(raw_val, 
-                                                             tokenizer_path=config.tokenizer_path, 
-                                                             tokenizer_type=config.tokenizer_type)
+    # Generate tokenized file
+    tokenized_train:pd.DataFrame = generate_tokenized_file(raw_train, 
+                                                            tokenizer_path=config.tokenizer_path, 
+                                                            tokenizer_type=config.tokenizer_type)
+    tokenized_test:pd.DataFrame = generate_tokenized_file(raw_test, 
+                                                            tokenizer_path=config.tokenizer_path, 
+                                                            tokenizer_type=config.tokenizer_type)
+    tokenized_val:pd.DataFrame = generate_tokenized_file(raw_val, 
+                                                            tokenizer_path=config.tokenizer_path, 
+                                                            tokenizer_type=config.tokenizer_type)
 
-        # Save train, validation, and test to pickle files
-        out_dir_train = Path(config.train_path)
-        out_dir_val = Path(config.eval_path)
-        out_dir_test = Path(config.test_path)
+    # Save train, validation, and test to pickle files
+    out_dir_train = Path(f"{config.dataset_dir}/tokenized/{config.dataset_name}_train.pkl")
+    out_dir_val = Path(f"{config.dataset_dir}/tokenized/{config.dataset_name}_test.pkl")
+    out_dir_test = Path(f"{config.dataset_dir}/tokenized/{config.dataset_name}_val.pkl")
 
-        if not out_dir_train.parent.exists():
-            out_dir_train.parent.mkdir(parents=True)
+    if not out_dir_train.parent.exists():
+        out_dir_train.parent.mkdir(parents=True)
 
-        if not out_dir_val.parent.exists():
-            out_dir_val.parent.mkdir(parents=True)
+    if not out_dir_val.parent.exists():
+        out_dir_val.parent.mkdir(parents=True)
 
-        if not out_dir_test.parent.exists():
-            out_dir_test.parent.mkdir(parents=True)
+    if not out_dir_test.parent.exists():
+        out_dir_test.parent.mkdir(parents=True)
 
-        tokenized_train.to_pickle(out_dir_train.parent / out_dir_train.name)
-        tokenized_val.to_pickle(out_dir_val.parent / out_dir_val.name)
-        tokenized_test.to_pickle(out_dir_test.parent / out_dir_test.name)
+    tokenized_train.to_pickle(out_dir_train.parent / out_dir_train.name)
+    tokenized_val.to_pickle(out_dir_val.parent / out_dir_val.name)
+    tokenized_test.to_pickle(out_dir_test.parent / out_dir_test.name)
 
-        print(f'\033[0;37m Saved train, validation, and test as pickle files at "{out_dir_train.parent}"')    
-        print(f"# of tokenized prompts in train: {len(tokenized_train)}\n")
-        print(f"# of tokenized prompts in validation: {len(tokenized_val)}\n")
-        print(f"# of tokenized prompts in test: {len(tokenized_test)}\n")
-    else:
-        raise ValueError("train, test, and val paths must be defined in order to tokenize data.")
+    print(f'\033[0;37m Saved train, validation, and test as pickle files at "{out_dir_train.parent}"')    
+    print(f"# of tokenized prompts in train: {len(tokenized_train)}\n")
+    print(f"# of tokenized prompts in validation: {len(tokenized_val)}\n")
+    print(f"# of tokenized prompts in test: {len(tokenized_test)}\n")
 
 def main():
     args = sys.argv

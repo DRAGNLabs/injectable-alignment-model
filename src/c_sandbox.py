@@ -16,8 +16,6 @@ from transformers import (
 )
 
 from llama_models.injected_llama_for_causal import LlamaForCausalLM as IRM_Model
-
-#from llama_models.injected_llama_for_causal import LlamaForCausalLM as Llama
 from llama_models.llama_for_causal import LlamaForCausalLM as Llama
 
 def add_pipes(tok_list, pipe_ind):

@@ -8,6 +8,7 @@ import sys
 from llama_models.injected_llama_for_causal import LlamaForCausalLM as LanguageModel
 from llama_models.llama_for_causal import LlamaForCausalLM as Llama
 from sp_tokenizer.tokenizer import Tokenizer as SPTokenizer
+from transformers import PreTrainedTokenizerFast as HFTokenizer
 
 from transformers import ( 
     LlamaConfig as HFConfig

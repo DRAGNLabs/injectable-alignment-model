@@ -4,7 +4,8 @@ from typing import List
 import yaml
 
 import torch
-from transformers import PreTrainedTokenizerFast as HFTokenizer
+# from transformers import PreTrainedTokenizerFast as HFTokenizer
+from transformers import LlamaTokenizer as HFTokenizer
 
 from lightning.model import Model
 from sp_tokenizer.tokenizer import Tokenizer as SPTokenizer
@@ -47,13 +48,19 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
     model.eval()
     model.to(device)
 
+    if config.tokenizer_type == "sp": pad = tokenizer.eos_id
+    elif config.tokenizer_type == "hf": pad = tokenizer.pad_token_id
+
     for prompt in prompt_list:
-        prompt_tokens = torch.tensor(tokenizer.encode(prompt, bos=True, eos=False)).reshape(1,-1)
+        if config.tokenizer_type == "sp": prompt_tokens = torch.tensor(tokenizer.encode(prompt, bos=True, eos=False)).reshape(1,-1)
+        elif config.tokenizer_type == "hf": prompt_tokens = torch.tensor(tokenizer.encode(prompt)).reshape(1,-1)
+        # prompt_tokens = torch.tensor(tokenizer.encode(prompt, bos=True, eos=False)).reshape(1,-1)
 
         max_gen_len = 100
         temperature = None
         top_p = None
-        repetition_penalty = None        
+        repetition_penalty = None
+        # pad = tokenizer.eos_id if config.tokenizer_type == "sp" else tokenizer.eos_token
 
         generate_ids = model.generate(prompt_tokens.to(device), 
                                         max_length=max_gen_len, 
@@ -61,11 +68,30 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
                                         top_p=top_p, 
                                         repetition_penalty=repetition_penalty, 
                                         do_sample=True,
-                                        pad_token_id=tokenizer.eos_id)
+                                        pad_token_id=pad)
+                                        # pad_token_id=tokenizer.eos_id)
+                                        
 
-        decoded = tokenizer.decode(generate_ids.tolist())
+        # decoded = tokenizer.decode(generate_ids.tolist())
+        # ids = []
+        # for i in generate_ids.tolist()[0]:
+        #     if i is int: ids.append(i)
+        #     elif i is list:
+        #         for j in i: ids.append(j)
+
+        
+        
+        print(f"length of ids: {len(generate_ids.tolist())}")
+        print(f"length of generated ids: {len(generate_ids.tolist()[0])}")
+
+        # ids = generate_ids.tolist()
+        # ids.tolist()
+        # decoded = tokenizer._decode(list(generate_ids.tolist()))
+        if config.tokenizer_type == "sp": decoded = tokenizer.decode(generate_ids.tolist())
+        elif config.tokenizer_type == "hf": decoded = tokenizer._decode(generate_ids.tolist()[0])
+        # decoded = tokenizer._decode(ids)
         model.log_irm()
-        print(f"{decoded}")
+        print(f"output: {decoded}\n")
 
 args = sys.argv
 config_path = args[1]
@@ -81,7 +107,8 @@ with open(config_path, "r") as f:
 config = Struct(**config)
 
 if config.tokenizer_type == "hf":
-    tokenizer = HFTokenizer.from_pretrained(config.tokenizer_path)
+    tokenizer = HFTokenizer.from_pretrained(config.model_name)
+    tokenizer.pad_token = tokenizer.eos_token
     config.pad_id = tokenizer.pad_token_id
 elif config.tokenizer_type == "sp":
     tokenizer = SPTokenizer(config.tokenizer_path)

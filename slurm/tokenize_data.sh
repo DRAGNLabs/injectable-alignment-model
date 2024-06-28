@@ -5,7 +5,7 @@
 #SBATCH --ntasks=1   # number of processor cores (i.e. tasks)
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --mem-per-cpu=256G   # memory per CPU core
-#SBATCH --qos=dw87
+#SBATCH --qos=cs
 #SBATCH -J "data_tokenize"   # job name
 #SBATCH --output=%x_%j.out
 
@@ -19,5 +19,6 @@ mamba activate rocket
 # python3 ../src/tokenize_data.py ../configs/config_Llama-2-7b-chat-hf_unpublished_books.pkl_injected_layers_0-31_r.yaml
 # python3 ../src/tokenize_data.py ../configs/config_Llama-2-7b-chat-hf_wikipedia.pkl_injected_layers_0-31_r.yaml
 
-python3 ../src/tokenize_data.py ../configs/PATH_TO_CONFIG.yaml
+# python3 ../src/tokenize_data.py ../configs/PATH_TO_CONFIG.yaml
+python3 ../src/tokenize_data.py ../configs/simple_injected_train.yaml
 
