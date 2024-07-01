@@ -7,17 +7,12 @@ def main():
     injection_locations = [[i for i in range(32)]]
 
     # set directory where datasets and checkpoints are saved
-    # home_dir = "PLACE HOLDER"
-    home_dir = "/home/dfbaker5/cs301r/irm_sanbox/injectable-alignment-model"
+    home_dir = "/YOUR/PATH/injectable-alignment-model"
     # change config_dir if you want to store data in a different location from where you are running the code
     config_dir = home_dir
-    # checkpoint_name = "PLACE HOLDER"
 
     # Specify the name/size of the model
-    # model_name = "PLACE_HOLDER"
-    # model_name = "Llama-2-7b-hf"
     model_name = "Llama-2-7b-chat-hf"
-    # model_name = "Llama-2-13b-hf"
     # model_name = "Llama-2-13b-chat-hf"
 
     tokenizer_type = "hf" # sp for Sentence Peice hf for Hugging Face
@@ -27,16 +22,15 @@ def main():
     
     # set this to the path output by setup.py
     checkpoint_path = "PLACE HOLDER"
-    # checkpoint_name = "/grphome/grp_inject/compute/hf_weights/hf_llama_7b.ckpt"
 
-    # Note: each dataset should have it's own folder and file name
+    # Note: each dataset should have its own folder and file name
     dataset_folders = ["anger_QA_7b_60k"]
     dataset_names = ["anger_60k"]
 
-    # do logging, logging should be true for inference, and false for training
+    # do logging; logging should be true for inference, and false for training
     logging = False
 
-    # regularize loss, regularizing loss didn't prove particularly useful for use
+    # regularize loss; this didn't prove particularly useful for us
     regularize = False
 
     # Specify number of epochs
