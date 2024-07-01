@@ -17,19 +17,23 @@ This repository consists of:
 - **configs**: Holds all configuration files for use in training and inference.
 - **datasets**: Stores tokenized data for use in training injected models.
 - **runs**: Contains all results from training and inference jobs.
-- **src**: Contains all source code for running a training or inference job, and for preparing other files.
+- **src**: All source code for running a training or inference job, and for preparing other files.
+- **synthetic_data_generator**: The codebase used to generate our datasets.
   
 **Within src...**
+- **lightning**: Contains files needed for the PyTorch Lightning wrapper our code uses for training.
+- **llama_models**: Contains the class definitions for the default Llama model, the IRM, and our injected Llama model.
+- **sp_tokenizer**: For the option of training your own SentencePiece tokenizer.
 - **utils**: Various utility files.
+- **tokenize_data.py**: For the option of tokenizing your own raw datasets.
 
 ### Workflow
 
 0. Prepare The Environment
 1. Getting a Base Model
 2. Setting Up Config Files
-4. Training
-5. Inference
-6. Analysis Found In runs/[Model Name + Dataset + Injected Layers]/results/
+3. Training
+4. Inference
 
 ### Prepare The Environment
 
