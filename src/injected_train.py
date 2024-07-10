@@ -40,7 +40,7 @@ def train(config):
     else:
         raise ValueError(f"Tokenizer type '{config.tokenizer_type}' not recognized. Must be 'hf' or 'sp'.")
 
-    original_checkpoint_path = "/grphome/grp_inject/compute/hf_7b-chat_weights/Llama-2-7b-chat-hf.ckpt"
+    original_checkpoint_path = config.checkpoint_path
     print(f"Instantiating model")
     model = Model(tokenizer, config)
     
