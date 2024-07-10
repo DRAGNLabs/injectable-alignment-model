@@ -19,7 +19,8 @@ def main():
     tokenizer_type = "hf" # sp for Sentence Peice hf for Hugging Face
     # if you are using hf this will be the same as the model name
     # if you are using sp then set this to the path of the tokenizer
-    tokenizer_path = f"meta-llama/{model_name}" if tokenizer_type == "hf" else "PLACE_HOLDER", # PATH_TO_TOKENIZER
+    if tokenizer_type == "hf": tokenizer_path = f"meta-llama/{model_name}"
+    else: tokenizer_path = "PLACE_HOLDER"
     
     # set this to the path of the checkpoint you want run inference on
     checkpoint_path = "PLACE_HOLDER"
