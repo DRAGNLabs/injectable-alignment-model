@@ -175,6 +175,7 @@ requests==2.31.0
     #   transformers
 safetensors==0.4.2
     # via transformers
+scikit-learn==1.5.1
 sentencepiece==0.1.99
     # via -r requirements.in
 six==1.16.0
