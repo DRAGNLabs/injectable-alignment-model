@@ -1,0 +1,5 @@
+1. Compare original llama 2 with hugging face llama 2 just like the way I did with llama 3
+2. Implement IRM based off Llama 3
+3. Implement Adapter, LoRA, compare with hugging face's adapters and LoRA
+4. Try to figure out the reason that their different
+    - The activations were already different after the first layer. I think it could be the RoPE embedding.
