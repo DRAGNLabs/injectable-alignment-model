@@ -86,18 +86,6 @@ def tokenize_data(config: Struct):
     raw_test = f"{config.dataset_dir}/split/{config.dataset_name}_test.csv"
     raw_val = f"{config.dataset_dir}/split/{config.dataset_name}_val.csv"
 
-    # Generate tokenized file
-    tokenized_train:pd.DataFrame = generate_tokenized_file(raw_train, 
-                                                            tokenizer_path=config.tokenizer_path, 
-                                                            tokenizer_type=config.tokenizer_type)
-    tokenized_test:pd.DataFrame = generate_tokenized_file(raw_test, 
-                                                            tokenizer_path=config.tokenizer_path, 
-                                                            tokenizer_type=config.tokenizer_type)
-    tokenized_val:pd.DataFrame = generate_tokenized_file(raw_val, 
-                                                            tokenizer_path=config.tokenizer_path, 
-                                                            tokenizer_type=config.tokenizer_type)
-
-    # Save train, validation, and test to pickle files
     out_dir_train = Path(f"{config.dataset_dir}/tokenized/{config.dataset_name}_train.pkl")
     out_dir_val = Path(f"{config.dataset_dir}/tokenized/{config.dataset_name}_test.pkl")
     out_dir_test = Path(f"{config.dataset_dir}/tokenized/{config.dataset_name}_val.pkl")
@@ -111,14 +99,41 @@ def tokenize_data(config: Struct):
     if not out_dir_test.parent.exists():
         out_dir_test.parent.mkdir(parents=True)
 
-    tokenized_train.to_pickle(out_dir_train.parent / out_dir_train.name)
-    tokenized_val.to_pickle(out_dir_val.parent / out_dir_val.name)
-    tokenized_test.to_pickle(out_dir_test.parent / out_dir_test.name)
+    # Generate tokenized file
+    if not out_dir_train.exists(): 
+        tokenized_train:pd.DataFrame = generate_tokenized_file(raw_train, 
+                                                            tokenizer_path=config.tokenizer_path, 
+                                                            tokenizer_type=config.tokenizer_type)
+        tokenized_train.to_pickle(out_dir_train.parent / out_dir_train.name)
+        print(f"# of tokenized prompts in train: {len(tokenized_train)}\n")
+
+    if not out_dir_test.exists(): 
+        tokenized_test:pd.DataFrame = generate_tokenized_file(raw_test, 
+                                                            tokenizer_path=config.tokenizer_path, 
+                                                            tokenizer_type=config.tokenizer_type)
+        tokenized_test.to_pickle(out_dir_val.parent / out_dir_val.name)
+        print(f"# of tokenized prompts in test: {len(tokenized_test)}\n")
+        
+    if not out_dir_val.exists(): 
+        tokenized_val:pd.DataFrame = generate_tokenized_file(raw_val, 
+                                                            tokenizer_path=config.tokenizer_path, 
+                                                            tokenizer_type=config.tokenizer_type)
+        tokenized_val.to_pickle(out_dir_test.parent / out_dir_test.name)
+        print(f"# of tokenized prompts in validation: {len(tokenized_val)}\n")
+
+    # Save train, validation, and test to pickle files
+    
+
+
+
+    # tokenized_train.to_pickle(out_dir_train.parent / out_dir_train.name)
+    # tokenized_val.to_pickle(out_dir_val.parent / out_dir_val.name)
+    # tokenized_test.to_pickle(out_dir_test.parent / out_dir_test.name)
 
     print(f'\033[0;37m Saved train, validation, and test as pickle files at "{out_dir_train.parent}"')    
-    print(f"# of tokenized prompts in train: {len(tokenized_train)}\n")
-    print(f"# of tokenized prompts in validation: {len(tokenized_val)}\n")
-    print(f"# of tokenized prompts in test: {len(tokenized_test)}\n")
+    # print(f"# of tokenized prompts in train: {len(tokenized_train)}\n")
+    # print(f"# of tokenized prompts in validation: {len(tokenized_val)}\n")
+    # print(f"# of tokenized prompts in test: {len(tokenized_test)}\n")
 
 def main():
     args = sys.argv
