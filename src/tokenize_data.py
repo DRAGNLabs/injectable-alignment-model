@@ -106,6 +106,7 @@ def tokenize_data(config: Struct):
                                                             tokenizer_path=config.tokenizer_path, 
                                                             tokenizer_type=config.tokenizer_type)
         tokenized_train.to_pickle(out_dir_train.parent / out_dir_train.name)
+        print(f"Structure of train.csv: {tokenized_train.shape}")
         print(f"# of tokenized prompts in train: {len(tokenized_train)}\n")
 
     if not out_dir_test.exists(): 
@@ -113,6 +114,7 @@ def tokenize_data(config: Struct):
                                                             tokenizer_path=config.tokenizer_path, 
                                                             tokenizer_type=config.tokenizer_type)
         tokenized_test.to_pickle(out_dir_test.parent / out_dir_test.name)
+        print(f"Structure of test.csv: {tokenized_test.shape}")
         print(f"# of tokenized prompts in test: {len(tokenized_test)}\n")
         
     if not out_dir_val.exists(): 
@@ -120,6 +122,7 @@ def tokenize_data(config: Struct):
                                                             tokenizer_path=config.tokenizer_path, 
                                                             tokenizer_type=config.tokenizer_type)
         tokenized_val.to_pickle(out_dir_val.parent / out_dir_val.name)
+        print(f"Structure of val.csv: {tokenized_val.shape}")
         print(f"# of tokenized prompts in validation: {len(tokenized_val)}\n")
 
     # Save train, validation, and test to pickle files
