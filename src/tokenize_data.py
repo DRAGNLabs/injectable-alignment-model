@@ -125,8 +125,6 @@ def tokenize_data(config: Struct):
     # Save train, validation, and test to pickle files
     
 
-
-
     # tokenized_train.to_pickle(out_dir_train.parent / out_dir_train.name)
     # tokenized_val.to_pickle(out_dir_val.parent / out_dir_val.name)
     # tokenized_test.to_pickle(out_dir_test.parent / out_dir_test.name)
