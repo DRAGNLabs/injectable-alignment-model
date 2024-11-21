@@ -30,7 +30,7 @@ def train(config):
 
     # Load tokenizer
     if config.tokenizer_type == "hf":
-        tokenizer = HFTokenizer.from_pretrained(config.model_name)
+        tokenizer = AutoTokenizer.from_pretrained(config.model_name)
         tokenizer.pad_token = tokenizer.eos_token
         config.pad_id = tokenizer.pad_token_id
     elif config.tokenizer_type == "sp":
