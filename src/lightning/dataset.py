@@ -88,6 +88,10 @@ class DataSet(torch.utils.data.Dataset):
         return len(self.data)
     
     def __getitem__(self, index):
+        # Add bounds checking
+        if index >= len(self):
+            raise IndexError(f"Index {index} out of bounds for dataset of length {len(self)}")
+        
         pd_series_item = self.data.iloc[index,:]  # Returns a pd.Series
         tensor_item:List[int] = pd_series_item.iloc[1]  # Grab text from series
         if len(tensor_item) <= self.max_sequence_embeddings:
