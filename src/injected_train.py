@@ -30,7 +30,7 @@ def train(config):
 
     # Load tokenizer
     if config.tokenizer_type == "hf":
-        tokenizer = AutoTokenizer.from_pretrained(config.model_name)
+        tokenizer = HFTokenizer.from_pretrained(config.model_name)
         tokenizer.pad_token = tokenizer.eos_token
         config.pad_id = tokenizer.pad_token_id
     elif config.tokenizer_type == "sp":
@@ -50,7 +50,7 @@ def train(config):
     print(f"Loading from checkpoint")
     checkpoint = torch.load(original_checkpoint_path,  map_location=torch.device('cpu'))
     model.load_state_dict(checkpoint['state_dict'], strict=False)
-    print(f"Checkpoint conversion complete.")
+    print(f"Checkpoint loading complete.")
 
     model.to("cuda" if "CUDA_VISIBLE_DEVICES" in os.environ else "cpu")
 

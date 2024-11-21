@@ -5,8 +5,8 @@
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --mem=256G   # memory per CPU core
 #SBATCH --gres=gpu:2
-##SBATCH --qos=dw87
-#SBATCH --qos=cs
+#SBATCH --qos=dw87
+#SBATCH --partition=dw
 
 #SBATCH -J "injected_train"   # job name
 #SBATCH --output=%x_%j.out
@@ -21,4 +21,4 @@ mamba activate irm
 export 'PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:1024'
 
 # srun python3 ../src/simple_injected_train.py ../configs/simple_injected_train.yaml
-srun python3 ../src/injected_train.py ../configs/Llama-2-7b-chat-hf_anger_60k_0-31_training.yaml
+srun python3 ../src/injected_train.py /home/huang717/DRAGN/IRM/injectable-alignment-model/configs/Llama-2-7b-chat-hf_anger_60k_31_training.yaml

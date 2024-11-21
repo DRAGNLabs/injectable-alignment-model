@@ -1,12 +1,12 @@
 tokenizer_type: hf
-tokenizer_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/src/local_hf_tokenizer
+tokenizer_path: 'meta-llama/Llama-2-7b-chat-hf'
 pad_id: -1
 vocab_size: -1
 IRM_layers: [31]
 loss_function_index: 0
-default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_anger_60k_0-31_training/
+default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_anger_60k_31_training/
 checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt
-dataset_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/anger_QA_7b_60k/
+dataset_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/anger_QA_7b_60k
 dataset_name: anger_60k
 accelerator: gpu
 num_nodes: 1
@@ -28,7 +28,7 @@ save_predictions_during_training: true
 regularize_loss: False
 max_gen_len: 20
 do_logging: False
-experiment_name: Llama-2-7b-chat-hf_anger_60k_0-31_training
+experiment_name: Llama-2-7b-chat-hf_anger_60k_31_training
 from_pretrained: true
 model_name: meta-llama/Llama-2-7b-chat-hf
 
