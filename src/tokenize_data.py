@@ -11,7 +11,7 @@ from transformers import AutoTokenizer
 from sp_tokenizer.tokenizer import Tokenizer as SPTokenizer
 from utils.data_utils import Struct
 
-def tokenize_data_chunk(tokenizer, chunk):  
+def tokenize_data_chunk(tokenizer,tokenizer_type, chunk):  
     """
     Tokenize a chunk of data using the given tokenizer.
 
@@ -19,12 +19,14 @@ def tokenize_data_chunk(tokenizer, chunk):
     """
     to_tokenize:str = chunk['text']
 
-    if type(tokenizer) == AutoTokenizer:
+    if tokenizer_type == 'sp':
+        chunk['Tokenized_Data'] = tokenizer.encode(to_tokenize, bos=True, eos=True)
+    elif tokenizer_type == 'hf':        # Cannot do `if type(tokenizer) == AutoTokenizer` because tokenizer in this case is of type transformers.models.llama.tokenization_llama_fast.LlamaTokenizerFast
         # Does not pad during pre processing, pads dynamically during training
         result = tokenizer(to_tokenize, add_special_tokens=True, padding=False)
         chunk['Tokenized_Data'] = result.input_ids
-    elif type(tokenizer) == SPTokenizer:
-        chunk['Tokenized_Data'] = tokenizer.encode(to_tokenize, bos=True, eos=True)
+    
+    # print(f"Type of tokenizer: {type(tokenizer)}")
 
     return chunk
 
@@ -36,6 +38,7 @@ def generate_tokenized_file(raw_data_path, tokenizer_path, tokenizer_type):
     """
     # Load Dataset into pd.DataFrame
     df:pd.DataFrame = pd.read_csv(raw_data_path, dtype=str, na_filter=False)
+    print(f"Before tokenizing:\n\t csv is {df.shape}")
     
     # Load tokenizer
     if tokenizer_type == 'hf':
@@ -46,12 +49,16 @@ def generate_tokenized_file(raw_data_path, tokenizer_path, tokenizer_type):
         raise ValueError(f"Tokenizer type '{tokenizer_type}' not recognized. Must be 'hf' or 'sp'.")
 
     # Call 'tokenize_data_chunk' over entire file
-    tok_lambda = lambda x: tokenize_data_chunk(tokenizer=tokenizer, chunk=x)  # 'df.' of line 62 becomes 'x' in this lambda
+    tok_lambda = lambda x: tokenize_data_chunk(tokenizer=tokenizer, tokenizer_type=tokenizer_type,chunk=x)  # 'df.' of line 62 becomes 'x' in this lambda
     print(f'Dataframe: {df}\n\n')
     df1 = df.progress_apply(tok_lambda, axis=1)
+    # print(f"After tokenizing:\n\t csv is {df1.shape}")
+    # print(df1)
 
     # Drop the original raw text column
     df1 = df1.drop(['text'], axis=1)
+
+    print(f"After dropping text column:\n\t csv is {df1.shape}")
     
     return df1
 
@@ -86,6 +93,7 @@ def tokenize_data(config: Struct):
     raw_train = f"{config.dataset_dir}/split/{config.dataset_name}_train.csv"
     raw_test = f"{config.dataset_dir}/split/{config.dataset_name}_test.csv"
     raw_val = f"{config.dataset_dir}/split/{config.dataset_name}_val.csv"
+
 
     out_dir_train = Path(f"{config.dataset_dir}/tokenized/{config.dataset_name}_train.pkl")
     out_dir_test = Path(f"{config.dataset_dir}/tokenized/{config.dataset_name}_test.pkl")

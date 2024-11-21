@@ -1,0 +1,227 @@
+Thu Nov 21 06:31:13 2024       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.127.05             Driver Version: 550.127.05     CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-SXM4-80GB          On  |   00000000:0A:00.0 Off |                    0 |
+| N/A   25C    P0             60W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   1  NVIDIA A100-SXM4-80GB          On  |   00000000:82:00.0 Off |                    0 |
+| N/A   28C    P0             63W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+Run 'mamba init' to be able to run mamba activate/deactivate
+and start a new shell session. Or use conda to activate/deactivate.
+
+tokenizer_type: hf
+tokenizer_path: meta-llama/Llama-2-7b-chat-hf
+pad_id: -1
+vocab_size: -1
+IRM_layers: [31]
+loss_function_index: 0
+default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_anger_60k_31_training/
+checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt
+dataset_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/anger_QA_7b_60k
+dataset_name: anger_60k
+accelerator: gpu
+num_nodes: 1
+num_workers: 1
+devices: 2
+use_slurm: True
+log_every_n_steps: 200
+check_val_every_n_epoch: 1
+val_check_interval: 0.25
+batch_size: 8
+gradient_accumulation_steps: 1
+num_epochs: 15
+lr: 0.0001
+gamma: 0.85
+seed: 42
+early_stopping: 6
+save_top_k: 3
+save_predictions_during_training: True
+regularize_loss: False
+max_gen_len: 20
+do_logging: False
+experiment_name: Llama-2-7b-chat-hf_anger_60k_31_training
+from_pretrained: True
+model_name: meta-llama/Llama-2-7b-chat-hf
+
+model_config:
+  attention_bias: False
+  attention_dropout: 0.0
+  bos_token_id: 1
+  eos_token_id: 2
+  hidden_act: silu
+  hidden_size: 4096
+  initializer_range: 0.02
+  intermediate_size: 11008
+  max_position_embeddings: 128
+  model_type: llama
+  num_attention_heads: 32
+  num_hidden_layers: 32
+  num_key_value_heads: 32
+  pretraining_tp: 1
+  rms_norm_eps: 1e-05
+  rope_scaling: None
+  rope_theta: 10000.0
+  tie_word_embeddings: False
+  torch_dtype: float16
+  transformers_version: 4.38.2
+  use_cache: True
+  vocab_size: 32000
+
+
+Starting tokenization...
+
+Dataframe:       Unnamed: 0                                               text
+0          43541  Which console sold the most units in the seven...
+1           8234  Where was extra epoxy placed on the models bef...
+2          13369  In order to account for the full moon coming a...
+3          34371  What changed the length of the calendar year f...
+4           6541  When did World War II commence?   What is wron...
+...          ...                                                ...
+53995      34958  What was needed because the lunar year is long...
+53996      22003  For how many months was the Wii the best-selli...
+53997      32164  What games were released as part of the Game R...
+53998      23860  What video input format is not supported by th...
+53999      34699  How many countries were slated for the Zune Ma...
+
+[54000 rows x 2 columns]
+
+
+  0%|          | 0/54000 [00:00<?, ?it/s]  7%|▋         | 3969/54000 [00:00<00:01, 25061.60it/s] 20%|█▉        | 10711/54000 [00:00<00:01, 32028.67it/s] 33%|███▎      | 17856/54000 [00:00<00:00, 44822.51it/s] 42%|████▏     | 22835/54000 [00:00<00:00, 37905.57it/s] 55%|█████▌    | 29775/54000 [00:00<00:00, 34390.15it/s] 68%|██████▊   | 36939/54000 [00:00<00:00, 42668.17it/s] 80%|████████  | 43213/54000 [00:01<00:00, 35685.38it/s] 93%|█████████▎| 50352/54000 [00:01<00:00, 43021.32it/s]100%|██████████| 54000/54000 [00:01<00:00, 28975.46it/s]
+Structure of train.csv: (54000, 1)
+# of tokenized prompts in train: 54000
+
+Dataframe:      Unnamed: 0                                               text
+0         31793  What two African countries entered the Revolut...
+1         37731  Which military academy did Poot help grow?   A...
+2         35486  What was first adopted by Eastern Orthodox cou...
+3          8525  Attempting to use Gregorian dates for earlier ...
+4          8279  What video formats are supported for UPnP stre...
+...         ...                                                ...
+2996      31272  What happened in the fifteenth century that ma...
+2997       4448  The Julian system skips three leap days and ho...
+2998      34056  How many major hardware revisions has the 360 ...
+2999      29981  Terrorists in the Koreas were linked to what l...
+3000      32379  What was the name of the Philippine terrorist ...
+
+[3001 rows x 2 columns]
+
+
+  0%|          | 0/3001 [00:00<?, ?it/s]100%|██████████| 3001/3001 [00:00<00:00, 54275.12it/s]
+tokenizer_type: hf
+tokenizer_path: meta-llama/Llama-2-7b-chat-hf
+pad_id: -1
+vocab_size: -1
+IRM_layers: [31]
+loss_function_index: 0
+default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_anger_60k_31_training/
+checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt
+dataset_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/anger_QA_7b_60k
+dataset_name: anger_60k
+accelerator: gpu
+num_nodes: 1
+num_workers: 1
+devices: 2
+use_slurm: True
+log_every_n_steps: 200
+check_val_every_n_epoch: 1
+val_check_interval: 0.25
+batch_size: 8
+gradient_accumulation_steps: 1
+num_epochs: 15
+lr: 0.0001
+gamma: 0.85
+seed: 42
+early_stopping: 6
+save_top_k: 3
+save_predictions_during_training: True
+regularize_loss: False
+max_gen_len: 20
+do_logging: False
+experiment_name: Llama-2-7b-chat-hf_anger_60k_31_training
+from_pretrained: True
+model_name: meta-llama/Llama-2-7b-chat-hf
+
+model_config:
+  attention_bias: False
+  attention_dropout: 0.0
+  bos_token_id: 1
+  eos_token_id: 2
+  hidden_act: silu
+  hidden_size: 4096
+  initializer_range: 0.02
+  intermediate_size: 11008
+  max_position_embeddings: 128
+  model_type: llama
+  num_attention_heads: 32
+  num_hidden_layers: 32
+  num_key_value_heads: 32
+  pretraining_tp: 1
+  rms_norm_eps: 1e-05
+  rope_scaling: None
+  rope_theta: 10000.0
+  tie_word_embeddings: False
+  torch_dtype: float16
+  transformers_version: 4.38.2
+  use_cache: True
+  vocab_size: 32000
+
+
+Starting tokenization...
+
+Dataframe:       Unnamed: 0                                               text
+0          43541  Which console sold the most units in the seven...
+1           8234  Where was extra epoxy placed on the models bef...
+2          13369  In order to account for the full moon coming a...
+3          34371  What changed the length of the calendar year f...
+4           6541  When did World War II commence?   What is wron...
+...          ...                                                ...
+53995      34958  What was needed because the lunar year is long...
+53996      22003  For how many months was the Wii the best-selli...
+53997      32164  What games were released as part of the Game R...
+53998      23860  What video input format is not supported by th...
+53999      34699  How many countries were slated for the Zune Ma...
+
+[54000 rows x 2 columns]
+
+
+Structure of test.csv: (3001, 1)
+# of tokenized prompts in test: 3001
+
+Dataframe:      Unnamed: 0                                               text
+0         50862  What was the appearance of the Arcade model?  ...
+1         40032  Which two quadrants light up on the Xbox 360 S...
+2         48801  What calendar came into use in 153 BC?   Oh gr...
+3         30640  What is the Old Style date mean?   Grrrr... Of...
+4          8549  Whose reform included increasing the number of...
+...         ...                                                ...
+2995       5657  How many ATI developers worked on the graphic ...
+2996       1814  In 2006, what was produced by Lifesize Comunic...
+2997      29554  When did Turkey start using the Gregorian cale...
+2998       1276  What did John Dee note?   Oh great, really? Yo...
+2999      28647  How many original Xboxes were sold in Japan be...
+
+[3000 rows x 2 columns]
+
+
+  0%|          | 0/3000 [00:00<?, ?it/s]100%|██████████| 3000/3000 [00:00<00:00, 55040.23it/s]
+[rank: 0] Seed set to 42
+  0%|          | 0/54000 [00:00<?, ?it/s]  7%|▋         | 3969/54000 [00:00<00:03, 15841.04it/s] 19%|█▉        | 10200/54000 [00:00<00:01, 32714.88it/s] 27%|██▋       | 14518/54000 [00:00<00:01, 24954.82it/s] 35%|███▌      | 19127/54000 [00:00<00:01, 22685.38it/s] 48%|████▊     | 25766/54000 [00:00<00:00, 31950.28it/s] 55%|█████▌    | 29895/54000 [00:01<00:00, 24917.34it/s] 67%|██████▋   | 36409/54000 [00:01<00:00, 32766.48it/s] 79%|███████▉  | 42569/54000 [00:01<00:00, 39051.80it/s] 88%|████████▊ | 47481/54000 [00:01<00:00, 27803.27it/s]100%|█████████▉| 53814/54000 [00:01<00:00, 34380.43it/s]100%|██████████| 54000/54000 [00:02<00:00, 21839.79it/s]
+[rank: 1] Seed set to 42
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** JOB 275045 ON dw-1-3 CANCELLED AT 2024-11-21T06:33:33 ***

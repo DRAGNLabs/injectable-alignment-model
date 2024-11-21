@@ -1,0 +1,275 @@
+Thu Nov 21 06:57:50 2024       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.127.05             Driver Version: 550.127.05     CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-SXM4-80GB          On  |   00000000:0A:00.0 Off |                    0 |
+| N/A   25C    P0             60W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   1  NVIDIA A100-SXM4-80GB          On  |   00000000:82:00.0 Off |                    0 |
+| N/A   28C    P0             63W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+Run 'mamba init' to be able to run mamba activate/deactivate
+and start a new shell session. Or use conda to activate/deactivate.
+
+tokenizer_type: hf
+tokenizer_path: meta-llama/Llama-2-7b-chat-hf
+pad_id: -1
+vocab_size: -1
+IRM_layers: [31]
+loss_function_index: 0
+default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_anger_60k_31_training/
+checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt
+dataset_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/anger_QA_7b_60k
+dataset_name: anger_60k
+accelerator: gpu
+num_nodes: 1
+num_workers: 1
+devices: 2
+use_slurm: True
+log_every_n_steps: 200
+check_val_every_n_epoch: 1
+val_check_interval: 0.25
+batch_size: 8
+gradient_accumulation_steps: 1
+num_epochs: 15
+lr: 0.0001
+gamma: 0.85
+seed: 42
+early_stopping: 6
+save_top_k: 3
+save_predictions_during_training: True
+regularize_loss: False
+max_gen_len: 20
+do_logging: False
+experiment_name: Llama-2-7b-chat-hf_anger_60k_31_training
+from_pretrained: True
+model_name: meta-llama/Llama-2-7b-chat-hf
+
+model_config:
+  attention_bias: False
+  attention_dropout: 0.0
+  bos_token_id: 1
+  eos_token_id: 2
+  hidden_act: silu
+  hidden_size: 4096
+  initializer_range: 0.02
+  intermediate_size: 11008
+  max_position_embeddings: 128
+  model_type: llama
+  num_attention_heads: 32
+  num_hidden_layers: 32
+  num_key_value_heads: 32
+  pretraining_tp: 1
+  rms_norm_eps: 1e-05
+  rope_scaling: None
+  rope_theta: 10000.0
+  tie_word_embeddings: False
+  torch_dtype: float16
+  transformers_version: 4.38.2
+  use_cache: True
+  vocab_size: 32000
+
+
+Starting tokenization...
+
+Before tokenizing:
+	 csv is (54000, 2)
+Dataframe:       Unnamed: 0                                               text
+0          43541  Which console sold the most units in the seven...
+1           8234  Where was extra epoxy placed on the models bef...
+2          13369  In order to account for the full moon coming a...
+3          34371  What changed the length of the calendar year f...
+4           6541  When did World War II commence?   What is wron...
+...          ...                                                ...
+53995      34958  What was needed because the lunar year is long...
+53996      22003  For how many months was the Wii the best-selli...
+53997      32164  What games were released as part of the Game R...
+53998      23860  What video input format is not supported by th...
+53999      34699  How many countries were slated for the Zune Ma...
+
+[54000 rows x 2 columns]
+
+
+  0%|          | 0/54000 [00:00<?, ?it/s]  0%|          | 1/54000 [00:00<00:16, 3284.50it/s]
+Traceback (most recent call last):
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 3802, in get_loc
+    return self._engine.get_loc(casted_key)
+  File "index.pyx", line 153, in pandas._libs.index.IndexEngine.get_loc
+  File "index.pyx", line 182, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7081, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7089, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Tokenized_Data'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py", line 144, in <module>
+    main()
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py", line 139, in main
+    tokenize_data(config)
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/src/tokenize_data.py", line 113, in tokenize_data
+    tokenized_train:pd.DataFrame = generate_tokenized_file(raw_train, 
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/src/tokenize_data.py", line 54, in generate_tokenized_file
+    df1 = df.progress_apply(tok_lambda, axis=1)
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/tqdm/std.py", line 920, in inner
+    return getattr(df, df_function)(wrapper, **kwargs)
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pandas/core/frame.py", line 10347, in apply
+    return op.apply().__finalize__(self, method="apply")
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pandas/core/apply.py", line 916, in apply
+    return self.apply_standard()
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pandas/core/apply.py", line 1063, in apply_standard
+    results, res_index = self.apply_series_generator()
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pandas/core/apply.py", line 1081, in apply_series_generator
+    results[i] = self.func(v, *self.args, **self.kwargs)
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/tqdm/std.py", line 915, in wrapper
+    return func(*args, **kwargs)
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/src/tokenize_data.py", line 52, in <lambda>
+    tok_lambda = lambda x: tokenize_data_chunk(tokenizer=tokenizer, chunk=x)  # 'df.' of line 62 becomes 'x' in this lambda
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/src/tokenize_data.py", line 29, in tokenize_data_chunk
+    print(f"************Chunk***********: {chunk['Tokenized_Data']}")
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pandas/core/series.py", line 1111, in __getitem__
+    return self._get_value(key)
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pandas/core/series.py", line 1227, in _get_value
+    loc = self.index.get_loc(label)
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 3809, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Tokenized_Data'
+srun: error: dw-1-3: task 0: Exited with exit code 1
+tokenizer_type: hf
+tokenizer_path: meta-llama/Llama-2-7b-chat-hf
+pad_id: -1
+vocab_size: -1
+IRM_layers: [31]
+loss_function_index: 0
+default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_anger_60k_31_training/
+checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt
+dataset_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/anger_QA_7b_60k
+dataset_name: anger_60k
+accelerator: gpu
+num_nodes: 1
+num_workers: 1
+devices: 2
+use_slurm: True
+log_every_n_steps: 200
+check_val_every_n_epoch: 1
+val_check_interval: 0.25
+batch_size: 8
+gradient_accumulation_steps: 1
+num_epochs: 15
+lr: 0.0001
+gamma: 0.85
+seed: 42
+early_stopping: 6
+save_top_k: 3
+save_predictions_during_training: True
+regularize_loss: False
+max_gen_len: 20
+do_logging: False
+experiment_name: Llama-2-7b-chat-hf_anger_60k_31_training
+from_pretrained: True
+model_name: meta-llama/Llama-2-7b-chat-hf
+
+model_config:
+  attention_bias: False
+  attention_dropout: 0.0
+  bos_token_id: 1
+  eos_token_id: 2
+  hidden_act: silu
+  hidden_size: 4096
+  initializer_range: 0.02
+  intermediate_size: 11008
+  max_position_embeddings: 128
+  model_type: llama
+  num_attention_heads: 32
+  num_hidden_layers: 32
+  num_key_value_heads: 32
+  pretraining_tp: 1
+  rms_norm_eps: 1e-05
+  rope_scaling: None
+  rope_theta: 10000.0
+  tie_word_embeddings: False
+  torch_dtype: float16
+  transformers_version: 4.38.2
+  use_cache: True
+  vocab_size: 32000
+
+
+Starting tokenization...
+
+Before tokenizing:
+	 csv is (54000, 2)
+Dataframe:       Unnamed: 0                                               text
+0          43541  Which console sold the most units in the seven...
+1           8234  Where was extra epoxy placed on the models bef...
+2          13369  In order to account for the full moon coming a...
+3          34371  What changed the length of the calendar year f...
+4           6541  When did World War II commence?   What is wron...
+...          ...                                                ...
+53995      34958  What was needed because the lunar year is long...
+53996      22003  For how many months was the Wii the best-selli...
+53997      32164  What games were released as part of the Game R...
+53998      23860  What video input format is not supported by th...
+53999      34699  How many countries were slated for the Zune Ma...
+
+[54000 rows x 2 columns]
+
+
+  0%|          | 0/54000 [00:00<?, ?it/s]  0%|          | 1/54000 [00:00<00:13, 4068.19it/s]
+Traceback (most recent call last):
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 3802, in get_loc
+    return self._engine.get_loc(casted_key)
+  File "index.pyx", line 153, in pandas._libs.index.IndexEngine.get_loc
+  File "index.pyx", line 182, in pandas._libs.index.IndexEngine.get_loc
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7081, in pandas._libs.hashtable.PyObjectHashTable.get_item
+  File "pandas/_libs/hashtable_class_helper.pxi", line 7089, in pandas._libs.hashtable.PyObjectHashTable.get_item
+KeyError: 'Tokenized_Data'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py", line 144, in <module>
+    main()
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py", line 139, in main
+    tokenize_data(config)
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/src/tokenize_data.py", line 113, in tokenize_data
+    tokenized_train:pd.DataFrame = generate_tokenized_file(raw_train, 
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/src/tokenize_data.py", line 54, in generate_tokenized_file
+    df1 = df.progress_apply(tok_lambda, axis=1)
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/tqdm/std.py", line 920, in inner
+    return getattr(df, df_function)(wrapper, **kwargs)
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pandas/core/frame.py", line 10347, in apply
+    return op.apply().__finalize__(self, method="apply")
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pandas/core/apply.py", line 916, in apply
+    return self.apply_standard()
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pandas/core/apply.py", line 1063, in apply_standard
+    results, res_index = self.apply_series_generator()
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pandas/core/apply.py", line 1081, in apply_series_generator
+    results[i] = self.func(v, *self.args, **self.kwargs)
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/tqdm/std.py", line 915, in wrapper
+    return func(*args, **kwargs)
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/src/tokenize_data.py", line 52, in <lambda>
+    tok_lambda = lambda x: tokenize_data_chunk(tokenizer=tokenizer, chunk=x)  # 'df.' of line 62 becomes 'x' in this lambda
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/src/tokenize_data.py", line 29, in tokenize_data_chunk
+    print(f"************Chunk***********: {chunk['Tokenized_Data']}")
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pandas/core/series.py", line 1111, in __getitem__
+    return self._get_value(key)
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pandas/core/series.py", line 1227, in _get_value
+    loc = self.index.get_loc(label)
+  File "/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pandas/core/indexes/base.py", line 3809, in get_loc
+    raise KeyError(key) from err
+KeyError: 'Tokenized_Data'
+srun: error: dw-1-3: task 1: Exited with exit code 1
