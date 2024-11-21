@@ -39,7 +39,7 @@ def generate_tokenized_file(raw_data_path, tokenizer_path, tokenizer_type):
     
     # Load tokenizer
     if tokenizer_type == 'hf':
-        tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+        tokenizer = HFTokenizer.from_pretrained(tokenizer_path)
     elif tokenizer_type == 'sp':
         tokenizer = SPTokenizer(tokenizer_path)
     else:
