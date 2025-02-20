@@ -85,7 +85,9 @@ def train(config):
         return injected_forward
     
     model.model.layers[0].self_attn.forward = hijack_attn(model.model.layers[0].self_attn.forward)
-    for layer in irm.injection_layers: model.model.layers[layer].forward = hijack_layer(model.model.layers[layer].forward, irm, layer)
+    layer = 31
+    #for layer in irm.injection_layers: 
+    model.model.layers[layer].forward = hijack_layer(model.model.layers[layer].forward, irm, layer)
     
     # Load the model from the original checkpoint with strict=False, so it will only fill in the weights that are in both models, without errors
     print(f"Loading from checkpoint")
