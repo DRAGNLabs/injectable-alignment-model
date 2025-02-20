@@ -1,0 +1,431 @@
+Thu Feb 13 08:48:56 2025       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.144.03             Driver Version: 550.144.03     CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-SXM4-80GB          On  |   00000000:07:00.0 Off |                    0 |
+| N/A   31C    P0             64W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   1  NVIDIA A100-SXM4-80GB          On  |   00000000:0A:00.0 Off |                    0 |
+| N/A   25C    P0             61W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   2  NVIDIA A100-SXM4-80GB          On  |   00000000:44:00.0 Off |                    0 |
+| N/A   27C    P0             63W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   3  NVIDIA A100-SXM4-80GB          On  |   00000000:4A:00.0 Off |                    0 |
+| N/A   30C    P0             63W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   4  NVIDIA A100-SXM4-80GB          On  |   00000000:82:00.0 Off |                    0 |
+| N/A   31C    P0             65W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   5  NVIDIA A100-SXM4-80GB          On  |   00000000:88:00.0 Off |                    0 |
+| N/A   27C    P0             62W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   6  NVIDIA A100-SXM4-80GB          On  |   00000000:BF:00.0 Off |                    0 |
+| N/A   26C    P0             62W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   7  NVIDIA A100-SXM4-80GB          On  |   00000000:C2:00.0 Off |                    0 |
+| N/A   30C    P0             65W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+Run 'mamba init' to be able to run mamba activate/deactivate
+and start a new shell session. Or use conda to activate/deactivate.
+
+[rank: 1] Seed set to 42
+[rank: 5] Seed set to 42
+[rank: 0] Seed set to 42
+[rank: 2] Seed set to 42
+[rank: 3] Seed set to 42
+[rank: 7] Seed set to 42
+[rank: 4] Seed set to 42
+[rank: 6] Seed set to 42
+slurmstepd: error: Detected 1 oom_kill event in StepId=2117475.0. Some of the step tasks have been OOM Killed.
+srun: error: dw-1-5: task 1: Out Of Memory
+WORLD_SIZE: Not set
+LOCAL_RANK: Not set
+tokenizer_type: hf
+tokenizer_path: meta-llama/Llama-2-7b-chat-hf
+pad_id: -1
+vocab_size: -1
+IRM_layers: [31]
+loss_function_index: 0
+default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_anger_60k_31_training_latest/
+checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt
+dataset_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/anger_QA_7b_60k
+dataset_name: anger_60k
+accelerator: gpu
+num_nodes: 1
+num_workers: 1
+devices: 8
+use_slurm: True
+log_every_n_steps: 200
+check_val_every_n_epoch: 1
+val_check_interval: 0.25
+batch_size: 8
+gradient_accumulation_steps: 4
+num_epochs: 15
+lr: 0.0001
+gamma: 0.85
+seed: 42
+early_stopping: 6
+save_top_k: 3
+save_predictions_during_training: True
+regularize_loss: False
+max_gen_len: 128
+do_logging: False
+experiment_name: Llama-2-7b-chat-hf_anger_60k_31_training
+from_pretrained: True
+model_name: meta-llama/Llama-2-7b-chat-hf
+
+model_config:
+  attention_bias: False
+  attention_dropout: 0.0
+  bos_token_id: 1
+  eos_token_id: 2
+  hidden_act: silu
+  hidden_size: 4096
+  initializer_range: 0.02
+  intermediate_size: 11008
+  max_position_embeddings: 128
+  model_type: llama
+  num_attention_heads: 32
+  num_hidden_layers: 32
+  num_key_value_heads: 32
+  pretraining_tp: 1
+  rms_norm_eps: 1e-05
+  rope_scaling: None
+  rope_theta: 10000.0
+  tie_word_embeddings: False
+  torch_dtype: float16
+  transformers_version: 4.38.2
+  use_cache: True
+  vocab_size: 32000
+  irm_layer_size: 1024
+  irm_layer_num: 4
+
+Instantiating model
+Initializing IRM model...
+Loading from checkpoint
+Checkpoint loading complete.
+Traceback (most recent call last):
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py", line 178, in <module>
+    main()
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py", line 175, in main
+    train(config)
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py", line 126, in train
+    'callbacks': [print_callback, model_checkpoint, memory_monitor_callback], # Not including early_stopping
+NameError: name 'memory_monitor_callback' is not defined
+WORLD_SIZE: Not set
+LOCAL_RANK: Not set
+tokenizer_type: hf
+tokenizer_path: meta-llama/Llama-2-7b-chat-hf
+pad_id: -1
+vocab_size: -1
+IRM_layers: [31]
+loss_function_index: 0
+default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_anger_60k_31_training_latest/
+checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt
+dataset_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/anger_QA_7b_60k
+dataset_name: anger_60k
+accelerator: gpu
+num_nodes: 1
+num_workers: 1
+devices: 8
+use_slurm: True
+log_every_n_steps: 200
+check_val_every_n_epoch: 1
+val_check_interval: 0.25
+batch_size: 8
+gradient_accumulation_steps: 4
+num_epochs: 15
+lr: 0.0001
+gamma: 0.85
+seed: 42
+early_stopping: 6
+save_top_k: 3
+save_predictions_during_training: True
+regularize_loss: False
+max_gen_len: 128
+do_logging: False
+experiment_name: Llama-2-7b-chat-hf_anger_60k_31_training
+from_pretrained: True
+model_name: meta-llama/Llama-2-7b-chat-hf
+
+model_config:
+  attention_bias: False
+  attention_dropout: 0.0
+  bos_token_id: 1
+  eos_token_id: 2
+  hidden_act: silu
+  hidden_size: 4096
+  initializer_range: 0.02
+  intermediate_size: 11008
+  max_position_embeddings: 128
+  model_type: llama
+  num_attention_heads: 32
+  num_hidden_layers: 32
+  num_key_value_heads: 32
+  pretraining_tp: 1
+  rms_norm_eps: 1e-05
+  rope_scaling: None
+  rope_theta: 10000.0
+  tie_word_embeddings: False
+  torch_dtype: float16
+  transformers_version: 4.38.2
+  use_cache: True
+  vocab_size: 32000
+  irm_layer_size: 1024
+  irm_layer_num: 4
+
+Instantiating model
+Initializing IRM model...
+Loading from checkpoint
+Checkpoint loading complete.
+Traceback (most recent call last):
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py", line 178, in <module>
+    main()
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py", line 175, in main
+    train(config)
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py", line 126, in train
+    'callbacks': [print_callback, model_checkpoint, memory_monitor_callback], # Not including early_stopping
+NameError: name 'memory_monitor_callback' is not defined
+WORLD_SIZE: Not set
+LOCAL_RANK: Not set
+tokenizer_type: hf
+tokenizer_path: meta-llama/Llama-2-7b-chat-hf
+pad_id: -1
+vocab_size: -1
+IRM_layers: [31]
+loss_function_index: 0
+default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_anger_60k_31_training_latest/
+checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt
+dataset_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/anger_QA_7b_60k
+dataset_name: anger_60k
+accelerator: gpu
+num_nodes: 1
+num_workers: 1
+devices: 8
+use_slurm: True
+log_every_n_steps: 200
+check_val_every_n_epoch: 1
+val_check_interval: 0.25
+batch_size: 8
+gradient_accumulation_steps: 4
+num_epochs: 15
+lr: 0.0001
+gamma: 0.85
+seed: 42
+early_stopping: 6
+save_top_k: 3
+save_predictions_during_training: True
+regularize_loss: False
+max_gen_len: 128
+do_logging: False
+experiment_name: Llama-2-7b-chat-hf_anger_60k_31_training
+from_pretrained: True
+model_name: meta-llama/Llama-2-7b-chat-hf
+
+model_config:
+  attention_bias: False
+  attention_dropout: 0.0
+  bos_token_id: 1
+  eos_token_id: 2
+  hidden_act: silu
+  hidden_size: 4096
+  initializer_range: 0.02
+  intermediate_size: 11008
+  max_position_embeddings: 128
+  model_type: llama
+  num_attention_heads: 32
+  num_hidden_layers: 32
+  num_key_value_heads: 32
+  pretraining_tp: 1
+  rms_norm_eps: 1e-05
+  rope_scaling: None
+  rope_theta: 10000.0
+  tie_word_embeddings: False
+  torch_dtype: float16
+  transformers_version: 4.38.2
+  use_cache: True
+  vocab_size: 32000
+  irm_layer_size: 1024
+  irm_layer_num: 4
+
+Instantiating model
+Initializing IRM model...
+Loading from checkpoint
+Checkpoint loading complete.
+Traceback (most recent call last):
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py", line 178, in <module>
+    main()
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py", line 175, in main
+    train(config)
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py", line 126, in train
+    'callbacks': [print_callback, model_checkpoint, memory_monitor_callback], # Not including early_stopping
+NameError: name 'memory_monitor_callback' is not defined
+WORLD_SIZE: Not set
+LOCAL_RANK: Not set
+tokenizer_type: hf
+tokenizer_path: meta-llama/Llama-2-7b-chat-hf
+pad_id: -1
+vocab_size: -1
+IRM_layers: [31]
+loss_function_index: 0
+default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_anger_60k_31_training_latest/
+checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt
+dataset_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/anger_QA_7b_60k
+dataset_name: anger_60k
+accelerator: gpu
+num_nodes: 1
+num_workers: 1
+devices: 8
+use_slurm: True
+log_every_n_steps: 200
+check_val_every_n_epoch: 1
+val_check_interval: 0.25
+batch_size: 8
+gradient_accumulation_steps: 4
+num_epochs: 15
+lr: 0.0001
+gamma: 0.85
+seed: 42
+early_stopping: 6
+save_top_k: 3
+save_predictions_during_training: True
+regularize_loss: False
+max_gen_len: 128
+do_logging: False
+experiment_name: Llama-2-7b-chat-hf_anger_60k_31_training
+from_pretrained: True
+model_name: meta-llama/Llama-2-7b-chat-hf
+
+model_config:
+  attention_bias: False
+  attention_dropout: 0.0
+  bos_token_id: 1
+  eos_token_id: 2
+  hidden_act: silu
+  hidden_size: 4096
+  initializer_range: 0.02
+  intermediate_size: 11008
+  max_position_embeddings: 128
+  model_type: llama
+  num_attention_heads: 32
+  num_hidden_layers: 32
+  num_key_value_heads: 32
+  pretraining_tp: 1
+  rms_norm_eps: 1e-05
+  rope_scaling: None
+  rope_theta: 10000.0
+  tie_word_embeddings: False
+  torch_dtype: float16
+  transformers_version: 4.38.2
+  use_cache: True
+  vocab_size: 32000
+  irm_layer_size: 1024
+  irm_layer_num: 4
+
+Instantiating model
+Initializing IRM model...
+Loading from checkpoint
+Checkpoint loading complete.
+Traceback (most recent call last):
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py", line 178, in <module>
+    main()
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py", line 175, in main
+    train(config)
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py", line 126, in train
+    'callbacks': [print_callback, model_checkpoint, memory_monitor_callback], # Not including early_stopping
+NameError: name 'memory_monitor_callback' is not defined
+WORLD_SIZE: Not set
+LOCAL_RANK: Not set
+tokenizer_type: hf
+tokenizer_path: meta-llama/Llama-2-7b-chat-hf
+pad_id: -1
+vocab_size: -1
+IRM_layers: [31]
+loss_function_index: 0
+default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_anger_60k_31_training_latest/
+checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt
+dataset_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/anger_QA_7b_60k
+dataset_name: anger_60k
+accelerator: gpu
+num_nodes: 1
+num_workers: 1
+devices: 8
+use_slurm: True
+log_every_n_steps: 200
+check_val_every_n_epoch: 1
+val_check_interval: 0.25
+batch_size: 8
+gradient_accumulation_steps: 4
+num_epochs: 15
+lr: 0.0001
+gamma: 0.85
+seed: 42
+early_stopping: 6
+save_top_k: 3
+save_predictions_during_training: True
+regularize_loss: False
+max_gen_len: 128
+do_logging: False
+experiment_name: Llama-2-7b-chat-hf_anger_60k_31_training
+from_pretrained: True
+model_name: meta-llama/Llama-2-7b-chat-hf
+
+model_config:
+  attention_bias: False
+  attention_dropout: 0.0
+  bos_token_id: 1
+  eos_token_id: 2
+  hidden_act: silu
+  hidden_size: 4096
+  initializer_range: 0.02
+  intermediate_size: 11008
+  max_position_embeddings: 128
+  model_type: llama
+  num_attention_heads: 32
+  num_hidden_layers: 32
+  num_key_value_heads: 32
+  pretraining_tp: 1
+  rms_norm_eps: 1e-05
+  rope_scaling: None
+  rope_theta: 10000.0
+  tie_word_embeddings: False
+  torch_dtype: float16
+  transformers_version: 4.38.2
+  use_cache: True
+  vocab_size: 32000
+  irm_layer_size: 1024
+  irm_layer_num: 4
+
+Instantiating model
+Initializing IRM model...
+Loading from checkpoint
+Checkpoint loading complete.
+Traceback (most recent call last):
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py", line 178, in <module>
+    main()
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py", line 175, in main
+    train(config)
+  File "/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py", line 126, in train
+    'callbacks': [print_callback, model_checkpoint, memory_monitor_callback], # Not including early_stopping
+NameError: name 'memory_monitor_callback' is not defined

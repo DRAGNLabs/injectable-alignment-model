@@ -36,36 +36,57 @@ class IRM(nn.Module):
 
         self.vocab_size = config.vocab_size
         self.hidden_size = config.model_config["hidden_size"]
-        self.linear_size = self.hidden_size * size_modifier
+        self.num_linear_layers = config.model_config["irm_layer_num"]
+        if config.model_config["irm_layer_size"] == -1:
+            self.linear_size = self.hidden_size * size_modifier
+        else:
+            self.linear_size = config.model_config["irm_layer_size"]
 
         # self.batch_size = config.batch_size
         self.sequence_length = config.model_config["max_position_embeddings"]
 
         self.injection_layers = config.IRM_layers
-        self.num_layers = len(self.injection_layers)
+        self.num_injected_positions = len(self.injection_layers)
         self.active_irm = True
+
+        if len(self.injection_layers) == 0:
+            self.deactivate()
 
         if self.do_logging:
             self.logger = tensor_logger(config.model_config["num_hidden_layers"], config.experiment_name, self.injection_layers, config.default_root_dir)
-            # Pass self.num_layers and self.injection_layers to the tensor_logger constructor
+            # Pass self.num_injected_positions and self.injection_layers to the tensor_logger constructor
         else:
             self.logger = None
+            
+        self.basic_forward = self.create_sequential_model().to(self.device)
 
-        self.basic_forward = nn.Sequential(
-            nn.Linear(self.hidden_size, self.linear_size),
-            nn.ReLU(),
-            nn.Linear(self.linear_size, self.linear_size),
-            nn.ReLU(),
-            nn.Linear(self.linear_size, self.linear_size),
-            nn.ReLU(),
-            nn.Linear(self.linear_size, self.linear_size),
-            nn.ReLU(),
-            nn.Linear(self.linear_size, self.hidden_size * self.num_layers),
-        ).to(self.device)
+    def create_sequential_model(self):
+        if self.num_injected_positions == 0:
+            return nn.Sequential()
+        
+        layers = []
+        
+        if self.num_linear_layers == 1:
+            # If only one layer, directly connect input to output
+            layers.append(nn.Linear(self.hidden_size, self.hidden_size * self.num_injected_positions))
+        else:
+            # First layer
+            layers.append(nn.Linear(self.hidden_size, self.linear_size))
+            layers.append(nn.ReLU())
+            
+            # Middle layers
+            for _ in range(self.num_linear_layers - 2):
+                layers.append(nn.Linear(self.linear_size, self.linear_size))
+                layers.append(nn.ReLU())
+            
+            # Last layer
+            layers.append(nn.Linear(self.linear_size, self.hidden_size * self.num_injected_positions))
+        
+        return nn.Sequential(*layers)
 
     def forward(self, x: torch.Tensor):
         curr_batch_size = x.size()[0]
-        self.weights = self.basic_forward(x).view(curr_batch_size, -1, self.hidden_size, self.num_layers)
+        self.weights = self.basic_forward(x).view(curr_batch_size, -1, self.hidden_size, self.num_injected_positions)
 
         if self.do_logging:
             print("Tensor shape: ", self.weights.size())

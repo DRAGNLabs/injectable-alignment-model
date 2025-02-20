@@ -119,7 +119,10 @@ class LlamaForCausalLM(LlamaPreTrainedModel, LightningModule):
         self.vocab_size = self.hf_config.vocab_size
         self.lm_head = nn.Linear(self.hf_config.hidden_size, self.hf_config.vocab_size, bias=False)
 
-        self.l1_loss_alpha = 1e-4 / len(self.model.irm.injection_layers)
+        if self.irm_config.regularize_loss:
+            self.l1_loss_alpha = 1e-4 / len(self.model.irm.injection_layers)
+        else:
+            self.l1_loss_alpha = 0
 
         # Initialize weights and apply final processing
         self.post_init()

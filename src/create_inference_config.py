@@ -4,7 +4,8 @@ from utils.create_config import *
 
 def main():
     # Specify injection layers
-    injection_locations = [[i for i in range(32)]]
+    # injection_locations = [[i for i in range(32)]]
+    injection_locations = [[31]]
 
     # set directory where datasets and checkpoints are saved
     home_dir = "/home/huang717/DRAGN/IRM/injectable-alignment-model"
@@ -22,11 +23,11 @@ def main():
     tokenizer_path = f"meta-llama/{model_name}" if tokenizer_type == "hf" else "PLACE_HOLDER", # PATH_TO_TOKENIZER
     
     # set this to the path of the checkpoint you want run inference on
-    checkpoint_path = "PLACE_HOLDER"
+    checkpoint_path = "/home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_tiny_shakespeare_31_training/checkpoints/model-epoch=0-val_loss=2.59.ckpt"
 
     # Note: each dataset should have its own folder and file name
-    dataset_folders = ["anger_QA_7b_60k"]
-    dataset_names = ["anger_60k"]
+    dataset_folders = ["TinyShakespeare"]
+    dataset_names = ["tiny_shakespeare"]
 
     # do logging; logging should be true for inference, and false for training
     logging = True
@@ -35,7 +36,7 @@ def main():
     regularize = False
 
     # Specify number of epochs
-    dataset_file_epochs = [15] * len(dataset_names)
+    dataset_file_epochs = [1] * len(dataset_names)
 
     job_type = "inference"
     

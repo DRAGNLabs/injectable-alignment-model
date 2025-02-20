@@ -1,0 +1,60 @@
+Sat Feb 15 11:44:47 2025       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.144.03             Driver Version: 550.144.03     CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-SXM4-80GB          On  |   00000000:07:00.0 Off |                    0 |
+| N/A   29C    P0             62W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   1  NVIDIA A100-SXM4-80GB          On  |   00000000:0A:00.0 Off |                    0 |
+| N/A   27C    P0             63W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   2  NVIDIA A100-SXM4-80GB          On  |   00000000:45:00.0 Off |                    0 |
+| N/A   26C    P0             59W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   3  NVIDIA A100-SXM4-80GB          On  |   00000000:4B:00.0 Off |                    0 |
+| N/A   28C    P0             62W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   4  NVIDIA A100-SXM4-80GB          On  |   00000000:83:00.0 Off |                    0 |
+| N/A   29C    P0             59W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   5  NVIDIA A100-SXM4-80GB          On  |   00000000:89:00.0 Off |                    0 |
+| N/A   27C    P0             61W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   6  NVIDIA A100-SXM4-80GB          On  |   00000000:C0:00.0 Off |                    0 |
+| N/A   26C    P0             61W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   7  NVIDIA A100-SXM4-80GB          On  |   00000000:C3:00.0 Off |                    0 |
+| N/A   28C    P0             62W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+Run 'mamba init' to be able to run mamba activate/deactivate
+and start a new shell session. Or use conda to activate/deactivate.
+
+/home/huang717/.conda/envs/test/bin/python3: can't open file '/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py/home/huang717/DRAGN/IRM/injectable-alignment-model/configs/Llama-2-7b-chat-hf_neutral_60k_31_training_new_test.yaml': [Errno 20] Not a directory
+/home/huang717/.conda/envs/test/bin/python3: can't open file '/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py/home/huang717/DRAGN/IRM/injectable-alignment-model/configs/Llama-2-7b-chat-hf_neutral_60k_31_training_new_test.yaml': [Errno 20] Not a directory
+/home/huang717/.conda/envs/test/bin/python3: can't open file '/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py/home/huang717/DRAGN/IRM/injectable-alignment-model/configs/Llama-2-7b-chat-hf_neutral_60k_31_training_new_test.yaml': [Errno 20] Not a directory
+/home/huang717/.conda/envs/test/bin/python3: can't open file '/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py/home/huang717/DRAGN/IRM/injectable-alignment-model/configs/Llama-2-7b-chat-hf_neutral_60k_31_training_new_test.yaml': [Errno 20] Not a directory
+/home/huang717/.conda/envs/test/bin/python3: can't open file '/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py/home/huang717/DRAGN/IRM/injectable-alignment-model/configs/Llama-2-7b-chat-hf_neutral_60k_31_training_new_test.yaml': [Errno 20] Not a directory
+/home/huang717/.conda/envs/test/bin/python3: can't open file '/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py/home/huang717/DRAGN/IRM/injectable-alignment-model/configs/Llama-2-7b-chat-hf_neutral_60k_31_training_new_test.yaml': [Errno 20] Not a directory
+/home/huang717/.conda/envs/test/bin/python3: can't open file '/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py/home/huang717/DRAGN/IRM/injectable-alignment-model/configs/Llama-2-7b-chat-hf_neutral_60k_31_training_new_test.yaml': [Errno 20] Not a directory
+/home/huang717/.conda/envs/test/bin/python3: can't open file '/home/huang717/DRAGN/IRM/injectable-alignment-model/slurm/../src/injected_train.py/home/huang717/DRAGN/IRM/injectable-alignment-model/configs/Llama-2-7b-chat-hf_neutral_60k_31_training_new_test.yaml': [Errno 20] Not a directory
+srun: error: dw-2-5: tasks 0-7: Exited with exit code 2

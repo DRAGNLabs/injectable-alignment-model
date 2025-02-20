@@ -1,2 +1,5 @@
 default_checkpoints/
 __pycache__/
+slurm/core*
+datasets/neutral_QA_7b_60k/
+datasets/sadness_QA_7b_60k/

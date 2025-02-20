@@ -1,0 +1,83 @@
+Mon Jan 27 11:05:59 2025       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.127.05             Driver Version: 550.127.05     CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-SXM4-80GB          On  |   00000000:8A:00.0 Off |                    0 |
+| N/A   29C    P0             62W /  400W |       1MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+Run 'mamba init' to be able to run mamba activate/deactivate
+and start a new shell session. Or use conda to activate/deactivate.
+
+/home/huang717/.conda/envs/test/lib/python3.10/site-packages/torch/nn/init.py:452: UserWarning: Initializing zero-element tensors is a no-op
+  warnings.warn("Initializing zero-element tensors is a no-op")
+hello
+Initializing program... 
+Initializing model...
+Initializing IRM model...
+Model loaded and ready on cuda
+LlamaForCausalLM(
+  (model): InjectedLlamaModel(
+    (irm): IRM(
+      (basic_forward): Sequential(
+        (0): Linear(in_features=4096, out_features=12288, bias=True)
+        (1): ReLU()
+        (2): Linear(in_features=12288, out_features=12288, bias=True)
+        (3): ReLU()
+        (4): Linear(in_features=12288, out_features=12288, bias=True)
+        (5): ReLU()
+        (6): Linear(in_features=12288, out_features=12288, bias=True)
+        (7): ReLU()
+        (8): Linear(in_features=12288, out_features=0, bias=True)
+      )
+    )
+    (embed_tokens): Embedding(32000, 4096)
+    (layers): ModuleList(
+      (0-31): 32 x InjectedLlamaDecoderLayer(
+        (irm): IRM(
+          (basic_forward): Sequential(
+            (0): Linear(in_features=4096, out_features=12288, bias=True)
+            (1): ReLU()
+            (2): Linear(in_features=12288, out_features=12288, bias=True)
+            (3): ReLU()
+            (4): Linear(in_features=12288, out_features=12288, bias=True)
+            (5): ReLU()
+            (6): Linear(in_features=12288, out_features=12288, bias=True)
+            (7): ReLU()
+            (8): Linear(in_features=12288, out_features=0, bias=True)
+          )
+        )
+        (self_attn): LlamaSdpaAttention(
+          (q_proj): Linear(in_features=4096, out_features=4096, bias=False)
+          (k_proj): Linear(in_features=4096, out_features=4096, bias=False)
+          (v_proj): Linear(in_features=4096, out_features=4096, bias=False)
+          (o_proj): Linear(in_features=4096, out_features=4096, bias=False)
+          (rotary_emb): LlamaRotaryEmbedding()
+        )
+        (mlp): LlamaMLP(
+          (gate_proj): Linear(in_features=4096, out_features=11008, bias=False)
+          (up_proj): Linear(in_features=4096, out_features=11008, bias=False)
+          (down_proj): Linear(in_features=11008, out_features=4096, bias=False)
+          (act_fn): SiLU()
+        )
+        (input_layernorm): LlamaRMSNorm()
+        (post_attention_layernorm): LlamaRMSNorm()
+      )
+    )
+    (norm): LlamaRMSNorm()
+  )
+  (lm_head): Linear(in_features=4096, out_features=32000, bias=False)
+)
+Total parameters: 7241781248

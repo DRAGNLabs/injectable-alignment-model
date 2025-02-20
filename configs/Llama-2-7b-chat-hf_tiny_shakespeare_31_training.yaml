@@ -4,29 +4,29 @@ pad_id: -1
 vocab_size: -1
 IRM_layers: [31]
 loss_function_index: 0
-default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_tiny_shakespeare.txt_31_training/
+default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/chat_tiny_shakespeare_31_training_context_4096_lr_5e-5_epoch_5_irm_1024x4/
 checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt
 dataset_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/TinyShakespeare/
 dataset_name: tiny_shakespeare
 accelerator: gpu
 num_nodes: 1
 num_workers: 1
-devices: 2
+devices: 8
 use_slurm: true
 log_every_n_steps: 200
 check_val_every_n_epoch: 1
 val_check_interval: 0.25
 batch_size: 8
-gradient_accumulation_steps: 1
-num_epochs: 1
-lr: 0.0001
+gradient_accumulation_steps: 4
+num_epochs: 10
+lr: 0.00005
 gamma: 0.85
 seed: 42
-early_stopping: 1
-save_top_k: 3
+early_stopping: 3
+save_top_k: 5
 save_predictions_during_training: true
 regularize_loss: False
-max_gen_len: 1024
+max_gen_len: 256
 do_logging: False
 experiment_name: Llama-2-7b-chat-hf_tiny_shakespeare.txt_31_training
 from_pretrained: true
@@ -40,8 +40,8 @@ model_config:
   hidden_act: silu
   hidden_size: 4096
   initializer_range: 0.02
-  intermediate_size: 11008
-  max_position_embeddings: 128
+  # intermediate_size: 11008
+  max_position_embeddings: 4096
   model_type: llama
   num_attention_heads: 32
   num_hidden_layers: 32
@@ -55,3 +55,5 @@ model_config:
   transformers_version: 4.38.2
   use_cache: true
   vocab_size: 32000
+  irm_layer_size: 1024 # set to -1 to use the "size_modifier" in IRM() class
+  irm_layer_num: 4 # equals to the number of nn.Linear(). The number of nn.ReLU() is (irm_layer_num - 1).

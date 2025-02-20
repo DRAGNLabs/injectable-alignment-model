@@ -97,8 +97,9 @@ class InjectedLlamaDecoderLayer(nn.Module):
         )
         hidden_states = residual + hidden_states
         # self irm
-        if self.layer_idx == 0:
-            self.irm(hidden_states)
+        if len(self.irm.injection_layers) > 0:
+            if self.layer_idx == 0:
+                self.irm(hidden_states)
             
         if self.layer_idx in self.irm.injection_layers:
             hidden_states = self.irm.injected_operation(self.layer_idx, hidden_states)
@@ -219,7 +220,8 @@ class InjectedLlamaModel(LlamaPreTrainedModel):
     def __init__(self, irm_config, config):
 
         super().__init__(config)
-
+        
+        print('Initializing IRM model...')
         self.irm = IRM(irm_config)
         self.irm_config = irm_config
 
@@ -262,6 +264,15 @@ class InjectedLlamaModel(LlamaPreTrainedModel):
         return_dict: Optional[bool] = None,
         cache_position: Optional[torch.LongTensor] = None,
     ) -> Union[Tuple, BaseModelOutputWithPast]:
+
+        # print(f"\nForward pass inputs:")
+        # print(f"cache_position provided: {cache_position if cache_position is None else cache_position.shape}")
+        # print(f"position_ids provided: {position_ids if position_ids is None else position_ids.shape}")
+        # if cache_position is not None:
+        #     print(f"cache_position values: {cache_position}")
+        # if position_ids is not None:
+        #     print(f"position_ids values: {position_ids}")
+
         output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
         output_hidden_states = (
             output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
@@ -295,9 +306,12 @@ class InjectedLlamaModel(LlamaPreTrainedModel):
             cache_position = torch.arange(
                 past_seen_tokens, past_seen_tokens + inputs_embeds.shape[1], device=inputs_embeds.device
             )
+            # print(f"Generated cache_position from {past_seen_tokens} to {past_seen_tokens + inputs_embeds.shape[1] - 1}")
 
         if position_ids is None:
             position_ids = cache_position.unsqueeze(0)
+            # print(f"Position IDs shape: {position_ids.shape}")
+            # print(f"Position IDs values: {position_ids}")
 
         causal_mask = self._update_causal_mask(attention_mask, inputs_embeds)
 
@@ -377,8 +391,11 @@ class InjectedLlamaModel(LlamaPreTrainedModel):
         dtype = input_tensor.dtype
         device = input_tensor.device
 
+        # Get total sequence length including past context
+        total_seq_length = attention_mask.shape[-1] if attention_mask is not None else seq_length
+
         # support going beyond cached `max_position_embedding`
-        if seq_length > self.causal_mask.shape[-1]:
+        if total_seq_length  > self.causal_mask.shape[-1]:
             causal_mask = torch.full((2 * self.causal_mask.shape[-1], 2 * self.causal_mask.shape[-1]), fill_value=1)
             self.register_buffer("causal_mask", torch.triu(causal_mask, diagonal=1), persistent=False)
 
@@ -389,6 +406,7 @@ class InjectedLlamaModel(LlamaPreTrainedModel):
         causal_mask = causal_mask.to(dtype=dtype, device=device)
         if attention_mask is not None and attention_mask.dim() == 2:
             mask_length = attention_mask.shape[-1]
+            # print(f"Current Sequence length: {seq_length}, Shape of causal mask: {causal_mask.shape}, shape of attention mask: {attention_mask.shape}")
             padding_mask = causal_mask[..., :mask_length].eq(0.0) * attention_mask[:, None, None, :].eq(0.0)
             causal_mask[..., :mask_length] = causal_mask[..., :mask_length].masked_fill(padding_mask, min_dtype)
 

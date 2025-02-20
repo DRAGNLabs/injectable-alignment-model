@@ -11,7 +11,8 @@ from pytorch_lightning.loggers import CSVLogger, TensorBoardLogger
 from transformers import LlamaTokenizer as HFTokenizer
 from transformers import AutoTokenizer
 
-from lightning.dataset import DataModule
+# from lightning.pure_text_dataset import DataModule
+from lightning.pretokenized_pure_text_dataset import DataModule
 from sp_tokenizer.tokenizer import Tokenizer as SPTokenizer
 from llama_models.injected_llama_for_causal import LlamaForCausalLM as Model
 from utils.data_utils import Struct
@@ -19,14 +20,38 @@ from tokenize_data import tokenize_data
 
 torch.set_float32_matmul_precision("medium")
 
+print(f"WORLD_SIZE: {os.environ.get('WORLD_SIZE', 'Not set')}")
+print(f"LOCAL_RANK: {os.environ.get('LOCAL_RANK', 'Not set')}")
+
 class PrintCallback(Callback):
     def on_train_start(self, trainer, pl_module):
         print("Training started")
     def on_train_end(self, trainer, pl_module):
         print("Training ended")
+# Add memory tracking callback
+class MemoryMonitorCallback(Callback):
+    def on_train_start(self, trainer, pl_module):
+        for i in range(torch.cuda.device_count()):
+            mem = torch.cuda.memory_allocated(i) / 1e9
+            print(f"GPU {i} memory allocated: {mem:.2f} GB")
+            
+    def on_train_batch_start(self, trainer, pl_module, batch, batch_idx):
+        if batch_idx == 0:  # Only check at start of first batch
+            for i in range(torch.cuda.device_count()):
+                mem = torch.cuda.memory_allocated(i) / 1e9
+                print(f"GPU {i} memory after distribution: {mem:.2f} GB")
+
 
 def train(config):
     seed_everything(config.seed, workers=True)
+
+    torch.backends.cudnn.benchmark = True  # Enable cuDNN auto-tuner
+    torch.backends.cuda.matmul.allow_tf32 = True  # Enable TF32 for faster training
+    torch.backends.cudnn.allow_tf32 = True
+
+    # Force model initialization to CPU
+    torch.cuda.empty_cache()  # Clear any existing GPU memory
+    device = torch.device('cpu')
 
     # Load tokenizer
     if config.tokenizer_type == "hf":
@@ -43,23 +68,27 @@ def train(config):
 
     original_checkpoint_path = "/home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt"
     original_checkpoint_path = config.checkpoint_path
-    print(f"Instantiating model")
-    model = Model(tokenizer, config)
-    
-    # Load the model from the original checkpoint with strict=False, so it will only fill in the weights that are in both models, without errors
-    print(f"Loading from checkpoint")
-    checkpoint = torch.load(original_checkpoint_path,  map_location=torch.device('cpu'))
-    model.load_state_dict(checkpoint['state_dict'], strict=False)
-    # print(f"Checkpoint conversion complete.")
 
-    model.to("cuda" if "CUDA_VISIBLE_DEVICES" in os.environ else "cpu")
+    print(f"Instantiating model")
+    with torch.device('cpu'):
+        model = Model(tokenizer, config)
+        
+        # Explicitly load checkpoint to CPU
+        checkpoint = torch.load(config.checkpoint_path, map_location='cpu')
+        model.load_state_dict(checkpoint['state_dict'], strict=False)
+        del checkpoint  # Free memory
+        torch.cuda.empty_cache()
+
+    # model.to("cuda" if "CUDA_VISIBLE_DEVICES" in os.environ else "cpu")
 
     # Set requires_grad to false for everything
     for param in model.parameters():
         param.requires_grad = False
-    # Except the IRM parameters
+    # Ensure IRM parameters are on CPU initially
     for irm_param in model.model.irm.parameters():
         irm_param.requires_grad = True
+        if irm_param.device.type != 'cpu':
+            irm_param.data = irm_param.data.cpu()
 
     dm = DataModule(config, tokenizer)
 
@@ -76,38 +105,65 @@ def train(config):
         every_n_epochs=1
         )
     print_callback = PrintCallback()
+    memory_monitor_callback = MemoryMonitorCallback()
 
-    # Train
+    # # Train
+    # if config.use_slurm:
+    #     trainer = Trainer(
+    #         accelerator=config.accelerator,
+    #         accumulate_grad_batches=config.gradient_accumulation_steps,
+    #         callbacks=[early_stopping, print_callback, model_checkpoint],
+    #         # check_val_every_n_epoch=config.check_val_every_n_epoch,
+    #         default_root_dir=config.default_root_dir,
+    #         devices=config.devices,
+    #         log_every_n_steps=config.log_every_n_steps,
+    #         logger=[csv_logger, tb_logger],
+    #         max_epochs=config.num_epochs,
+    #         num_nodes=config.num_nodes,
+    #         plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
+    #         strategy="ddp",
+    #         sync_batchnorm=True,
+    #         val_check_interval=config.val_check_interval,
+    #         )
+    # else:
+    #     trainer = Trainer(
+    #         accelerator=config.accelerator,
+    #         accumulate_grad_batches=config.gradient_accumulation_steps,
+    #         callbacks=[early_stopping, print_callback, model_checkpoint],
+    #         # check_val_every_n_epoch=config.check_val_every_n_epoch,
+    #         default_root_dir=config.default_root_dir,
+    #         log_every_n_steps=config.log_every_n_steps,
+    #         logger=[csv_logger, tb_logger],
+    #         max_epochs=config.num_epochs,
+    #         sync_batchnorm=True,
+    #         val_check_interval=config.val_check_interval
+    #         )
+    
+    trainer_kwargs = {
+        'accelerator': config.accelerator,
+        'devices': config.devices,  # Explicitly set number of GPUs
+        'strategy': 'ddp_find_unused_parameters_false',  # Use DistributedDataParallel
+        'precision': '16-mixed',  # Enable automatic mixed precision
+        'accumulate_grad_batches': config.gradient_accumulation_steps,
+        'callbacks': [print_callback, model_checkpoint, memory_monitor_callback], # Not including early_stopping
+        'default_root_dir': config.default_root_dir,
+        'log_every_n_steps': config.log_every_n_steps,
+        'logger': [csv_logger, tb_logger],
+        'max_epochs': config.num_epochs,
+        'sync_batchnorm': True,
+        'val_check_interval': config.val_check_interval,
+        'num_nodes': config.num_nodes if config.use_slurm else 1,
+        'detect_anomaly': False,
+        'enable_progress_bar': True,
+        'reload_dataloaders_every_n_epochs': 0,  # Prevent unnecessary reloading
+    }
+
     if config.use_slurm:
-        trainer = Trainer(
-            accelerator=config.accelerator,
-            accumulate_grad_batches=config.gradient_accumulation_steps,
-            callbacks=[early_stopping, print_callback, model_checkpoint],
-            # check_val_every_n_epoch=config.check_val_every_n_epoch,
-            default_root_dir=config.default_root_dir,
-            devices=config.devices,
-            log_every_n_steps=config.log_every_n_steps,
-            logger=[csv_logger, tb_logger],
-            max_epochs=config.num_epochs,
-            num_nodes=config.num_nodes,
-            plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
-            strategy="ddp",
-            sync_batchnorm=True,
-            val_check_interval=config.val_check_interval,
-            )
-    else:
-        trainer = Trainer(
-            accelerator=config.accelerator,
-            accumulate_grad_batches=config.gradient_accumulation_steps,
-            callbacks=[early_stopping, print_callback, model_checkpoint],
-            # check_val_every_n_epoch=config.check_val_every_n_epoch,
-            default_root_dir=config.default_root_dir,
-            log_every_n_steps=config.log_every_n_steps,
-            logger=[csv_logger, tb_logger],
-            max_epochs=config.num_epochs,
-            sync_batchnorm=True,
-            val_check_interval=config.val_check_interval
-            )
+        trainer_kwargs['plugins'] = [SLURMEnvironment(requeue_signal=signal.SIGHUP)]
+
+    trainer = Trainer(**trainer_kwargs)
+    print(f"Number of available GPUs: {torch.cuda.device_count()}")
+    print(f"CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES', 'Not set')}")
         
     trainer.fit(model, datamodule=dm)
 
@@ -135,8 +191,8 @@ def main():
     # Convert args dict to object
     config = Struct(**config)
 
-    # Comment out this line if you wish to tokenize the data seperately, so as to not repeat processing
-    tokenize_data(config)
+    # # Comment out this line if you wish to tokenize the data seperately, so as to not repeat processing
+    # tokenize_data(config)
 
     train(config)
 

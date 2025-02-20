@@ -94,14 +94,18 @@ class DataSet(torch.utils.data.Dataset):
         
         pd_series_item = self.data.iloc[index,:]  # Returns a pd.Series
         tensor_item:List[int] = pd_series_item.iloc[1]  # Grab text from series
-        if len(tensor_item) <= self.max_sequence_embeddings:
+        if len(tensor_item) < self.max_sequence_embeddings:
             length = len(tensor_item)
-            tensor_item = tensor_item[:] + [self.eos_tok]
-            x = tensor_item[:length]
-            y_true = tensor_item[1:length+1]
+            # tensor_item = tensor_item[:] + [self.eos_tok]
+            # x = tensor_item[:length]
+            # y_true = tensor_item[1:length+1]
+            x = tensor_item.copy()
+            y_true = tensor_item.copy()
         else:
-            x = tensor_item[:self.max_sequence_embeddings]
-            y_true = tensor_item[1:self.max_sequence_embeddings+1]
+            # x = tensor_item[:self.max_sequence_embeddings]
+            # y_true = tensor_item[1:self.max_sequence_embeddings+1]
+            x = tensor_item[:self.max_sequence_embeddings].copy()
+            y_true = tensor_item[:self.max_sequence_embeddings].copy()
 
         return x, y_true
 

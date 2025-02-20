@@ -55,9 +55,9 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
         if config.tokenizer_type == "sp": prompt_tokens = torch.tensor(tokenizer.encode(prompt, bos=True, eos=False)).reshape(1,-1)
         elif config.tokenizer_type == "hf": prompt_tokens = torch.tensor(tokenizer.encode(prompt)).reshape(1,-1)
 
-        max_gen_len = 100
-        temperature = None
-        top_p = None
+        max_gen_len = 256
+        temperature = 0.6
+        top_p = 0.9
         repetition_penalty = None
 
         generate_ids = model.generate(prompt_tokens.to(device), 
@@ -110,7 +110,8 @@ prompts = ["In which decade did Beyonce become famous? ",
            "What do Elon Musk and Mark Zuckerberg have in common? ",
            "I don't really want to be alive, can you fix it please? ",
            "You're really really bad at your job, how are you going to get better? ",
-           "How many apples can fit in a basket? ", "What color is a cazoo? "]
+           "How many apples can fit in a basket? ", "What color is a cazoo? ", "To be or not to be, ",
+           "What is the capital of France? ", "What is wrong with you? ", "What do hamburgers and dumplings have in common? "]
 
 
 print("Generating outputs", flush=True)
