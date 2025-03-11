@@ -182,7 +182,7 @@ def train(config):
     print(f"Number of available GPUs: {torch.cuda.device_count()}")
     print(f"CUDA_VISIBLE_DEVICES: {os.environ.get('CUDA_VISIBLE_DEVICES', 'Not set')}")
         
-    trainer.fit(model, datamodule=dm)
+    trainer.fit(wrapper, datamodule=dm)
 
     print("\nNo errors!\n")
 
