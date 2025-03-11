@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 from pathlib import Path
 
-from transformers import LlamaPreTrainedModel
+from transformers import LlamaPreTrainedModel, LlamaModel
 from typing import List, Optional, Tuple, Union
 
 from transformers.utils import (
@@ -119,7 +119,7 @@ class LlamaForCausalLM(LlamaPreTrainedModel, LightningModule):
         # The Llama should have a reference to the tokenizer so it can save output during validation step.
         self.tokenizer = tokenizer
         
-        self.model = LlamaPreTrainedModel.from_pretrained(irm_config.model_name)
+        self.model = LlamaModel.from_pretrained(irm_config.model_name)
         self.vocab_size = self.hf_config.vocab_size
         self.lm_head = nn.Linear(self.hf_config.hidden_size, self.hf_config.vocab_size, bias=False)
 
