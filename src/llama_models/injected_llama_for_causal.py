@@ -119,7 +119,7 @@ class LlamaForCausalLM(LlamaPreTrainedModel, LightningModule):
         # The Llama should have a reference to the tokenizer so it can save output during validation step.
         self.tokenizer = tokenizer
         
-        self.model = LlamaModel(self.hf_config)
+        self.model = LlamaForCausalLM.from_pretrained(config.model_name)
         self.vocab_size = self.hf_config.vocab_size
         self.lm_head = nn.Linear(self.hf_config.hidden_size, self.hf_config.vocab_size, bias=False)
 
