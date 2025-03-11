@@ -14,7 +14,7 @@ from transformers import AutoTokenizer
 from lightning.dataset import DataModule
 from sp_tokenizer.tokenizer import Tokenizer as SPTokenizer
 #from lightning.model import Model
-from llama_models.injected_llama_for_causal import LlamaForCausalLM as Model
+from llama_models.injected_llama_for_causal import LlamaForCausalLM as WrapperModel
 from llama_models.irm import IRM
 from utils.data_utils import Struct
 from tokenize_data import tokenize_data
@@ -66,14 +66,12 @@ def train(config):
 
     #original_checkpoint_path = "/home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt"
     original_checkpoint_path = config.checkpoint_path
-
-    irm = IRM(config)
     print(f"Instantiating model")
     with torch.device('cpu'):
-        model = Model(tokenizer, config, irm)
+        wrapper = WrapperModel(tokenizer, config)
         print(f"Loading from checkpoint")
         checkpoint = torch.load(original_checkpoint_path,  map_location=torch.device('cpu'))
-        model.load_state_dict(checkpoint['state_dict'], strict=False)
+        wrapper.load_state_dict(checkpoint['state_dict'], strict=False)
         del checkpoint  # Free memory
         torch.cuda.empty_cache()
         print(f"Checkpoint loading complete.")
@@ -82,7 +80,7 @@ def train(config):
     def hijack_attn(forward):
         def injected_forward(*input,**keywords):
             output = forward(*input,**keywords)
-            irm.forward(output[0])
+            wrapper.irm.forward(output[0])
             return output
         return injected_forward
     
@@ -95,25 +93,19 @@ def train(config):
             return tuple(output)
         return injected_forward
     
-    model.model.layers[0].self_attn.forward = hijack_attn(model.model.layers[0].self_attn.forward)
+    wrapper.model.layers[0].self_attn.forward = hijack_attn(wrapper.model.layers[0].self_attn.forward)
     layer = 31
     #for layer in irm.injection_layers: 
-    model.model.layers[layer].forward = hijack_layer(model.model.layers[layer].forward, irm, layer)
+    wrapper.model.layers[layer].forward = hijack_layer(wrapper.model.layers[layer].forward, wrapper.irm, layer)
     
     # Load the model from the original checkpoint with strict=False, so it will only fill in the weights that are in both models, without errors
 
     # model.to("cuda" if "CUDA_VISIBLE_DEVICES" in os.environ else "cpu")
 
-    for i,param in enumerate(model.parameters()): 
-        if i!=0: param.requires_grad = False
-        #param.requires_grad = False
-
-    # Set requires_grad to false for everything
-    #for param in model.parameters():
-    #    param.requires_grad = False
-    # Except the IRM parameters
-    #for irm_param in model.irm.parameters():
-    #    irm_param.requires_grad = True
+    for param in wrapper.parameters():
+        param.requires_grad = False
+    for irm_param in wrapper.irm.parameters():
+        irm_param.requires_grad = True
 
     dm = DataModule(config, tokenizer)
 
