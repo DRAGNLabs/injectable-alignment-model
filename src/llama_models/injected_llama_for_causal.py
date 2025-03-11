@@ -124,7 +124,7 @@ class LlamaForCausalLM(LlamaPreTrainedModel, LightningModule):
         self.lm_head = nn.Linear(self.hf_config.hidden_size, self.hf_config.vocab_size, bias=False)
 
         if self.irm_config.regularize_loss:
-            self.l1_loss_alpha = 1e-4 / len(self.model.irm.injection_layers)
+            self.l1_loss_alpha = 1e-4 / len(self.irm.injection_layers)
         else:
             self.l1_loss_alpha = 0
 
@@ -240,7 +240,7 @@ class LlamaForCausalLM(LlamaPreTrainedModel, LightningModule):
             loss = loss_fct(shift_logits, shift_labels)
             
             if self.irm_config.regularize_loss:
-                l1 = self.l1_loss_alpha * torch.sum(torch.abs(self.model.irm.weights))
+                l1 = self.l1_loss_alpha * torch.sum(torch.abs(self.irm.weights))
                 print(f"\nloss: {loss}      l1: {l1}")
                 loss += l1
                 print(f"sum: {loss}")
@@ -478,7 +478,7 @@ class LlamaForCausalLM(LlamaPreTrainedModel, LightningModule):
         print('Final scores: ', scores)
     
     def configure_optimizers(self):
-        params = self.model.irm.parameters()
+        params = self.irm.parameters()
         optimizer = torch.optim.Adam(params, lr=self.irm_config.lr)
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.irm_config.gamma)
         return [optimizer], [lr_scheduler]
