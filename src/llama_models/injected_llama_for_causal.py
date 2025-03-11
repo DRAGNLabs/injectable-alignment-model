@@ -18,6 +18,7 @@ from transformers.cache_utils import Cache
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
 from llama_models.injected_llama_model import InjectedLlamaModel
+from llama_models.irm import IRM
 from pytorch_lightning import LightningModule
 
 
@@ -107,6 +108,9 @@ class LlamaForCausalLM(LlamaPreTrainedModel, LightningModule):
         LlamaPreTrainedModel.__init__(self, hf_config)
         LightningModule.__init__(self)
 
+        print('Initializing IRM model...')
+        self.irm = IRM(irm_config)
+
         # This is our config, not a HF Config
         self.irm_config = irm_config
 
@@ -115,7 +119,7 @@ class LlamaForCausalLM(LlamaPreTrainedModel, LightningModule):
         # The Llama should have a reference to the tokenizer so it can save output during validation step.
         self.tokenizer = tokenizer
         
-        self.model = InjectedLlamaModel(self.irm_config, self.hf_config)
+        self.model = LlamaModel(self.hf_config)
         self.vocab_size = self.hf_config.vocab_size
         self.lm_head = nn.Linear(self.hf_config.hidden_size, self.hf_config.vocab_size, bias=False)
 
