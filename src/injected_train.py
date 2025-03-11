@@ -66,9 +66,11 @@ def train(config):
 
     #original_checkpoint_path = "/home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt"
     original_checkpoint_path = config.checkpoint_path
+
+    irm = IRM(config)
     print(f"Instantiating model")
     with torch.device('cpu'):
-        model = Model(tokenizer, config)
+        model = Model(tokenizer, config, irm)
         print(f"Loading from checkpoint")
         checkpoint = torch.load(original_checkpoint_path,  map_location=torch.device('cpu'))
         model.load_state_dict(checkpoint['state_dict'], strict=False)
@@ -77,7 +79,6 @@ def train(config):
         print(f"Checkpoint loading complete.")
 
     #setup injection
-    irm = IRM(config)
     def hijack_attn(forward):
         def injected_forward(*input,**keywords):
             output = forward(*input,**keywords)
