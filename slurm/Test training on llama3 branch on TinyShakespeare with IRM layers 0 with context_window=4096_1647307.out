@@ -1,878 +1,0 @@
-Sun Feb  2 21:37:52 2025       
-+-----------------------------------------------------------------------------------------+
-| NVIDIA-SMI 550.127.05             Driver Version: 550.127.05     CUDA Version: 12.4     |
-|-----------------------------------------+------------------------+----------------------+
-| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
-| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
-|                                         |                        |               MIG M. |
-|=========================================+========================+======================|
-|   0  NVIDIA A100-SXM4-80GB          On  |   00000000:07:00.0 Off |                    0 |
-| N/A   26C    P0             61W /  400W |       1MiB /  81920MiB |      0%      Default |
-|                                         |                        |             Disabled |
-+-----------------------------------------+------------------------+----------------------+
-|   1  NVIDIA A100-SXM4-80GB          On  |   00000000:0A:00.0 Off |                    0 |
-| N/A   24C    P0             60W /  400W |       1MiB /  81920MiB |      0%      Default |
-|                                         |                        |             Disabled |
-+-----------------------------------------+------------------------+----------------------+
-                                                                                         
-+-----------------------------------------------------------------------------------------+
-| Processes:                                                                              |
-|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
-|        ID   ID                                                               Usage      |
-|=========================================================================================|
-|  No running processes found                                                             |
-+-----------------------------------------------------------------------------------------+
-Run 'mamba init' to be able to run mamba activate/deactivate
-and start a new shell session. Or use conda to activate/deactivate.
-
-[rank: 1] Seed set to 42
-[rank: 0] Seed set to 42
-GPU available: True (cuda), used: True
-TPU available: False, using: 0 TPU cores
-IPU available: False, using: 0 IPUs
-HPU available: False, using: 0 HPUs
-[rank: 1] Seed set to 42
-[rank: 0] Seed set to 42
-Initializing distributed: GLOBAL_RANK: 0, MEMBER: 1/2
-Initializing distributed: GLOBAL_RANK: 1, MEMBER: 2/2
-----------------------------------------------------------------------------------------------------
-distributed_backend=nccl
-All distributed processes registered. Starting with 2 processes
-----------------------------------------------------------------------------------------------------
-
-/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pytorch_lightning/callbacks/model_checkpoint.py:639: Checkpoint directory /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_tiny_shakespeare_31_training//checkpoints exists and is not empty.
-LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0,1]
-LOCAL_RANK: 1 - CUDA_VISIBLE_DEVICES: [0,1]
-
-  | Name    | Type               | Params
------------------------------------------------
-0 | model   | InjectedLlamaModel | 7.2 B 
-1 | lm_head | Linear             | 131 M 
------------------------------------------------
-553 M     Trainable params
-6.7 B     Non-trainable params
-7.3 B     Total params
-29,168.468Total estimated model params size (MB)
-SLURM auto-requeueing enabled. Setting signal handlers.
-SLURM auto-requeueing enabled. Setting signal handlers.
-tokenizer_type: hf
-tokenizer_path: ('meta-llama/Llama-2-7b-chat-hf',)
-pad_id: -1
-vocab_size: -1
-IRM_layers: [31]
-loss_function_index: 0
-default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_tiny_shakespeare_31_training/
-checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt
-dataset_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/TinyShakespeare/
-dataset_name: tiny_shakespeare
-accelerator: gpu
-num_nodes: 1
-num_workers: 1
-devices: 2
-use_slurm: True
-log_every_n_steps: 200
-check_val_every_n_epoch: 1
-val_check_interval: 0.25
-batch_size: 4
-gradient_accumulation_steps: 1
-num_epochs: 1
-lr: 0.0001
-gamma: 0.85
-seed: 42
-early_stopping: 1
-save_top_k: 3
-save_predictions_during_training: True
-regularize_loss: False
-max_gen_len: 256
-do_logging: False
-experiment_name: Llama-2-7b-chat-hf_tiny_shakespeare.txt_31_training
-from_pretrained: True
-model_name: meta-llama/Llama-2-7b-chat-hf
-
-model_config:
-  attention_bias: False
-  attention_dropout: 0.0
-  bos_token_id: 1
-  eos_token_id: 2
-  hidden_act: silu
-  hidden_size: 4096
-  initializer_range: 0.02
-  intermediate_size: 11008
-  max_position_embeddings: 4096
-  model_type: llama
-  num_attention_heads: 32
-  num_hidden_layers: 32
-  num_key_value_heads: 32
-  pretraining_tp: 1
-  rms_norm_eps: 1e-05
-  rope_scaling: None
-  rope_theta: 10000.0
-  tie_word_embeddings: False
-  torch_dtype: float16
-  transformers_version: 4.38.2
-  use_cache: True
-  vocab_size: 32000
-
-Instantiating model
-Initializing IRM model...
-Loading from checkpoint
-pad: 2
-bos: 1
-eos: 2
-pad: 2
-bos: 1
-eos: 2
-/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:441: The 'val_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=1` in the `DataLoader` to improve performance.
-tokenizer_type: hf
-tokenizer_path: ('meta-llama/Llama-2-7b-chat-hf',)
-pad_id: -1
-vocab_size: -1
-IRM_layers: [31]
-loss_function_index: 0
-default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_tiny_shakespeare_31_training/
-checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt
-dataset_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/TinyShakespeare/
-dataset_name: tiny_shakespeare
-accelerator: gpu
-num_nodes: 1
-num_workers: 1
-devices: 2
-use_slurm: True
-log_every_n_steps: 200
-check_val_every_n_epoch: 1
-val_check_interval: 0.25
-batch_size: 4
-gradient_accumulation_steps: 1
-num_epochs: 1
-lr: 0.0001
-gamma: 0.85
-seed: 42
-early_stopping: 1
-save_top_k: 3
-save_predictions_during_training: True
-regularize_loss: False
-max_gen_len: 256
-do_logging: False
-experiment_name: Llama-2-7b-chat-hf_tiny_shakespeare.txt_31_training
-from_pretrained: True
-model_name: meta-llama/Llama-2-7b-chat-hf
-
-model_config:
-  attention_bias: False
-  attention_dropout: 0.0
-  bos_token_id: 1
-  eos_token_id: 2
-  hidden_act: silu
-  hidden_size: 4096
-  initializer_range: 0.02
-  intermediate_size: 11008
-  max_position_embeddings: 4096
-  model_type: llama
-  num_attention_heads: 32
-  num_hidden_layers: 32
-  num_key_value_heads: 32
-  pretraining_tp: 1
-  rms_norm_eps: 1e-05
-  rope_scaling: None
-  rope_theta: 10000.0
-  tie_word_embeddings: False
-  torch_dtype: float16
-  transformers_version: 4.38.2
-  use_cache: True
-  vocab_size: 32000
-
-Instantiating model
-Initializing IRM model...
-Loading from checkpoint
-pad: 2
-bos: 1
-eos: 2
-pad: 2
-bos: 1
-eos: 2
-Sanity Checking: |          | 0/? [00:00<?, ?it/s]Sanity Checking:   0%|          | 0/2 [00:00<?, ?it/s]Sanity Checking DataLoader 0:   0%|          | 0/2 [00:00<?, ?it/s]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Sanity Checking DataLoader 0:  50%|█████     | 1/2 [00:04<00:04,  0.24it/s]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:441: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=1` in the `DataLoader` to improve performance.
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Sanity Checking DataLoader 0: 100%|██████████| 2/2 [00:07<00:00,  0.25it/s]                                                                           Training started
-Training: |          | 0/? [00:00<?, ?it/s]Training:   0%|          | 0/111028 [00:00<?, ?it/s]Epoch 0:   0%|          | 0/111028 [00:00<?, ?it/s] Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 1/111028 [00:04<137:15:16,  0.22it/s]Epoch 0:   0%|          | 1/111028 [00:04<137:29:55,  0.22it/s, v_num=5, train_loss_step=20.40]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 2/111028 [00:08<126:17:39,  0.24it/s, v_num=5, train_loss_step=20.40]Epoch 0:   0%|          | 2/111028 [00:08<132:46:42,  0.23it/s, v_num=5, train_loss_step=4.250]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 3/111028 [00:12<126:59:50,  0.24it/s, v_num=5, train_loss_step=4.250]Epoch 0:   0%|          | 3/111028 [00:12<131:20:38,  0.23it/s, v_num=5, train_loss_step=3.490]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 4/111028 [00:16<127:19:08,  0.24it/s, v_num=5, train_loss_step=3.490]Epoch 0:   0%|          | 4/111028 [00:16<130:34:27,  0.24it/s, v_num=5, train_loss_step=3.420]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 5/111028 [00:20<127:34:11,  0.24it/s, v_num=5, train_loss_step=3.420]Epoch 0:   0%|          | 5/111028 [00:21<130:05:51,  0.24it/s, v_num=5, train_loss_step=2.650]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 6/111028 [00:24<127:41:13,  0.24it/s, v_num=5, train_loss_step=2.650]Epoch 0:   0%|          | 6/111028 [00:25<129:52:17,  0.24it/s, v_num=5, train_loss_step=3.150]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 7/111028 [00:29<127:51:25,  0.24it/s, v_num=5, train_loss_step=3.150]Epoch 0:   0%|          | 7/111028 [00:29<129:43:17,  0.24it/s, v_num=5, train_loss_step=2.670]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 8/111028 [00:33<127:58:02,  0.24it/s, v_num=5, train_loss_step=2.670]Epoch 0:   0%|          | 8/111028 [00:33<129:34:28,  0.24it/s, v_num=5, train_loss_step=2.530]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 9/111028 [00:37<128:01:59,  0.24it/s, v_num=5, train_loss_step=2.530]Epoch 0:   0%|          | 9/111028 [00:37<129:25:14,  0.24it/s, v_num=5, train_loss_step=2.610]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 10/111028 [00:41<128:04:41,  0.24it/s, v_num=5, train_loss_step=2.610]Epoch 0:   0%|          | 10/111028 [00:41<129:20:00,  0.24it/s, v_num=5, train_loss_step=2.630]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 11/111028 [00:45<128:08:35,  0.24it/s, v_num=5, train_loss_step=2.630]Epoch 0:   0%|          | 11/111028 [00:46<129:18:05,  0.24it/s, v_num=5, train_loss_step=2.410]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 12/111028 [00:49<128:11:12,  0.24it/s, v_num=5, train_loss_step=2.410]Epoch 0:   0%|          | 12/111028 [00:50<129:17:26,  0.24it/s, v_num=5, train_loss_step=2.320]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 13/111028 [00:54<128:16:31,  0.24it/s, v_num=5, train_loss_step=2.320]Epoch 0:   0%|          | 13/111028 [00:54<129:15:28,  0.24it/s, v_num=5, train_loss_step=2.370]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 14/111028 [00:58<128:19:34,  0.24it/s, v_num=5, train_loss_step=2.370]Epoch 0:   0%|          | 14/111028 [00:58<129:13:38,  0.24it/s, v_num=5, train_loss_step=2.320]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 15/111028 [01:02<128:21:51,  0.24it/s, v_num=5, train_loss_step=2.320]Epoch 0:   0%|          | 15/111028 [01:02<129:14:02,  0.24it/s, v_num=5, train_loss_step=2.320]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 16/111028 [01:06<128:25:06,  0.24it/s, v_num=5, train_loss_step=2.320]Epoch 0:   0%|          | 16/111028 [01:07<129:12:49,  0.24it/s, v_num=5, train_loss_step=2.240]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 17/111028 [01:10<128:27:14,  0.24it/s, v_num=5, train_loss_step=2.240]Epoch 0:   0%|          | 17/111028 [01:11<129:12:46,  0.24it/s, v_num=5, train_loss_step=2.310]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 18/111028 [01:15<128:29:26,  0.24it/s, v_num=5, train_loss_step=2.310]Epoch 0:   0%|          | 18/111028 [01:15<129:12:16,  0.24it/s, v_num=5, train_loss_step=2.240]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 19/111028 [01:19<128:31:33,  0.24it/s, v_num=5, train_loss_step=2.240]Epoch 0:   0%|          | 19/111028 [01:19<129:11:59,  0.24it/s, v_num=5, train_loss_step=2.250]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 20/111028 [01:23<128:33:27,  0.24it/s, v_num=5, train_loss_step=2.250]Epoch 0:   0%|          | 20/111028 [01:23<129:12:16,  0.24it/s, v_num=5, train_loss_step=2.220]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 21/111028 [01:27<128:35:43,  0.24it/s, v_num=5, train_loss_step=2.220]Epoch 0:   0%|          | 21/111028 [01:27<129:12:01,  0.24it/s, v_num=5, train_loss_step=2.160]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 22/111028 [01:31<128:37:07,  0.24it/s, v_num=5, train_loss_step=2.160]Epoch 0:   0%|          | 22/111028 [01:32<129:12:36,  0.24it/s, v_num=5, train_loss_step=2.180]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 23/111028 [01:35<128:38:54,  0.24it/s, v_num=5, train_loss_step=2.180]Epoch 0:   0%|          | 23/111028 [01:36<129:13:01,  0.24it/s, v_num=5, train_loss_step=2.150]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 24/111028 [01:40<128:40:57,  0.24it/s, v_num=5, train_loss_step=2.150]Epoch 0:   0%|          | 24/111028 [01:40<129:13:34,  0.24it/s, v_num=5, train_loss_step=2.190]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 25/111028 [01:44<128:42:57,  0.24it/s, v_num=5, train_loss_step=2.190]Epoch 0:   0%|          | 25/111028 [01:44<129:13:10,  0.24it/s, v_num=5, train_loss_step=2.100]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 26/111028 [01:48<128:44:21,  0.24it/s, v_num=5, train_loss_step=2.100]Epoch 0:   0%|          | 26/111028 [01:48<129:13:16,  0.24it/s, v_num=5, train_loss_step=2.090]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 27/111028 [01:52<128:44:44,  0.24it/s, v_num=5, train_loss_step=2.090]Epoch 0:   0%|          | 27/111028 [01:53<129:13:16,  0.24it/s, v_num=5, train_loss_step=2.160]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 28/111028 [01:56<128:46:09,  0.24it/s, v_num=5, train_loss_step=2.160]Epoch 0:   0%|          | 28/111028 [01:57<129:12:55,  0.24it/s, v_num=5, train_loss_step=2.160]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 29/111028 [02:01<128:46:40,  0.24it/s, v_num=5, train_loss_step=2.160]Epoch 0:   0%|          | 29/111028 [02:01<129:13:39,  0.24it/s, v_num=5, train_loss_step=2.110]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 30/111028 [02:05<128:47:50,  0.24it/s, v_num=5, train_loss_step=2.110]Epoch 0:   0%|          | 30/111028 [02:05<129:14:14,  0.24it/s, v_num=5, train_loss_step=2.090]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 31/111028 [02:09<128:49:20,  0.24it/s, v_num=5, train_loss_step=2.090]Epoch 0:   0%|          | 31/111028 [02:09<129:14:37,  0.24it/s, v_num=5, train_loss_step=2.080]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 32/111028 [02:13<128:50:30,  0.24it/s, v_num=5, train_loss_step=2.080]Epoch 0:   0%|          | 32/111028 [02:14<129:14:35,  0.24it/s, v_num=5, train_loss_step=2.120]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 33/111028 [02:17<128:50:57,  0.24it/s, v_num=5, train_loss_step=2.120]Epoch 0:   0%|          | 33/111028 [02:18<129:14:16,  0.24it/s, v_num=5, train_loss_step=2.060]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 34/111028 [02:22<128:51:27,  0.24it/s, v_num=5, train_loss_step=2.060]Epoch 0:   0%|          | 34/111028 [02:22<129:13:56,  0.24it/s, v_num=5, train_loss_step=2.060]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 35/111028 [02:26<128:51:45,  0.24it/s, v_num=5, train_loss_step=2.060]Epoch 0:   0%|          | 35/111028 [02:26<129:13:17,  0.24it/s, v_num=5, train_loss_step=2.060]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 36/111028 [02:30<128:51:58,  0.24it/s, v_num=5, train_loss_step=2.060]Epoch 0:   0%|          | 36/111028 [02:30<129:12:56,  0.24it/s, v_num=5, train_loss_step=2.050]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 37/111028 [02:34<128:52:01,  0.24it/s, v_num=5, train_loss_step=2.050]Epoch 0:   0%|          | 37/111028 [02:35<129:12:57,  0.24it/s, v_num=5, train_loss_step=2.030]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 38/111028 [02:38<128:52:57,  0.24it/s, v_num=5, train_loss_step=2.030]Epoch 0:   0%|          | 38/111028 [02:39<129:13:19,  0.24it/s, v_num=5, train_loss_step=2.000]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 39/111028 [02:43<128:53:29,  0.24it/s, v_num=5, train_loss_step=2.000]Epoch 0:   0%|          | 39/111028 [02:43<129:12:47,  0.24it/s, v_num=5, train_loss_step=2.050]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 40/111028 [02:47<128:53:47,  0.24it/s, v_num=5, train_loss_step=2.050]Epoch 0:   0%|          | 40/111028 [02:47<129:13:25,  0.24it/s, v_num=5, train_loss_step=1.980]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 41/111028 [02:51<128:54:55,  0.24it/s, v_num=5, train_loss_step=1.980]Epoch 0:   0%|          | 41/111028 [02:51<129:13:12,  0.24it/s, v_num=5, train_loss_step=1.980]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 42/111028 [02:55<128:54:56,  0.24it/s, v_num=5, train_loss_step=1.980]Epoch 0:   0%|          | 42/111028 [02:56<129:13:14,  0.24it/s, v_num=5, train_loss_step=2.030]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 43/111028 [02:59<128:55:30,  0.24it/s, v_num=5, train_loss_step=2.030]Epoch 0:   0%|          | 43/111028 [03:00<129:14:02,  0.24it/s, v_num=5, train_loss_step=1.990]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 44/111028 [03:04<128:56:29,  0.24it/s, v_num=5, train_loss_step=1.990]Epoch 0:   0%|          | 44/111028 [03:04<129:14:02,  0.24it/s, v_num=5, train_loss_step=1.990]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 45/111028 [03:08<128:56:54,  0.24it/s, v_num=5, train_loss_step=1.990]Epoch 0:   0%|          | 45/111028 [03:08<129:14:12,  0.24it/s, v_num=5, train_loss_step=2.000]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 46/111028 [03:12<128:57:26,  0.24it/s, v_num=5, train_loss_step=2.000]Epoch 0:   0%|          | 46/111028 [03:12<129:14:30,  0.24it/s, v_num=5, train_loss_step=2.010]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 47/111028 [03:16<128:57:54,  0.24it/s, v_num=5, train_loss_step=2.010]Epoch 0:   0%|          | 47/111028 [03:17<129:14:24,  0.24it/s, v_num=5, train_loss_step=1.970]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 48/111028 [03:20<128:58:20,  0.24it/s, v_num=5, train_loss_step=1.970]Epoch 0:   0%|          | 48/111028 [03:21<129:13:56,  0.24it/s, v_num=5, train_loss_step=1.970]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 49/111028 [03:24<128:57:58,  0.24it/s, v_num=5, train_loss_step=1.970]Epoch 0:   0%|          | 49/111028 [03:25<129:13:41,  0.24it/s, v_num=5, train_loss_step=1.970]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 50/111028 [03:29<128:58:10,  0.24it/s, v_num=5, train_loss_step=1.970]Epoch 0:   0%|          | 50/111028 [03:29<129:13:44,  0.24it/s, v_num=5, train_loss_step=1.970]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 51/111028 [03:33<128:58:47,  0.24it/s, v_num=5, train_loss_step=1.970]Epoch 0:   0%|          | 51/111028 [03:33<129:13:36,  0.24it/s, v_num=5, train_loss_step=1.960]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 52/111028 [03:37<128:58:58,  0.24it/s, v_num=5, train_loss_step=1.960]Epoch 0:   0%|          | 52/111028 [03:37<129:14:00,  0.24it/s, v_num=5, train_loss_step=1.940]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 53/111028 [03:41<128:59:33,  0.24it/s, v_num=5, train_loss_step=1.940]Epoch 0:   0%|          | 53/111028 [03:42<129:14:12,  0.24it/s, v_num=5, train_loss_step=1.920]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 54/111028 [03:45<128:59:59,  0.24it/s, v_num=5, train_loss_step=1.920]Epoch 0:   0%|          | 54/111028 [03:46<129:13:54,  0.24it/s, v_num=5, train_loss_step=1.930]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 55/111028 [03:50<128:59:55,  0.24it/s, v_num=5, train_loss_step=1.930]Epoch 0:   0%|          | 55/111028 [03:50<129:13:36,  0.24it/s, v_num=5, train_loss_step=1.940]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 56/111028 [03:54<129:00:06,  0.24it/s, v_num=5, train_loss_step=1.940]Epoch 0:   0%|          | 56/111028 [03:54<129:14:04,  0.24it/s, v_num=5, train_loss_step=1.960]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 57/111028 [03:58<129:00:23,  0.24it/s, v_num=5, train_loss_step=1.960]Epoch 0:   0%|          | 57/111028 [03:58<129:14:13,  0.24it/s, v_num=5, train_loss_step=1.930]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 58/111028 [04:02<129:01:07,  0.24it/s, v_num=5, train_loss_step=1.930]Epoch 0:   0%|          | 58/111028 [04:03<129:14:37,  0.24it/s, v_num=5, train_loss_step=1.900]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 59/111028 [04:06<129:01:38,  0.24it/s, v_num=5, train_loss_step=1.900]Epoch 0:   0%|          | 59/111028 [04:07<129:14:34,  0.24it/s, v_num=5, train_loss_step=1.900]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 60/111028 [04:11<129:01:48,  0.24it/s, v_num=5, train_loss_step=1.900]Epoch 0:   0%|          | 60/111028 [04:11<129:14:40,  0.24it/s, v_num=5, train_loss_step=1.920]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Training started
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 61/111028 [04:15<129:01:58,  0.24it/s, v_num=5, train_loss_step=1.920]Epoch 0:   0%|          | 61/111028 [04:15<129:14:31,  0.24it/s, v_num=5, train_loss_step=1.930]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 62/111028 [04:19<129:02:06,  0.24it/s, v_num=5, train_loss_step=1.930]Epoch 0:   0%|          | 62/111028 [04:19<129:14:24,  0.24it/s, v_num=5, train_loss_step=1.910]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 63/111028 [04:23<129:02:06,  0.24it/s, v_num=5, train_loss_step=1.910]Epoch 0:   0%|          | 63/111028 [04:24<129:14:35,  0.24it/s, v_num=5, train_loss_step=1.920]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 64/111028 [04:27<129:02:34,  0.24it/s, v_num=5, train_loss_step=1.920]Epoch 0:   0%|          | 64/111028 [04:28<129:14:22,  0.24it/s, v_num=5, train_loss_step=1.910]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 65/111028 [04:32<129:02:30,  0.24it/s, v_num=5, train_loss_step=1.910]Epoch 0:   0%|          | 65/111028 [04:32<129:14:33,  0.24it/s, v_num=5, train_loss_step=1.920]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 66/111028 [04:36<129:02:50,  0.24it/s, v_num=5, train_loss_step=1.920]Epoch 0:   0%|          | 66/111028 [04:36<129:14:37,  0.24it/s, v_num=5, train_loss_step=1.880]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 67/111028 [04:40<129:03:01,  0.24it/s, v_num=5, train_loss_step=1.880]Epoch 0:   0%|          | 67/111028 [04:40<129:14:39,  0.24it/s, v_num=5, train_loss_step=1.960]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 68/111028 [04:44<129:03:19,  0.24it/s, v_num=5, train_loss_step=1.960]Epoch 0:   0%|          | 68/111028 [04:45<129:14:48,  0.24it/s, v_num=5, train_loss_step=1.910]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 69/111028 [04:48<129:03:37,  0.24it/s, v_num=5, train_loss_step=1.910]Epoch 0:   0%|          | 69/111028 [04:49<129:14:50,  0.24it/s, v_num=5, train_loss_step=1.890]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 70/111028 [04:53<129:03:38,  0.24it/s, v_num=5, train_loss_step=1.890]Epoch 0:   0%|          | 70/111028 [04:53<129:14:50,  0.24it/s, v_num=5, train_loss_step=1.870]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 71/111028 [04:57<129:04:07,  0.24it/s, v_num=5, train_loss_step=1.870]Epoch 0:   0%|          | 71/111028 [04:57<129:14:46,  0.24it/s, v_num=5, train_loss_step=1.860]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 72/111028 [05:01<129:03:55,  0.24it/s, v_num=5, train_loss_step=1.860]Epoch 0:   0%|          | 72/111028 [05:01<129:14:37,  0.24it/s, v_num=5, train_loss_step=1.860]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 73/111028 [05:05<129:03:58,  0.24it/s, v_num=5, train_loss_step=1.860]Epoch 0:   0%|          | 73/111028 [05:06<129:14:19,  0.24it/s, v_num=5, train_loss_step=1.890]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 74/111028 [05:09<129:03:49,  0.24it/s, v_num=5, train_loss_step=1.890]Epoch 0:   0%|          | 74/111028 [05:10<129:14:14,  0.24it/s, v_num=5, train_loss_step=1.900]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 75/111028 [05:14<129:04:00,  0.24it/s, v_num=5, train_loss_step=1.900]Epoch 0:   0%|          | 75/111028 [05:14<129:14:10,  0.24it/s, v_num=5, train_loss_step=1.880]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 76/111028 [05:18<129:03:58,  0.24it/s, v_num=5, train_loss_step=1.880]Epoch 0:   0%|          | 76/111028 [05:18<129:14:17,  0.24it/s, v_num=5, train_loss_step=1.880]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 77/111028 [05:22<129:04:14,  0.24it/s, v_num=5, train_loss_step=1.880]Epoch 0:   0%|          | 77/111028 [05:22<129:14:15,  0.24it/s, v_num=5, train_loss_step=1.820]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 78/111028 [05:26<129:04:19,  0.24it/s, v_num=5, train_loss_step=1.820]Epoch 0:   0%|          | 78/111028 [05:27<129:14:21,  0.24it/s, v_num=5, train_loss_step=1.820]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 79/111028 [05:30<129:04:28,  0.24it/s, v_num=5, train_loss_step=1.820]Epoch 0:   0%|          | 79/111028 [05:31<129:13:57,  0.24it/s, v_num=5, train_loss_step=1.880]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 80/111028 [05:35<129:04:24,  0.24it/s, v_num=5, train_loss_step=1.880]Epoch 0:   0%|          | 80/111028 [05:35<129:14:09,  0.24it/s, v_num=5, train_loss_step=1.880]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 81/111028 [05:39<129:04:30,  0.24it/s, v_num=5, train_loss_step=1.880]Epoch 0:   0%|          | 81/111028 [05:39<129:14:00,  0.24it/s, v_num=5, train_loss_step=1.840]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 82/111028 [05:43<129:04:30,  0.24it/s, v_num=5, train_loss_step=1.840]Epoch 0:   0%|          | 82/111028 [05:43<129:13:41,  0.24it/s, v_num=5, train_loss_step=1.800]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 83/111028 [05:47<129:04:23,  0.24it/s, v_num=5, train_loss_step=1.800]Epoch 0:   0%|          | 83/111028 [05:48<129:13:42,  0.24it/s, v_num=5, train_loss_step=1.840]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 84/111028 [05:51<129:04:24,  0.24it/s, v_num=5, train_loss_step=1.840]Epoch 0:   0%|          | 84/111028 [05:52<129:13:51,  0.24it/s, v_num=5, train_loss_step=1.820]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 85/111028 [05:56<129:04:41,  0.24it/s, v_num=5, train_loss_step=1.820]Epoch 0:   0%|          | 85/111028 [05:56<129:13:38,  0.24it/s, v_num=5, train_loss_step=1.850]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 86/111028 [06:00<129:04:45,  0.24it/s, v_num=5, train_loss_step=1.850]Epoch 0:   0%|          | 86/111028 [06:00<129:13:44,  0.24it/s, v_num=5, train_loss_step=1.870]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 87/111028 [06:04<129:04:56,  0.24it/s, v_num=5, train_loss_step=1.870]Epoch 0:   0%|          | 87/111028 [06:04<129:13:50,  0.24it/s, v_num=5, train_loss_step=1.870]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 88/111028 [06:08<129:05:06,  0.24it/s, v_num=5, train_loss_step=1.870]Epoch 0:   0%|          | 88/111028 [06:09<129:13:46,  0.24it/s, v_num=5, train_loss_step=1.860]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 89/111028 [06:12<129:05:10,  0.24it/s, v_num=5, train_loss_step=1.860]Epoch 0:   0%|          | 89/111028 [06:13<129:13:49,  0.24it/s, v_num=5, train_loss_step=1.880]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 90/111028 [06:17<129:05:13,  0.24it/s, v_num=5, train_loss_step=1.880]Epoch 0:   0%|          | 90/111028 [06:17<129:13:43,  0.24it/s, v_num=5, train_loss_step=1.830]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 91/111028 [06:21<129:05:13,  0.24it/s, v_num=5, train_loss_step=1.830]Epoch 0:   0%|          | 91/111028 [06:21<129:13:51,  0.24it/s, v_num=5, train_loss_step=1.840]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 92/111028 [06:25<129:05:23,  0.24it/s, v_num=5, train_loss_step=1.840]Epoch 0:   0%|          | 92/111028 [06:25<129:13:29,  0.24it/s, v_num=5, train_loss_step=1.840]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 93/111028 [06:29<129:05:04,  0.24it/s, v_num=5, train_loss_step=1.840]Epoch 0:   0%|          | 93/111028 [06:29<129:13:29,  0.24it/s, v_num=5, train_loss_step=1.810]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 94/111028 [06:33<129:05:08,  0.24it/s, v_num=5, train_loss_step=1.810]Epoch 0:   0%|          | 94/111028 [06:34<129:13:19,  0.24it/s, v_num=5, train_loss_step=1.820]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 95/111028 [06:37<129:05:04,  0.24it/s, v_num=5, train_loss_step=1.820]Epoch 0:   0%|          | 95/111028 [06:38<129:13:16,  0.24it/s, v_num=5, train_loss_step=1.810]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 96/111028 [06:42<129:05:08,  0.24it/s, v_num=5, train_loss_step=1.810]Epoch 0:   0%|          | 96/111028 [06:42<129:13:17,  0.24it/s, v_num=5, train_loss_step=1.790]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 97/111028 [06:46<129:05:15,  0.24it/s, v_num=5, train_loss_step=1.790]Epoch 0:   0%|          | 97/111028 [06:46<129:13:11,  0.24it/s, v_num=5, train_loss_step=1.810]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 98/111028 [06:50<129:05:11,  0.24it/s, v_num=5, train_loss_step=1.810]Epoch 0:   0%|          | 98/111028 [06:50<129:12:55,  0.24it/s, v_num=5, train_loss_step=1.800]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 99/111028 [06:54<129:05:03,  0.24it/s, v_num=5, train_loss_step=1.800]Epoch 0:   0%|          | 99/111028 [06:55<129:13:06,  0.24it/s, v_num=5, train_loss_step=1.780]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 100/111028 [06:58<129:05:25,  0.24it/s, v_num=5, train_loss_step=1.780]Epoch 0:   0%|          | 100/111028 [06:59<129:13:08,  0.24it/s, v_num=5, train_loss_step=1.790]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 101/111028 [07:03<129:06:02,  0.24it/s, v_num=5, train_loss_step=1.790]Epoch 0:   0%|          | 101/111028 [07:03<129:13:26,  0.24it/s, v_num=5, train_loss_step=1.780]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 102/111028 [07:07<129:05:44,  0.24it/s, v_num=5, train_loss_step=1.780]Epoch 0:   0%|          | 102/111028 [07:07<129:13:23,  0.24it/s, v_num=5, train_loss_step=1.810]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 103/111028 [07:11<129:05:46,  0.24it/s, v_num=5, train_loss_step=1.810]Epoch 0:   0%|          | 103/111028 [07:11<129:13:19,  0.24it/s, v_num=5, train_loss_step=1.790]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 104/111028 [07:15<129:05:47,  0.24it/s, v_num=5, train_loss_step=1.790]Epoch 0:   0%|          | 104/111028 [07:16<129:13:13,  0.24it/s, v_num=5, train_loss_step=1.810]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 105/111028 [07:19<129:05:42,  0.24it/s, v_num=5, train_loss_step=1.810]Epoch 0:   0%|          | 105/111028 [07:20<129:13:14,  0.24it/s, v_num=5, train_loss_step=1.800]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 106/111028 [07:24<129:05:50,  0.24it/s, v_num=5, train_loss_step=1.800]Epoch 0:   0%|          | 106/111028 [07:24<129:13:05,  0.24it/s, v_num=5, train_loss_step=1.800]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 107/111028 [07:28<129:05:45,  0.24it/s, v_num=5, train_loss_step=1.800]Epoch 0:   0%|          | 107/111028 [07:28<129:12:59,  0.24it/s, v_num=5, train_loss_step=1.760]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 108/111028 [07:32<129:05:44,  0.24it/s, v_num=5, train_loss_step=1.760]Epoch 0:   0%|          | 108/111028 [07:32<129:12:56,  0.24it/s, v_num=5, train_loss_step=1.760]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 109/111028 [07:36<129:05:49,  0.24it/s, v_num=5, train_loss_step=1.760]Epoch 0:   0%|          | 109/111028 [07:37<129:12:52,  0.24it/s, v_num=5, train_loss_step=1.780]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 110/111028 [07:40<129:05:41,  0.24it/s, v_num=5, train_loss_step=1.780]Epoch 0:   0%|          | 110/111028 [07:41<129:12:33,  0.24it/s, v_num=5, train_loss_step=1.770]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 111/111028 [07:45<129:05:26,  0.24it/s, v_num=5, train_loss_step=1.770]Epoch 0:   0%|          | 111/111028 [07:45<129:12:36,  0.24it/s, v_num=5, train_loss_step=1.820]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 112/111028 [07:49<129:05:35,  0.24it/s, v_num=5, train_loss_step=1.820]Epoch 0:   0%|          | 112/111028 [07:49<129:12:35,  0.24it/s, v_num=5, train_loss_step=1.800]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 113/111028 [07:53<129:05:38,  0.24it/s, v_num=5, train_loss_step=1.800]Epoch 0:   0%|          | 113/111028 [07:53<129:12:20,  0.24it/s, v_num=5, train_loss_step=1.770]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 114/111028 [07:57<129:05:30,  0.24it/s, v_num=5, train_loss_step=1.770]Epoch 0:   0%|          | 114/111028 [07:58<129:12:22,  0.24it/s, v_num=5, train_loss_step=1.780]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 115/111028 [08:01<129:05:32,  0.24it/s, v_num=5, train_loss_step=1.780]Epoch 0:   0%|          | 115/111028 [08:02<129:12:20,  0.24it/s, v_num=5, train_loss_step=1.780]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 116/111028 [08:06<129:05:40,  0.24it/s, v_num=5, train_loss_step=1.780]Epoch 0:   0%|          | 116/111028 [08:06<129:12:06,  0.24it/s, v_num=5, train_loss_step=1.760]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 117/111028 [08:10<129:05:24,  0.24it/s, v_num=5, train_loss_step=1.760]Epoch 0:   0%|          | 117/111028 [08:10<129:11:48,  0.24it/s, v_num=5, train_loss_step=1.770]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 118/111028 [08:14<129:05:10,  0.24it/s, v_num=5, train_loss_step=1.770]Epoch 0:   0%|          | 118/111028 [08:14<129:11:45,  0.24it/s, v_num=5, train_loss_step=1.800]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 119/111028 [08:18<129:05:10,  0.24it/s, v_num=5, train_loss_step=1.800]Epoch 0:   0%|          | 119/111028 [08:19<129:11:42,  0.24it/s, v_num=5, train_loss_step=1.770]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 120/111028 [08:22<129:05:11,  0.24it/s, v_num=5, train_loss_step=1.770]Epoch 0:   0%|          | 120/111028 [08:23<129:11:38,  0.24it/s, v_num=5, train_loss_step=1.770]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 121/111028 [08:26<129:05:07,  0.24it/s, v_num=5, train_loss_step=1.770]Epoch 0:   0%|          | 121/111028 [08:27<129:11:31,  0.24it/s, v_num=5, train_loss_step=1.760]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 122/111028 [08:31<129:05:08,  0.24it/s, v_num=5, train_loss_step=1.760]Epoch 0:   0%|          | 122/111028 [08:31<129:11:26,  0.24it/s, v_num=5, train_loss_step=1.790]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 123/111028 [08:35<129:05:02,  0.24it/s, v_num=5, train_loss_step=1.790]Epoch 0:   0%|          | 123/111028 [08:35<129:11:09,  0.24it/s, v_num=5, train_loss_step=1.760]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 124/111028 [08:39<129:04:51,  0.24it/s, v_num=5, train_loss_step=1.760]Epoch 0:   0%|          | 124/111028 [08:39<129:10:54,  0.24it/s, v_num=5, train_loss_step=1.740]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 125/111028 [08:43<129:04:34,  0.24it/s, v_num=5, train_loss_step=1.740]Epoch 0:   0%|          | 125/111028 [08:44<129:10:43,  0.24it/s, v_num=5, train_loss_step=1.770]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 126/111028 [08:47<129:04:27,  0.24it/s, v_num=5, train_loss_step=1.770]Epoch 0:   0%|          | 126/111028 [08:48<129:10:39,  0.24it/s, v_num=5, train_loss_step=1.720]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 127/111028 [08:52<129:04:27,  0.24it/s, v_num=5, train_loss_step=1.720]Epoch 0:   0%|          | 127/111028 [08:52<129:10:37,  0.24it/s, v_num=5, train_loss_step=1.750]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 128/111028 [08:56<129:04:27,  0.24it/s, v_num=5, train_loss_step=1.750]Epoch 0:   0%|          | 128/111028 [08:56<129:10:33,  0.24it/s, v_num=5, train_loss_step=1.740]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 129/111028 [09:00<129:04:28,  0.24it/s, v_num=5, train_loss_step=1.740]Epoch 0:   0%|          | 129/111028 [09:00<129:10:29,  0.24it/s, v_num=5, train_loss_step=1.760]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 130/111028 [09:04<129:04:25,  0.24it/s, v_num=5, train_loss_step=1.760]Epoch 0:   0%|          | 130/111028 [09:05<129:10:26,  0.24it/s, v_num=5, train_loss_step=1.760]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 131/111028 [09:08<129:04:31,  0.24it/s, v_num=5, train_loss_step=1.760]Epoch 0:   0%|          | 131/111028 [09:09<129:10:33,  0.24it/s, v_num=5, train_loss_step=1.780]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 132/111028 [09:13<129:04:37,  0.24it/s, v_num=5, train_loss_step=1.780]Epoch 0:   0%|          | 132/111028 [09:13<129:10:35,  0.24it/s, v_num=5, train_loss_step=1.760]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 133/111028 [09:17<129:04:43,  0.24it/s, v_num=5, train_loss_step=1.760]Epoch 0:   0%|          | 133/111028 [09:17<129:10:29,  0.24it/s, v_num=5, train_loss_step=1.740]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 134/111028 [09:21<129:04:38,  0.24it/s, v_num=5, train_loss_step=1.740]Epoch 0:   0%|          | 134/111028 [09:21<129:10:24,  0.24it/s, v_num=5, train_loss_step=1.760]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 135/111028 [09:25<129:04:35,  0.24it/s, v_num=5, train_loss_step=1.760]Epoch 0:   0%|          | 135/111028 [09:26<129:10:17,  0.24it/s, v_num=5, train_loss_step=1.680]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 136/111028 [09:29<129:04:30,  0.24it/s, v_num=5, train_loss_step=1.680]Epoch 0:   0%|          | 136/111028 [09:30<129:10:06,  0.24it/s, v_num=5, train_loss_step=1.720]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 137/111028 [09:34<129:04:22,  0.24it/s, v_num=5, train_loss_step=1.720]Epoch 0:   0%|          | 137/111028 [09:34<129:10:03,  0.24it/s, v_num=5, train_loss_step=1.750]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 138/111028 [09:38<129:04:26,  0.24it/s, v_num=5, train_loss_step=1.750]Epoch 0:   0%|          | 138/111028 [09:38<129:10:04,  0.24it/s, v_num=5, train_loss_step=1.770]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 139/111028 [09:42<129:04:27,  0.24it/s, v_num=5, train_loss_step=1.770]Epoch 0:   0%|          | 139/111028 [09:42<129:09:51,  0.24it/s, v_num=5, train_loss_step=1.690]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 140/111028 [09:46<129:04:14,  0.24it/s, v_num=5, train_loss_step=1.690]Epoch 0:   0%|          | 140/111028 [09:47<129:09:50,  0.24it/s, v_num=5, train_loss_step=1.740]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 141/111028 [09:50<129:04:17,  0.24it/s, v_num=5, train_loss_step=1.740]Epoch 0:   0%|          | 141/111028 [09:51<129:09:48,  0.24it/s, v_num=5, train_loss_step=1.740]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 142/111028 [09:55<129:04:17,  0.24it/s, v_num=5, train_loss_step=1.740]Epoch 0:   0%|          | 142/111028 [09:55<129:09:36,  0.24it/s, v_num=5, train_loss_step=1.730]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 143/111028 [09:59<129:04:04,  0.24it/s, v_num=5, train_loss_step=1.730]Epoch 0:   0%|          | 143/111028 [09:59<129:09:27,  0.24it/s, v_num=5, train_loss_step=1.670]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 144/111028 [10:03<129:04:02,  0.24it/s, v_num=5, train_loss_step=1.670]Epoch 0:   0%|          | 144/111028 [10:03<129:09:22,  0.24it/s, v_num=5, train_loss_step=1.730]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 145/111028 [10:07<129:03:57,  0.24it/s, v_num=5, train_loss_step=1.730]Epoch 0:   0%|          | 145/111028 [10:08<129:09:20,  0.24it/s, v_num=5, train_loss_step=1.660]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 146/111028 [10:11<129:04:02,  0.24it/s, v_num=5, train_loss_step=1.660]Epoch 0:   0%|          | 146/111028 [10:12<129:09:22,  0.24it/s, v_num=5, train_loss_step=1.720]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 147/111028 [10:15<129:03:58,  0.24it/s, v_num=5, train_loss_step=1.720]Epoch 0:   0%|          | 147/111028 [10:16<129:09:16,  0.24it/s, v_num=5, train_loss_step=1.720]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 148/111028 [10:20<129:04:00,  0.24it/s, v_num=5, train_loss_step=1.720]Epoch 0:   0%|          | 148/111028 [10:20<129:09:11,  0.24it/s, v_num=5, train_loss_step=1.680]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 149/111028 [10:24<129:03:55,  0.24it/s, v_num=5, train_loss_step=1.680]Epoch 0:   0%|          | 149/111028 [10:24<129:09:04,  0.24it/s, v_num=5, train_loss_step=1.680]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 150/111028 [10:28<129:03:52,  0.24it/s, v_num=5, train_loss_step=1.680]Epoch 0:   0%|          | 150/111028 [10:28<129:09:02,  0.24it/s, v_num=5, train_loss_step=1.720]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 151/111028 [10:32<129:03:50,  0.24it/s, v_num=5, train_loss_step=1.720]Epoch 0:   0%|          | 151/111028 [10:33<129:09:00,  0.24it/s, v_num=5, train_loss_step=1.680]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 152/111028 [10:36<129:03:51,  0.24it/s, v_num=5, train_loss_step=1.680]Epoch 0:   0%|          | 152/111028 [10:37<129:08:53,  0.24it/s, v_num=5, train_loss_step=1.660]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 153/111028 [10:41<129:03:48,  0.24it/s, v_num=5, train_loss_step=1.660]Epoch 0:   0%|          | 153/111028 [10:41<129:08:55,  0.24it/s, v_num=5, train_loss_step=1.720]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 154/111028 [10:45<129:03:49,  0.24it/s, v_num=5, train_loss_step=1.720]Epoch 0:   0%|          | 154/111028 [10:45<129:08:48,  0.24it/s, v_num=5, train_loss_step=1.770]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 155/111028 [10:49<129:03:48,  0.24it/s, v_num=5, train_loss_step=1.770]Epoch 0:   0%|          | 155/111028 [10:49<129:08:41,  0.24it/s, v_num=5, train_loss_step=1.660]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 156/111028 [10:53<129:03:40,  0.24it/s, v_num=5, train_loss_step=1.660]Epoch 0:   0%|          | 156/111028 [10:54<129:08:36,  0.24it/s, v_num=5, train_loss_step=1.640]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 157/111028 [10:57<129:03:35,  0.24it/s, v_num=5, train_loss_step=1.640]Epoch 0:   0%|          | 157/111028 [10:58<129:08:39,  0.24it/s, v_num=5, train_loss_step=1.730]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 158/111028 [11:02<129:03:38,  0.24it/s, v_num=5, train_loss_step=1.730]Epoch 0:   0%|          | 158/111028 [11:02<129:08:31,  0.24it/s, v_num=5, train_loss_step=1.680]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 159/111028 [11:06<129:03:38,  0.24it/s, v_num=5, train_loss_step=1.680]Epoch 0:   0%|          | 159/111028 [11:06<129:08:22,  0.24it/s, v_num=5, train_loss_step=1.720]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 160/111028 [11:10<129:03:30,  0.24it/s, v_num=5, train_loss_step=1.720]Epoch 0:   0%|          | 160/111028 [11:10<129:08:21,  0.24it/s, v_num=5, train_loss_step=1.690]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 161/111028 [11:14<129:03:33,  0.24it/s, v_num=5, train_loss_step=1.690]Epoch 0:   0%|          | 161/111028 [11:15<129:08:20,  0.24it/s, v_num=5, train_loss_step=1.680]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 162/111028 [11:18<129:03:30,  0.24it/s, v_num=5, train_loss_step=1.680]Epoch 0:   0%|          | 162/111028 [11:19<129:08:21,  0.24it/s, v_num=5, train_loss_step=1.690]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 163/111028 [11:23<129:03:35,  0.24it/s, v_num=5, train_loss_step=1.690]Epoch 0:   0%|          | 163/111028 [11:23<129:08:28,  0.24it/s, v_num=5, train_loss_step=1.690]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 164/111028 [11:27<129:03:43,  0.24it/s, v_num=5, train_loss_step=1.690]Epoch 0:   0%|          | 164/111028 [11:27<129:08:24,  0.24it/s, v_num=5, train_loss_step=1.710]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 165/111028 [11:31<129:03:39,  0.24it/s, v_num=5, train_loss_step=1.710]Epoch 0:   0%|          | 165/111028 [11:31<129:08:20,  0.24it/s, v_num=5, train_loss_step=1.640]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 166/111028 [11:35<129:03:35,  0.24it/s, v_num=5, train_loss_step=1.640]Epoch 0:   0%|          | 166/111028 [11:36<129:08:13,  0.24it/s, v_num=5, train_loss_step=1.690]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 167/111028 [11:39<129:03:31,  0.24it/s, v_num=5, train_loss_step=1.690]Epoch 0:   0%|          | 167/111028 [11:40<129:08:11,  0.24it/s, v_num=5, train_loss_step=1.670]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 168/111028 [11:44<129:03:31,  0.24it/s, v_num=5, train_loss_step=1.670]Epoch 0:   0%|          | 168/111028 [11:44<129:08:10,  0.24it/s, v_num=5, train_loss_step=1.700]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 169/111028 [11:48<129:03:33,  0.24it/s, v_num=5, train_loss_step=1.700]Epoch 0:   0%|          | 169/111028 [11:48<129:08:11,  0.24it/s, v_num=5, train_loss_step=1.680]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 170/111028 [11:52<129:03:36,  0.24it/s, v_num=5, train_loss_step=1.680]Epoch 0:   0%|          | 170/111028 [11:52<129:08:13,  0.24it/s, v_num=5, train_loss_step=1.690]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 171/111028 [11:56<129:03:37,  0.24it/s, v_num=5, train_loss_step=1.690]Epoch 0:   0%|          | 171/111028 [11:57<129:08:12,  0.24it/s, v_num=5, train_loss_step=1.650]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 172/111028 [12:00<129:03:37,  0.24it/s, v_num=5, train_loss_step=1.650]Epoch 0:   0%|          | 172/111028 [12:01<129:08:06,  0.24it/s, v_num=5, train_loss_step=1.640]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 173/111028 [12:05<129:03:36,  0.24it/s, v_num=5, train_loss_step=1.640]Epoch 0:   0%|          | 173/111028 [12:05<129:07:59,  0.24it/s, v_num=5, train_loss_step=1.650]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 174/111028 [12:09<129:03:31,  0.24it/s, v_num=5, train_loss_step=1.650]Epoch 0:   0%|          | 174/111028 [12:09<129:07:59,  0.24it/s, v_num=5, train_loss_step=1.700]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 175/111028 [12:13<129:03:29,  0.24it/s, v_num=5, train_loss_step=1.700]Epoch 0:   0%|          | 175/111028 [12:13<129:07:54,  0.24it/s, v_num=5, train_loss_step=1.680]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 176/111028 [12:17<129:03:32,  0.24it/s, v_num=5, train_loss_step=1.680]Epoch 0:   0%|          | 176/111028 [12:18<129:07:56,  0.24it/s, v_num=5, train_loss_step=1.630]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 177/111028 [12:21<129:03:29,  0.24it/s, v_num=5, train_loss_step=1.630]Epoch 0:   0%|          | 177/111028 [12:22<129:07:43,  0.24it/s, v_num=5, train_loss_step=1.670]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 178/111028 [12:26<129:03:16,  0.24it/s, v_num=5, train_loss_step=1.670]Epoch 0:   0%|          | 178/111028 [12:26<129:07:38,  0.24it/s, v_num=5, train_loss_step=1.630]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 179/111028 [12:30<129:03:13,  0.24it/s, v_num=5, train_loss_step=1.630]Epoch 0:   0%|          | 179/111028 [12:30<129:07:26,  0.24it/s, v_num=5, train_loss_step=1.610]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 180/111028 [12:34<129:03:03,  0.24it/s, v_num=5, train_loss_step=1.610]Epoch 0:   0%|          | 180/111028 [12:34<129:07:23,  0.24it/s, v_num=5, train_loss_step=1.710]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 181/111028 [12:38<129:03:04,  0.24it/s, v_num=5, train_loss_step=1.710]Epoch 0:   0%|          | 181/111028 [12:39<129:07:24,  0.24it/s, v_num=5, train_loss_step=1.680]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 182/111028 [12:42<129:03:06,  0.24it/s, v_num=5, train_loss_step=1.680]Epoch 0:   0%|          | 182/111028 [12:43<129:07:27,  0.24it/s, v_num=5, train_loss_step=1.660]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 183/111028 [12:47<129:03:09,  0.24it/s, v_num=5, train_loss_step=1.660]Epoch 0:   0%|          | 183/111028 [12:47<129:07:25,  0.24it/s, v_num=5, train_loss_step=1.630]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 184/111028 [12:51<129:03:10,  0.24it/s, v_num=5, train_loss_step=1.630]Epoch 0:   0%|          | 184/111028 [12:51<129:07:22,  0.24it/s, v_num=5, train_loss_step=1.640]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 185/111028 [12:55<129:03:11,  0.24it/s, v_num=5, train_loss_step=1.640]Epoch 0:   0%|          | 185/111028 [12:55<129:07:13,  0.24it/s, v_num=5, train_loss_step=1.680]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 186/111028 [12:59<129:03:01,  0.24it/s, v_num=5, train_loss_step=1.680]Epoch 0:   0%|          | 186/111028 [13:00<129:07:12,  0.24it/s, v_num=5, train_loss_step=1.680]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 187/111028 [13:03<129:03:01,  0.24it/s, v_num=5, train_loss_step=1.680]Epoch 0:   0%|          | 187/111028 [13:04<129:07:04,  0.24it/s, v_num=5, train_loss_step=1.580]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 188/111028 [13:07<129:02:53,  0.24it/s, v_num=5, train_loss_step=1.580]Epoch 0:   0%|          | 188/111028 [13:08<129:07:00,  0.24it/s, v_num=5, train_loss_step=1.630]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 189/111028 [13:12<129:02:53,  0.24it/s, v_num=5, train_loss_step=1.630]Epoch 0:   0%|          | 189/111028 [13:12<129:07:02,  0.24it/s, v_num=5, train_loss_step=1.670]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 190/111028 [13:16<129:02:52,  0.24it/s, v_num=5, train_loss_step=1.670]Epoch 0:   0%|          | 190/111028 [13:16<129:06:59,  0.24it/s, v_num=5, train_loss_step=1.630]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 191/111028 [13:20<129:02:53,  0.24it/s, v_num=5, train_loss_step=1.630]Epoch 0:   0%|          | 191/111028 [13:20<129:06:54,  0.24it/s, v_num=5, train_loss_step=1.640]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 192/111028 [13:24<129:02:48,  0.24it/s, v_num=5, train_loss_step=1.640]Epoch 0:   0%|          | 192/111028 [13:25<129:06:54,  0.24it/s, v_num=5, train_loss_step=1.680]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 193/111028 [13:28<129:02:51,  0.24it/s, v_num=5, train_loss_step=1.680]Epoch 0:   0%|          | 193/111028 [13:29<129:06:49,  0.24it/s, v_num=5, train_loss_step=1.630]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 194/111028 [13:33<129:02:49,  0.24it/s, v_num=5, train_loss_step=1.630]Epoch 0:   0%|          | 194/111028 [13:33<129:06:50,  0.24it/s, v_num=5, train_loss_step=1.690]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 195/111028 [13:37<129:02:48,  0.24it/s, v_num=5, train_loss_step=1.690]Epoch 0:   0%|          | 195/111028 [13:37<129:06:45,  0.24it/s, v_num=5, train_loss_step=1.660]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 196/111028 [13:41<129:02:42,  0.24it/s, v_num=5, train_loss_step=1.660]Epoch 0:   0%|          | 196/111028 [13:41<129:06:32,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 197/111028 [13:45<129:02:32,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 197/111028 [13:46<129:06:29,  0.24it/s, v_num=5, train_loss_step=1.650]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 198/111028 [13:49<129:02:34,  0.24it/s, v_num=5, train_loss_step=1.650]Epoch 0:   0%|          | 198/111028 [13:50<129:06:34,  0.24it/s, v_num=5, train_loss_step=1.640]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 199/111028 [13:54<129:02:36,  0.24it/s, v_num=5, train_loss_step=1.640]Epoch 0:   0%|          | 199/111028 [13:54<129:06:28,  0.24it/s, v_num=5, train_loss_step=1.620]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 200/111028 [13:58<129:02:35,  0.24it/s, v_num=5, train_loss_step=1.620]Epoch 0:   0%|          | 200/111028 [13:58<129:06:31,  0.24it/s, v_num=5, train_loss_step=1.630]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 201/111028 [14:02<129:03:09,  0.24it/s, v_num=5, train_loss_step=1.630]Epoch 0:   0%|          | 201/111028 [14:03<129:06:59,  0.24it/s, v_num=5, train_loss_step=1.690]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 202/111028 [14:06<129:03:05,  0.24it/s, v_num=5, train_loss_step=1.690]Epoch 0:   0%|          | 202/111028 [14:07<129:06:50,  0.24it/s, v_num=5, train_loss_step=1.580]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 203/111028 [14:10<129:02:59,  0.24it/s, v_num=5, train_loss_step=1.580]Epoch 0:   0%|          | 203/111028 [14:11<129:06:50,  0.24it/s, v_num=5, train_loss_step=1.660]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 204/111028 [14:15<129:03:01,  0.24it/s, v_num=5, train_loss_step=1.660]Epoch 0:   0%|          | 204/111028 [14:15<129:06:47,  0.24it/s, v_num=5, train_loss_step=1.640]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 205/111028 [14:19<129:02:55,  0.24it/s, v_num=5, train_loss_step=1.640]Epoch 0:   0%|          | 205/111028 [14:19<129:06:43,  0.24it/s, v_num=5, train_loss_step=1.660]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 206/111028 [14:23<129:02:57,  0.24it/s, v_num=5, train_loss_step=1.660]Epoch 0:   0%|          | 206/111028 [14:23<129:06:35,  0.24it/s, v_num=5, train_loss_step=1.670]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 207/111028 [14:27<129:02:47,  0.24it/s, v_num=5, train_loss_step=1.670]Epoch 0:   0%|          | 207/111028 [14:28<129:06:34,  0.24it/s, v_num=5, train_loss_step=1.640]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 208/111028 [14:31<129:02:47,  0.24it/s, v_num=5, train_loss_step=1.640]Epoch 0:   0%|          | 208/111028 [14:32<129:06:30,  0.24it/s, v_num=5, train_loss_step=1.700]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 209/111028 [14:36<129:02:44,  0.24it/s, v_num=5, train_loss_step=1.700]Epoch 0:   0%|          | 209/111028 [14:36<129:06:25,  0.24it/s, v_num=5, train_loss_step=1.680]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 210/111028 [14:40<129:02:42,  0.24it/s, v_num=5, train_loss_step=1.680]Epoch 0:   0%|          | 210/111028 [14:40<129:06:17,  0.24it/s, v_num=5, train_loss_step=1.620]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 211/111028 [14:44<129:02:35,  0.24it/s, v_num=5, train_loss_step=1.620]Epoch 0:   0%|          | 211/111028 [14:44<129:06:14,  0.24it/s, v_num=5, train_loss_step=1.660]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 212/111028 [14:48<129:02:33,  0.24it/s, v_num=5, train_loss_step=1.660]Epoch 0:   0%|          | 212/111028 [14:49<129:06:15,  0.24it/s, v_num=5, train_loss_step=1.640]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 213/111028 [14:52<129:02:34,  0.24it/s, v_num=5, train_loss_step=1.640]Epoch 0:   0%|          | 213/111028 [14:53<129:06:06,  0.24it/s, v_num=5, train_loss_step=1.610]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 214/111028 [14:57<129:02:29,  0.24it/s, v_num=5, train_loss_step=1.610]Epoch 0:   0%|          | 214/111028 [14:57<129:06:06,  0.24it/s, v_num=5, train_loss_step=1.690]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 215/111028 [15:01<129:02:26,  0.24it/s, v_num=5, train_loss_step=1.690]Epoch 0:   0%|          | 215/111028 [15:01<129:06:06,  0.24it/s, v_num=5, train_loss_step=1.630]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 216/111028 [15:05<129:02:27,  0.24it/s, v_num=5, train_loss_step=1.630]Epoch 0:   0%|          | 216/111028 [15:05<129:06:02,  0.24it/s, v_num=5, train_loss_step=1.610]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 217/111028 [15:09<129:02:27,  0.24it/s, v_num=5, train_loss_step=1.610]Epoch 0:   0%|          | 217/111028 [15:10<129:06:02,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 218/111028 [15:13<129:02:27,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 218/111028 [15:14<129:06:04,  0.24it/s, v_num=5, train_loss_step=1.660]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 219/111028 [15:18<129:02:27,  0.24it/s, v_num=5, train_loss_step=1.660]Epoch 0:   0%|          | 219/111028 [15:18<129:05:58,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 220/111028 [15:22<129:02:25,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 220/111028 [15:22<129:05:56,  0.24it/s, v_num=5, train_loss_step=1.640]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 221/111028 [15:26<129:02:25,  0.24it/s, v_num=5, train_loss_step=1.640]Epoch 0:   0%|          | 221/111028 [15:26<129:05:55,  0.24it/s, v_num=5, train_loss_step=1.630]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 222/111028 [15:30<129:02:21,  0.24it/s, v_num=5, train_loss_step=1.630]Epoch 0:   0%|          | 222/111028 [15:31<129:05:50,  0.24it/s, v_num=5, train_loss_step=1.630]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 223/111028 [15:34<129:02:19,  0.24it/s, v_num=5, train_loss_step=1.630]Epoch 0:   0%|          | 223/111028 [15:35<129:05:48,  0.24it/s, v_num=5, train_loss_step=1.690]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 224/111028 [15:39<129:02:15,  0.24it/s, v_num=5, train_loss_step=1.690]Epoch 0:   0%|          | 224/111028 [15:39<129:05:44,  0.24it/s, v_num=5, train_loss_step=1.630]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 225/111028 [15:43<129:02:14,  0.24it/s, v_num=5, train_loss_step=1.630]Epoch 0:   0%|          | 225/111028 [15:43<129:05:40,  0.24it/s, v_num=5, train_loss_step=1.600]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 226/111028 [15:47<129:02:10,  0.24it/s, v_num=5, train_loss_step=1.600]Epoch 0:   0%|          | 226/111028 [15:47<129:05:30,  0.24it/s, v_num=5, train_loss_step=1.610]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 227/111028 [15:51<129:02:04,  0.24it/s, v_num=5, train_loss_step=1.610]Epoch 0:   0%|          | 227/111028 [15:52<129:05:31,  0.24it/s, v_num=5, train_loss_step=1.650]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 228/111028 [15:55<129:02:02,  0.24it/s, v_num=5, train_loss_step=1.650]Epoch 0:   0%|          | 228/111028 [15:56<129:05:24,  0.24it/s, v_num=5, train_loss_step=1.650]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 229/111028 [16:00<129:01:57,  0.24it/s, v_num=5, train_loss_step=1.650]Epoch 0:   0%|          | 229/111028 [16:00<129:05:20,  0.24it/s, v_num=5, train_loss_step=1.610]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 230/111028 [16:04<129:01:59,  0.24it/s, v_num=5, train_loss_step=1.610]Epoch 0:   0%|          | 230/111028 [16:04<129:05:22,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 231/111028 [16:08<129:01:58,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 231/111028 [16:08<129:05:13,  0.24it/s, v_num=5, train_loss_step=1.640]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 232/111028 [16:12<129:01:49,  0.24it/s, v_num=5, train_loss_step=1.640]Epoch 0:   0%|          | 232/111028 [16:13<129:05:09,  0.24it/s, v_num=5, train_loss_step=1.610]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 233/111028 [16:16<129:01:48,  0.24it/s, v_num=5, train_loss_step=1.610]Epoch 0:   0%|          | 233/111028 [16:17<129:05:09,  0.24it/s, v_num=5, train_loss_step=1.630]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 234/111028 [16:21<129:01:47,  0.24it/s, v_num=5, train_loss_step=1.630]Epoch 0:   0%|          | 234/111028 [16:21<129:05:08,  0.24it/s, v_num=5, train_loss_step=1.610]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 235/111028 [16:25<129:01:48,  0.24it/s, v_num=5, train_loss_step=1.610]Epoch 0:   0%|          | 235/111028 [16:25<129:05:07,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 236/111028 [16:29<129:01:52,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 236/111028 [16:29<129:05:13,  0.24it/s, v_num=5, train_loss_step=1.600]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 237/111028 [16:33<129:01:53,  0.24it/s, v_num=5, train_loss_step=1.600]Epoch 0:   0%|          | 237/111028 [16:34<129:05:11,  0.24it/s, v_num=5, train_loss_step=1.530]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 238/111028 [16:37<129:01:53,  0.24it/s, v_num=5, train_loss_step=1.530]Epoch 0:   0%|          | 238/111028 [16:38<129:05:03,  0.24it/s, v_num=5, train_loss_step=1.600]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 239/111028 [16:42<129:01:44,  0.24it/s, v_num=5, train_loss_step=1.600]Epoch 0:   0%|          | 239/111028 [16:42<129:05:01,  0.24it/s, v_num=5, train_loss_step=1.560]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 240/111028 [16:46<129:01:42,  0.24it/s, v_num=5, train_loss_step=1.560]Epoch 0:   0%|          | 240/111028 [16:46<129:04:59,  0.24it/s, v_num=5, train_loss_step=1.610]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 241/111028 [16:50<129:01:39,  0.24it/s, v_num=5, train_loss_step=1.610]Epoch 0:   0%|          | 241/111028 [16:50<129:04:54,  0.24it/s, v_num=5, train_loss_step=1.600]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 242/111028 [16:54<129:01:36,  0.24it/s, v_num=5, train_loss_step=1.600]Epoch 0:   0%|          | 242/111028 [16:55<129:04:47,  0.24it/s, v_num=5, train_loss_step=1.630]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 243/111028 [16:58<129:01:35,  0.24it/s, v_num=5, train_loss_step=1.630]Epoch 0:   0%|          | 243/111028 [16:59<129:04:50,  0.24it/s, v_num=5, train_loss_step=1.600]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 244/111028 [17:03<129:01:37,  0.24it/s, v_num=5, train_loss_step=1.600]Epoch 0:   0%|          | 244/111028 [17:03<129:04:47,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 245/111028 [17:07<129:01:32,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 245/111028 [17:07<129:04:44,  0.24it/s, v_num=5, train_loss_step=1.620]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 246/111028 [17:11<129:01:33,  0.24it/s, v_num=5, train_loss_step=1.620]Epoch 0:   0%|          | 246/111028 [17:11<129:04:39,  0.24it/s, v_num=5, train_loss_step=1.580]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 247/111028 [17:15<129:01:29,  0.24it/s, v_num=5, train_loss_step=1.580]Epoch 0:   0%|          | 247/111028 [17:16<129:04:37,  0.24it/s, v_num=5, train_loss_step=1.580]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 248/111028 [17:19<129:01:26,  0.24it/s, v_num=5, train_loss_step=1.580]Epoch 0:   0%|          | 248/111028 [17:20<129:04:31,  0.24it/s, v_num=5, train_loss_step=1.570]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 249/111028 [17:24<129:01:20,  0.24it/s, v_num=5, train_loss_step=1.570]Epoch 0:   0%|          | 249/111028 [17:24<129:04:21,  0.24it/s, v_num=5, train_loss_step=1.610]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 250/111028 [17:28<129:01:10,  0.24it/s, v_num=5, train_loss_step=1.610]Epoch 0:   0%|          | 250/111028 [17:28<129:04:17,  0.24it/s, v_num=5, train_loss_step=1.600]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 251/111028 [17:32<129:01:20,  0.24it/s, v_num=5, train_loss_step=1.600]Epoch 0:   0%|          | 251/111028 [17:32<129:04:20,  0.24it/s, v_num=5, train_loss_step=1.570]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 252/111028 [17:36<129:01:15,  0.24it/s, v_num=5, train_loss_step=1.570]Epoch 0:   0%|          | 252/111028 [17:37<129:04:22,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 253/111028 [17:40<129:01:15,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 253/111028 [17:41<129:04:21,  0.24it/s, v_num=5, train_loss_step=1.560]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 254/111028 [17:45<129:01:12,  0.24it/s, v_num=5, train_loss_step=1.560]Epoch 0:   0%|          | 254/111028 [17:45<129:04:14,  0.24it/s, v_num=5, train_loss_step=1.580]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 255/111028 [17:49<129:01:09,  0.24it/s, v_num=5, train_loss_step=1.580]Epoch 0:   0%|          | 255/111028 [17:49<129:04:11,  0.24it/s, v_num=5, train_loss_step=1.580]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 256/111028 [17:53<129:01:07,  0.24it/s, v_num=5, train_loss_step=1.580]Epoch 0:   0%|          | 256/111028 [17:53<129:04:07,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 257/111028 [17:57<129:01:04,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 257/111028 [17:58<129:03:59,  0.24it/s, v_num=5, train_loss_step=1.580]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 258/111028 [18:01<129:00:56,  0.24it/s, v_num=5, train_loss_step=1.580]Epoch 0:   0%|          | 258/111028 [18:02<129:03:58,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 259/111028 [18:05<129:00:56,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 259/111028 [18:06<129:03:58,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 260/111028 [18:10<129:00:53,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 260/111028 [18:10<129:03:58,  0.24it/s, v_num=5, train_loss_step=1.580]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 261/111028 [18:14<129:00:57,  0.24it/s, v_num=5, train_loss_step=1.580]Epoch 0:   0%|          | 261/111028 [18:14<129:03:59,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 262/111028 [18:18<129:00:58,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 262/111028 [18:19<129:03:58,  0.24it/s, v_num=5, train_loss_step=1.560]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 263/111028 [18:22<129:00:57,  0.24it/s, v_num=5, train_loss_step=1.560]Epoch 0:   0%|          | 263/111028 [18:23<129:03:53,  0.24it/s, v_num=5, train_loss_step=1.580]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 264/111028 [18:26<129:00:53,  0.24it/s, v_num=5, train_loss_step=1.580]Epoch 0:   0%|          | 264/111028 [18:27<129:03:49,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 265/111028 [18:31<129:00:50,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 265/111028 [18:31<129:03:45,  0.24it/s, v_num=5, train_loss_step=1.580]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 266/111028 [18:35<129:00:50,  0.24it/s, v_num=5, train_loss_step=1.580]Epoch 0:   0%|          | 266/111028 [18:35<129:03:43,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 267/111028 [18:39<129:00:46,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 267/111028 [18:40<129:03:42,  0.24it/s, v_num=5, train_loss_step=1.570]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 268/111028 [18:43<129:00:48,  0.24it/s, v_num=5, train_loss_step=1.570]Epoch 0:   0%|          | 268/111028 [18:44<129:03:37,  0.24it/s, v_num=5, train_loss_step=1.570]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 269/111028 [18:47<129:00:42,  0.24it/s, v_num=5, train_loss_step=1.570]Epoch 0:   0%|          | 269/111028 [18:48<129:03:34,  0.24it/s, v_num=5, train_loss_step=1.540]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 270/111028 [18:52<129:00:36,  0.24it/s, v_num=5, train_loss_step=1.540]Epoch 0:   0%|          | 270/111028 [18:52<129:03:33,  0.24it/s, v_num=5, train_loss_step=1.570]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 271/111028 [18:56<129:00:38,  0.24it/s, v_num=5, train_loss_step=1.570]Epoch 0:   0%|          | 271/111028 [18:56<129:03:35,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 272/111028 [19:00<129:00:40,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 272/111028 [19:01<129:03:34,  0.24it/s, v_num=5, train_loss_step=1.560]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 273/111028 [19:04<129:00:41,  0.24it/s, v_num=5, train_loss_step=1.560]Epoch 0:   0%|          | 273/111028 [19:05<129:03:31,  0.24it/s, v_num=5, train_loss_step=1.570]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 274/111028 [19:08<129:00:37,  0.24it/s, v_num=5, train_loss_step=1.570]Epoch 0:   0%|          | 274/111028 [19:09<129:03:28,  0.24it/s, v_num=5, train_loss_step=1.610]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 275/111028 [19:13<129:00:36,  0.24it/s, v_num=5, train_loss_step=1.610]Epoch 0:   0%|          | 275/111028 [19:13<129:03:23,  0.24it/s, v_num=5, train_loss_step=1.530]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 276/111028 [19:17<129:00:32,  0.24it/s, v_num=5, train_loss_step=1.530]Epoch 0:   0%|          | 276/111028 [19:17<129:03:16,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 277/111028 [19:21<129:00:26,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 277/111028 [19:21<129:03:14,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 278/111028 [19:25<129:00:22,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 278/111028 [19:26<129:03:14,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 279/111028 [19:29<129:00:25,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 279/111028 [19:30<129:03:07,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 280/111028 [19:34<129:00:18,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 280/111028 [19:34<129:03:06,  0.24it/s, v_num=5, train_loss_step=1.540]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 281/111028 [19:38<129:00:20,  0.24it/s, v_num=5, train_loss_step=1.540]Epoch 0:   0%|          | 281/111028 [19:38<129:03:08,  0.24it/s, v_num=5, train_loss_step=1.510]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 282/111028 [19:42<129:00:20,  0.24it/s, v_num=5, train_loss_step=1.510]Epoch 0:   0%|          | 282/111028 [19:43<129:03:07,  0.24it/s, v_num=5, train_loss_step=1.550]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 283/111028 [19:46<129:00:21,  0.24it/s, v_num=5, train_loss_step=1.550]Epoch 0:   0%|          | 283/111028 [19:47<129:03:07,  0.24it/s, v_num=5, train_loss_step=1.520]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 284/111028 [19:50<129:00:19,  0.24it/s, v_num=5, train_loss_step=1.520]Epoch 0:   0%|          | 284/111028 [19:51<129:02:59,  0.24it/s, v_num=5, train_loss_step=1.550]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 285/111028 [19:55<129:00:12,  0.24it/s, v_num=5, train_loss_step=1.550]Epoch 0:   0%|          | 285/111028 [19:55<129:02:56,  0.24it/s, v_num=5, train_loss_step=1.570]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 286/111028 [19:59<129:00:10,  0.24it/s, v_num=5, train_loss_step=1.570]Epoch 0:   0%|          | 286/111028 [19:59<129:02:57,  0.24it/s, v_num=5, train_loss_step=1.550]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 287/111028 [20:03<129:00:10,  0.24it/s, v_num=5, train_loss_step=1.550]Epoch 0:   0%|          | 287/111028 [20:04<129:02:56,  0.24it/s, v_num=5, train_loss_step=1.610]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 288/111028 [20:07<129:00:12,  0.24it/s, v_num=5, train_loss_step=1.610]Epoch 0:   0%|          | 288/111028 [20:08<129:02:54,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 289/111028 [20:11<129:00:08,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 289/111028 [20:12<129:02:48,  0.24it/s, v_num=5, train_loss_step=1.560]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 290/111028 [20:16<129:00:05,  0.24it/s, v_num=5, train_loss_step=1.560]Epoch 0:   0%|          | 290/111028 [20:16<129:02:43,  0.24it/s, v_num=5, train_loss_step=1.600]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 291/111028 [20:20<128:59:59,  0.24it/s, v_num=5, train_loss_step=1.600]Epoch 0:   0%|          | 291/111028 [20:20<129:02:37,  0.24it/s, v_num=5, train_loss_step=1.580]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 292/111028 [20:24<128:59:56,  0.24it/s, v_num=5, train_loss_step=1.580]Epoch 0:   0%|          | 292/111028 [20:24<129:02:37,  0.24it/s, v_num=5, train_loss_step=1.570]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 293/111028 [20:28<128:59:54,  0.24it/s, v_num=5, train_loss_step=1.570]Epoch 0:   0%|          | 293/111028 [20:29<129:02:34,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 294/111028 [20:32<128:59:54,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 294/111028 [20:33<129:02:33,  0.24it/s, v_num=5, train_loss_step=1.540]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 295/111028 [20:37<128:59:53,  0.24it/s, v_num=5, train_loss_step=1.540]Epoch 0:   0%|          | 295/111028 [20:37<129:02:29,  0.24it/s, v_num=5, train_loss_step=1.500]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 296/111028 [20:41<128:59:50,  0.24it/s, v_num=5, train_loss_step=1.500]Epoch 0:   0%|          | 296/111028 [20:41<129:02:22,  0.24it/s, v_num=5, train_loss_step=1.540]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 297/111028 [20:45<128:59:42,  0.24it/s, v_num=5, train_loss_step=1.540]Epoch 0:   0%|          | 297/111028 [20:45<129:02:18,  0.24it/s, v_num=5, train_loss_step=1.600]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 298/111028 [20:49<128:59:41,  0.24it/s, v_num=5, train_loss_step=1.600]Epoch 0:   0%|          | 298/111028 [20:50<129:02:19,  0.24it/s, v_num=5, train_loss_step=1.570]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 299/111028 [20:53<128:59:41,  0.24it/s, v_num=5, train_loss_step=1.570]Epoch 0:   0%|          | 299/111028 [20:54<129:02:21,  0.24it/s, v_num=5, train_loss_step=1.600]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 300/111028 [20:58<128:59:45,  0.24it/s, v_num=5, train_loss_step=1.600]Epoch 0:   0%|          | 300/111028 [20:58<129:02:22,  0.24it/s, v_num=5, train_loss_step=1.540]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 301/111028 [21:02<128:59:43,  0.24it/s, v_num=5, train_loss_step=1.540]Epoch 0:   0%|          | 301/111028 [21:02<129:02:18,  0.24it/s, v_num=5, train_loss_step=1.550]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 302/111028 [21:06<128:59:41,  0.24it/s, v_num=5, train_loss_step=1.550]Epoch 0:   0%|          | 302/111028 [21:07<129:02:19,  0.24it/s, v_num=5, train_loss_step=1.540]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 303/111028 [21:10<128:59:41,  0.24it/s, v_num=5, train_loss_step=1.540]Epoch 0:   0%|          | 303/111028 [21:11<129:02:14,  0.24it/s, v_num=5, train_loss_step=1.570]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 304/111028 [21:14<128:59:38,  0.24it/s, v_num=5, train_loss_step=1.570]Epoch 0:   0%|          | 304/111028 [21:15<129:02:10,  0.24it/s, v_num=5, train_loss_step=1.570]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 305/111028 [21:19<128:59:35,  0.24it/s, v_num=5, train_loss_step=1.570]Epoch 0:   0%|          | 305/111028 [21:19<129:02:03,  0.24it/s, v_num=5, train_loss_step=1.580]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 306/111028 [21:23<128:59:27,  0.24it/s, v_num=5, train_loss_step=1.580]Epoch 0:   0%|          | 306/111028 [21:23<129:01:59,  0.24it/s, v_num=5, train_loss_step=1.570]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 307/111028 [21:27<128:59:25,  0.24it/s, v_num=5, train_loss_step=1.570]Epoch 0:   0%|          | 307/111028 [21:27<129:01:55,  0.24it/s, v_num=5, train_loss_step=1.550]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 308/111028 [21:31<128:59:21,  0.24it/s, v_num=5, train_loss_step=1.550]Epoch 0:   0%|          | 308/111028 [21:32<129:01:51,  0.24it/s, v_num=5, train_loss_step=1.570]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 309/111028 [21:35<128:59:19,  0.24it/s, v_num=5, train_loss_step=1.570]Epoch 0:   0%|          | 309/111028 [21:36<129:01:50,  0.24it/s, v_num=5, train_loss_step=1.520]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 310/111028 [21:40<128:59:18,  0.24it/s, v_num=5, train_loss_step=1.520]Epoch 0:   0%|          | 310/111028 [21:40<129:01:50,  0.24it/s, v_num=5, train_loss_step=1.510]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 311/111028 [21:44<128:59:17,  0.24it/s, v_num=5, train_loss_step=1.510]Epoch 0:   0%|          | 311/111028 [21:44<129:01:45,  0.24it/s, v_num=5, train_loss_step=1.470]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 312/111028 [21:48<128:59:12,  0.24it/s, v_num=5, train_loss_step=1.470]Epoch 0:   0%|          | 312/111028 [21:48<129:01:40,  0.24it/s, v_num=5, train_loss_step=1.500]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 313/111028 [21:52<128:59:10,  0.24it/s, v_num=5, train_loss_step=1.500]Epoch 0:   0%|          | 313/111028 [21:53<129:01:40,  0.24it/s, v_num=5, train_loss_step=1.540]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 314/111028 [21:56<128:59:08,  0.24it/s, v_num=5, train_loss_step=1.540]Epoch 0:   0%|          | 314/111028 [21:57<129:01:31,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 315/111028 [22:01<128:59:01,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 315/111028 [22:01<129:01:27,  0.24it/s, v_num=5, train_loss_step=1.570]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 316/111028 [22:05<128:58:58,  0.24it/s, v_num=5, train_loss_step=1.570]Epoch 0:   0%|          | 316/111028 [22:05<129:01:28,  0.24it/s, v_num=5, train_loss_step=1.570]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 317/111028 [22:09<128:58:59,  0.24it/s, v_num=5, train_loss_step=1.570]Epoch 0:   0%|          | 317/111028 [22:09<129:01:26,  0.24it/s, v_num=5, train_loss_step=1.480]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 318/111028 [22:13<128:58:56,  0.24it/s, v_num=5, train_loss_step=1.480]Epoch 0:   0%|          | 318/111028 [22:14<129:01:26,  0.24it/s, v_num=5, train_loss_step=1.530]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 319/111028 [22:17<128:58:57,  0.24it/s, v_num=5, train_loss_step=1.530]Epoch 0:   0%|          | 319/111028 [22:18<129:01:24,  0.24it/s, v_num=5, train_loss_step=1.570]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 320/111028 [22:22<128:58:56,  0.24it/s, v_num=5, train_loss_step=1.570]Epoch 0:   0%|          | 320/111028 [22:22<129:01:24,  0.24it/s, v_num=5, train_loss_step=1.550]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 321/111028 [22:26<128:58:56,  0.24it/s, v_num=5, train_loss_step=1.550]Epoch 0:   0%|          | 321/111028 [22:26<129:01:25,  0.24it/s, v_num=5, train_loss_step=1.500]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 322/111028 [22:30<128:58:57,  0.24it/s, v_num=5, train_loss_step=1.500]Epoch 0:   0%|          | 322/111028 [22:30<129:01:19,  0.24it/s, v_num=5, train_loss_step=1.530]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 323/111028 [22:34<128:58:53,  0.24it/s, v_num=5, train_loss_step=1.530]Epoch 0:   0%|          | 323/111028 [22:35<129:01:18,  0.24it/s, v_num=5, train_loss_step=1.620]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 324/111028 [22:38<128:58:50,  0.24it/s, v_num=5, train_loss_step=1.620]Epoch 0:   0%|          | 324/111028 [22:39<129:01:15,  0.24it/s, v_num=5, train_loss_step=1.500]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 325/111028 [22:43<128:58:49,  0.24it/s, v_num=5, train_loss_step=1.500]Epoch 0:   0%|          | 325/111028 [22:43<129:01:12,  0.24it/s, v_num=5, train_loss_step=1.540]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 326/111028 [22:47<128:58:47,  0.24it/s, v_num=5, train_loss_step=1.540]Epoch 0:   0%|          | 326/111028 [22:47<129:01:12,  0.24it/s, v_num=5, train_loss_step=1.520]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 327/111028 [22:51<128:58:47,  0.24it/s, v_num=5, train_loss_step=1.520]Epoch 0:   0%|          | 327/111028 [22:51<129:01:09,  0.24it/s, v_num=5, train_loss_step=1.500]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 328/111028 [22:55<128:58:44,  0.24it/s, v_num=5, train_loss_step=1.500]Epoch 0:   0%|          | 328/111028 [22:56<129:01:07,  0.24it/s, v_num=5, train_loss_step=1.500]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 329/111028 [22:59<128:58:43,  0.24it/s, v_num=5, train_loss_step=1.500]Epoch 0:   0%|          | 329/111028 [23:00<129:01:00,  0.24it/s, v_num=5, train_loss_step=1.470]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 330/111028 [23:04<128:58:37,  0.24it/s, v_num=5, train_loss_step=1.470]Epoch 0:   0%|          | 330/111028 [23:04<129:00:59,  0.24it/s, v_num=5, train_loss_step=1.520]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 331/111028 [23:08<128:58:37,  0.24it/s, v_num=5, train_loss_step=1.520]Epoch 0:   0%|          | 331/111028 [23:08<129:01:02,  0.24it/s, v_num=5, train_loss_step=1.580]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 332/111028 [23:12<128:58:41,  0.24it/s, v_num=5, train_loss_step=1.580]Epoch 0:   0%|          | 332/111028 [23:13<129:00:58,  0.24it/s, v_num=5, train_loss_step=1.550]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 333/111028 [23:16<128:58:36,  0.24it/s, v_num=5, train_loss_step=1.550]Epoch 0:   0%|          | 333/111028 [23:17<129:00:52,  0.24it/s, v_num=5, train_loss_step=1.470]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 334/111028 [23:20<128:58:29,  0.24it/s, v_num=5, train_loss_step=1.470]Epoch 0:   0%|          | 334/111028 [23:21<129:00:50,  0.24it/s, v_num=5, train_loss_step=1.540]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 335/111028 [23:25<128:58:29,  0.24it/s, v_num=5, train_loss_step=1.540]Epoch 0:   0%|          | 335/111028 [23:25<129:00:49,  0.24it/s, v_num=5, train_loss_step=1.540]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 336/111028 [23:29<128:58:27,  0.24it/s, v_num=5, train_loss_step=1.540]Epoch 0:   0%|          | 336/111028 [23:29<129:00:44,  0.24it/s, v_num=5, train_loss_step=1.550]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 337/111028 [23:33<128:58:23,  0.24it/s, v_num=5, train_loss_step=1.550]Epoch 0:   0%|          | 337/111028 [23:34<129:00:44,  0.24it/s, v_num=5, train_loss_step=1.530]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 338/111028 [23:37<128:58:23,  0.24it/s, v_num=5, train_loss_step=1.530]Epoch 0:   0%|          | 338/111028 [23:38<129:00:40,  0.24it/s, v_num=5, train_loss_step=1.510]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 339/111028 [23:41<128:58:19,  0.24it/s, v_num=5, train_loss_step=1.510]Epoch 0:   0%|          | 339/111028 [23:42<129:00:37,  0.24it/s, v_num=5, train_loss_step=1.510]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 340/111028 [23:46<128:58:17,  0.24it/s, v_num=5, train_loss_step=1.510]Epoch 0:   0%|          | 340/111028 [23:46<129:00:33,  0.24it/s, v_num=5, train_loss_step=1.510]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 341/111028 [23:50<128:58:14,  0.24it/s, v_num=5, train_loss_step=1.510]Epoch 0:   0%|          | 341/111028 [23:50<129:00:32,  0.24it/s, v_num=5, train_loss_step=1.510]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 342/111028 [23:54<128:58:12,  0.24it/s, v_num=5, train_loss_step=1.510]Epoch 0:   0%|          | 342/111028 [23:55<129:00:31,  0.24it/s, v_num=5, train_loss_step=1.580]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 343/111028 [23:58<128:58:14,  0.24it/s, v_num=5, train_loss_step=1.580]Epoch 0:   0%|          | 343/111028 [23:59<129:00:31,  0.24it/s, v_num=5, train_loss_step=1.510]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 344/111028 [24:02<128:58:13,  0.24it/s, v_num=5, train_loss_step=1.510]Epoch 0:   0%|          | 344/111028 [24:03<129:00:24,  0.24it/s, v_num=5, train_loss_step=1.550]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 345/111028 [24:07<128:58:06,  0.24it/s, v_num=5, train_loss_step=1.550]Epoch 0:   0%|          | 345/111028 [24:07<129:00:21,  0.24it/s, v_num=5, train_loss_step=1.530]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 346/111028 [24:11<128:58:05,  0.24it/s, v_num=5, train_loss_step=1.530]Epoch 0:   0%|          | 346/111028 [24:11<129:00:21,  0.24it/s, v_num=5, train_loss_step=1.500]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 347/111028 [24:15<128:58:03,  0.24it/s, v_num=5, train_loss_step=1.500]Epoch 0:   0%|          | 347/111028 [24:16<129:00:16,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 348/111028 [24:19<128:57:59,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 348/111028 [24:20<129:00:13,  0.24it/s, v_num=5, train_loss_step=1.500]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 349/111028 [24:23<128:57:55,  0.24it/s, v_num=5, train_loss_step=1.500]Epoch 0:   0%|          | 349/111028 [24:24<129:00:09,  0.24it/s, v_num=5, train_loss_step=1.590]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 350/111028 [24:28<128:57:54,  0.24it/s, v_num=5, train_loss_step=1.590]Epoch 0:   0%|          | 350/111028 [24:28<129:00:08,  0.24it/s, v_num=5, train_loss_step=1.550]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 351/111028 [24:32<128:57:53,  0.24it/s, v_num=5, train_loss_step=1.550]Epoch 0:   0%|          | 351/111028 [24:32<129:00:04,  0.24it/s, v_num=5, train_loss_step=1.540]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 352/111028 [24:36<128:57:47,  0.24it/s, v_num=5, train_loss_step=1.540]Epoch 0:   0%|          | 352/111028 [24:36<128:59:57,  0.24it/s, v_num=5, train_loss_step=1.470]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 353/111028 [24:40<128:57:42,  0.24it/s, v_num=5, train_loss_step=1.470]Epoch 0:   0%|          | 353/111028 [24:41<128:59:57,  0.24it/s, v_num=5, train_loss_step=1.570]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 354/111028 [24:44<128:57:43,  0.24it/s, v_num=5, train_loss_step=1.570]Epoch 0:   0%|          | 354/111028 [24:45<128:59:51,  0.24it/s, v_num=5, train_loss_step=1.560]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 355/111028 [24:49<128:57:37,  0.24it/s, v_num=5, train_loss_step=1.560]Epoch 0:   0%|          | 355/111028 [24:49<128:59:48,  0.24it/s, v_num=5, train_loss_step=1.530]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 356/111028 [24:53<128:57:34,  0.24it/s, v_num=5, train_loss_step=1.530]Epoch 0:   0%|          | 356/111028 [24:53<128:59:44,  0.24it/s, v_num=5, train_loss_step=1.550]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 357/111028 [24:57<128:57:31,  0.24it/s, v_num=5, train_loss_step=1.550]Epoch 0:   0%|          | 357/111028 [24:57<128:59:44,  0.24it/s, v_num=5, train_loss_step=1.560]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 358/111028 [25:01<128:57:29,  0.24it/s, v_num=5, train_loss_step=1.560]Epoch 0:   0%|          | 358/111028 [25:02<128:59:39,  0.24it/s, v_num=5, train_loss_step=1.470]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 359/111028 [25:05<128:57:26,  0.24it/s, v_num=5, train_loss_step=1.470]Epoch 0:   0%|          | 359/111028 [25:06<128:59:35,  0.24it/s, v_num=5, train_loss_step=1.510]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 360/111028 [25:10<128:57:23,  0.24it/s, v_num=5, train_loss_step=1.510]Epoch 0:   0%|          | 360/111028 [25:10<128:59:32,  0.24it/s, v_num=5, train_loss_step=1.490]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 361/111028 [25:14<128:57:20,  0.24it/s, v_num=5, train_loss_step=1.490]Epoch 0:   0%|          | 361/111028 [25:14<128:59:31,  0.24it/s, v_num=5, train_loss_step=1.470]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-Epoch 0:   0%|          | 362/111028 [25:18<128:57:19,  0.24it/s, v_num=5, train_loss_step=1.470]Epoch 0:   0%|          | 362/111028 [25:18<128:59:26,  0.24it/s, v_num=5, train_loss_step=1.520]Current Sequence length: 4096, Shape of causal mask: torch.Size([4, 1, 4096, 4096]), shape of attention mask: torch.Size([4, 4096])
-srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
-slurmstepd: error: *** JOB 1647307 ON dw-1-3 CANCELLED AT 2025-02-02T22:06:13 ***
-slurmstepd: error: *** STEP 1647307.0 ON dw-1-3 CANCELLED AT 2025-02-02T22:06:13 ***
-[rank: 0] Received SIGTERM: 15
-[rank: 1] Received SIGTERM: 15
-Bypassing SIGTERM: 15
-Bypassing SIGTERM: 15

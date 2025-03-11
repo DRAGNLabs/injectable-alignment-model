@@ -1,365 +1,0 @@
-Thu Feb 13 01:32:10 2025       
-+-----------------------------------------------------------------------------------------+
-| NVIDIA-SMI 550.144.03             Driver Version: 550.144.03     CUDA Version: 12.4     |
-|-----------------------------------------+------------------------+----------------------+
-| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
-| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
-|                                         |                        |               MIG M. |
-|=========================================+========================+======================|
-|   0  NVIDIA A100-SXM4-80GB          On  |   00000000:07:00.0 Off |                    0 |
-| N/A   27C    P0             59W /  400W |       1MiB /  81920MiB |      0%      Default |
-|                                         |                        |             Disabled |
-+-----------------------------------------+------------------------+----------------------+
-|   1  NVIDIA A100-SXM4-80GB          On  |   00000000:0A:00.0 Off |                    0 |
-| N/A   25C    P0             64W /  400W |       1MiB /  81920MiB |      0%      Default |
-|                                         |                        |             Disabled |
-+-----------------------------------------+------------------------+----------------------+
-|   2  NVIDIA A100-SXM4-80GB          On  |   00000000:4A:00.0 Off |                    0 |
-| N/A   28C    P0             61W /  400W |       1MiB /  81920MiB |      0%      Default |
-|                                         |                        |             Disabled |
-+-----------------------------------------+------------------------+----------------------+
-|   3  NVIDIA A100-SXM4-80GB          On  |   00000000:BF:00.0 Off |                    0 |
-| N/A   25C    P0             62W /  400W |       1MiB /  81920MiB |      0%      Default |
-|                                         |                        |             Disabled |
-+-----------------------------------------+------------------------+----------------------+
-                                                                                         
-+-----------------------------------------------------------------------------------------+
-| Processes:                                                                              |
-|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
-|        ID   ID                                                               Usage      |
-|=========================================================================================|
-|  No running processes found                                                             |
-+-----------------------------------------------------------------------------------------+
-Run 'mamba init' to be able to run mamba activate/deactivate
-and start a new shell session. Or use conda to activate/deactivate.
-
-[rank: 0] Seed set to 42
-[rank: 1] Seed set to 42
-[rank: 3] Seed set to 42
-[rank: 2] Seed set to 42
-Using 16bit Automatic Mixed Precision (AMP)
-GPU available: True (cuda), used: True
-TPU available: False, using: 0 TPU cores
-IPU available: False, using: 0 IPUs
-HPU available: False, using: 0 HPUs
-[rank: 1] Seed set to 42
-Initializing distributed: GLOBAL_RANK: 1, MEMBER: 2/4
-[rank: 3] Seed set to 42
-Initializing distributed: GLOBAL_RANK: 3, MEMBER: 4/4
-[rank: 2] Seed set to 42
-Initializing distributed: GLOBAL_RANK: 2, MEMBER: 3/4
-[rank: 0] Seed set to 42
-Initializing distributed: GLOBAL_RANK: 0, MEMBER: 1/4
-----------------------------------------------------------------------------------------------------
-distributed_backend=nccl
-All distributed processes registered. Starting with 4 processes
-----------------------------------------------------------------------------------------------------
-
-LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0,1,2,3]
-LOCAL_RANK: 2 - CUDA_VISIBLE_DEVICES: [0,1,2,3]
-LOCAL_RANK: 1 - CUDA_VISIBLE_DEVICES: [0,1,2,3]
-LOCAL_RANK: 3 - CUDA_VISIBLE_DEVICES: [0,1,2,3]
-
-  | Name    | Type               | Params
------------------------------------------------
-0 | model   | InjectedLlamaModel | 6.6 B 
-1 | lm_head | Linear             | 131 M 
------------------------------------------------
-10.5 M    Trainable params
-6.7 B     Non-trainable params
-6.7 B     Total params
-26,995.634Total estimated model params size (MB)
-SLURM auto-requeueing enabled. Setting signal handlers.
-SLURM auto-requeueing enabled. Setting signal handlers.
-SLURM auto-requeueing enabled. Setting signal handlers.
-SLURM auto-requeueing enabled. Setting signal handlers.
-WORLD_SIZE: Not set
-LOCAL_RANK: Not set
-tokenizer_type: hf
-tokenizer_path: ('meta-llama/Llama-2-7b-chat-hf',)
-pad_id: -1
-vocab_size: -1
-IRM_layers: [31]
-loss_function_index: 0
-default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/chat_tiny_shakespeare_31_training_context_4096_lr_5e-5_epoch_5_irm_1024x4/
-checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt
-dataset_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/TinyShakespeare/
-dataset_name: tiny_shakespeare
-accelerator: gpu
-num_nodes: 1
-num_workers: 1
-devices: 4
-use_slurm: True
-log_every_n_steps: 200
-check_val_every_n_epoch: 1
-val_check_interval: 0.25
-batch_size: 8
-gradient_accumulation_steps: 4
-num_epochs: 10
-lr: 5e-05
-gamma: 0.85
-seed: 42
-early_stopping: 3
-save_top_k: 1
-save_predictions_during_training: True
-regularize_loss: False
-max_gen_len: 256
-do_logging: False
-experiment_name: Llama-2-7b-chat-hf_tiny_shakespeare.txt_31_training
-from_pretrained: True
-model_name: meta-llama/Llama-2-7b-chat-hf
-
-model_config:
-  attention_bias: False
-  attention_dropout: 0.0
-  bos_token_id: 1
-  eos_token_id: 2
-  hidden_act: silu
-  hidden_size: 4096
-  initializer_range: 0.02
-  max_position_embeddings: 4096
-  model_type: llama
-  num_attention_heads: 32
-  num_hidden_layers: 32
-  num_key_value_heads: 32
-  pretraining_tp: 1
-  rms_norm_eps: 1e-05
-  rope_scaling: None
-  rope_theta: 10000.0
-  tie_word_embeddings: False
-  torch_dtype: float16
-  transformers_version: 4.38.2
-  use_cache: True
-  vocab_size: 32000
-  irm_layer_size: 1024
-  irm_layer_num: 4
-
-Instantiating model
-Initializing IRM model...
-Number of available GPUs: 4
-CUDA_VISIBLE_DEVICES: 0,1,2,3
-Loaded tokenized data from /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/TinyShakespeare//split/train.pt
-pad_tok: 2
-Loaded tokenized data from /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/TinyShakespeare//split/val.pt
-pad_tok: 2
-/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:441: The 'val_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=1` in the `DataLoader` to improve performance.
-WORLD_SIZE: Not set
-LOCAL_RANK: Not set
-tokenizer_type: hf
-tokenizer_path: ('meta-llama/Llama-2-7b-chat-hf',)
-pad_id: -1
-vocab_size: -1
-IRM_layers: [31]
-loss_function_index: 0
-default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/chat_tiny_shakespeare_31_training_context_4096_lr_5e-5_epoch_5_irm_1024x4/
-checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt
-dataset_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/TinyShakespeare/
-dataset_name: tiny_shakespeare
-accelerator: gpu
-num_nodes: 1
-num_workers: 1
-devices: 4
-use_slurm: True
-log_every_n_steps: 200
-check_val_every_n_epoch: 1
-val_check_interval: 0.25
-batch_size: 8
-gradient_accumulation_steps: 4
-num_epochs: 10
-lr: 5e-05
-gamma: 0.85
-seed: 42
-early_stopping: 3
-save_top_k: 1
-save_predictions_during_training: True
-regularize_loss: False
-max_gen_len: 256
-do_logging: False
-experiment_name: Llama-2-7b-chat-hf_tiny_shakespeare.txt_31_training
-from_pretrained: True
-model_name: meta-llama/Llama-2-7b-chat-hf
-
-model_config:
-  attention_bias: False
-  attention_dropout: 0.0
-  bos_token_id: 1
-  eos_token_id: 2
-  hidden_act: silu
-  hidden_size: 4096
-  initializer_range: 0.02
-  max_position_embeddings: 4096
-  model_type: llama
-  num_attention_heads: 32
-  num_hidden_layers: 32
-  num_key_value_heads: 32
-  pretraining_tp: 1
-  rms_norm_eps: 1e-05
-  rope_scaling: None
-  rope_theta: 10000.0
-  tie_word_embeddings: False
-  torch_dtype: float16
-  transformers_version: 4.38.2
-  use_cache: True
-  vocab_size: 32000
-  irm_layer_size: 1024
-  irm_layer_num: 4
-
-Instantiating model
-Initializing IRM model...
-Number of available GPUs: 4
-CUDA_VISIBLE_DEVICES: 0,1,2,3
-Loaded tokenized data from /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/TinyShakespeare//split/train.pt
-pad_tok: 2
-Loaded tokenized data from /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/TinyShakespeare//split/val.pt
-pad_tok: 2
-WORLD_SIZE: Not set
-LOCAL_RANK: Not set
-tokenizer_type: hf
-tokenizer_path: ('meta-llama/Llama-2-7b-chat-hf',)
-pad_id: -1
-vocab_size: -1
-IRM_layers: [31]
-loss_function_index: 0
-default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/chat_tiny_shakespeare_31_training_context_4096_lr_5e-5_epoch_5_irm_1024x4/
-checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt
-dataset_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/TinyShakespeare/
-dataset_name: tiny_shakespeare
-accelerator: gpu
-num_nodes: 1
-num_workers: 1
-devices: 4
-use_slurm: True
-log_every_n_steps: 200
-check_val_every_n_epoch: 1
-val_check_interval: 0.25
-batch_size: 8
-gradient_accumulation_steps: 4
-num_epochs: 10
-lr: 5e-05
-gamma: 0.85
-seed: 42
-early_stopping: 3
-save_top_k: 1
-save_predictions_during_training: True
-regularize_loss: False
-max_gen_len: 256
-do_logging: False
-experiment_name: Llama-2-7b-chat-hf_tiny_shakespeare.txt_31_training
-from_pretrained: True
-model_name: meta-llama/Llama-2-7b-chat-hf
-
-model_config:
-  attention_bias: False
-  attention_dropout: 0.0
-  bos_token_id: 1
-  eos_token_id: 2
-  hidden_act: silu
-  hidden_size: 4096
-  initializer_range: 0.02
-  max_position_embeddings: 4096
-  model_type: llama
-  num_attention_heads: 32
-  num_hidden_layers: 32
-  num_key_value_heads: 32
-  pretraining_tp: 1
-  rms_norm_eps: 1e-05
-  rope_scaling: None
-  rope_theta: 10000.0
-  tie_word_embeddings: False
-  torch_dtype: float16
-  transformers_version: 4.38.2
-  use_cache: True
-  vocab_size: 32000
-  irm_layer_size: 1024
-  irm_layer_num: 4
-
-Instantiating model
-Initializing IRM model...
-Number of available GPUs: 4
-CUDA_VISIBLE_DEVICES: 0,1,2,3
-Loaded tokenized data from /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/TinyShakespeare//split/train.pt
-pad_tok: 2
-Loaded tokenized data from /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/TinyShakespeare//split/val.pt
-pad_tok: 2
-WORLD_SIZE: Not set
-LOCAL_RANK: Not set
-tokenizer_type: hf
-tokenizer_path: ('meta-llama/Llama-2-7b-chat-hf',)
-pad_id: -1
-vocab_size: -1
-IRM_layers: [31]
-loss_function_index: 0
-default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/chat_tiny_shakespeare_31_training_context_4096_lr_5e-5_epoch_5_irm_1024x4/
-checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt
-dataset_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/TinyShakespeare/
-dataset_name: tiny_shakespeare
-accelerator: gpu
-num_nodes: 1
-num_workers: 1
-devices: 4
-use_slurm: True
-log_every_n_steps: 200
-check_val_every_n_epoch: 1
-val_check_interval: 0.25
-batch_size: 8
-gradient_accumulation_steps: 4
-num_epochs: 10
-lr: 5e-05
-gamma: 0.85
-seed: 42
-early_stopping: 3
-save_top_k: 1
-save_predictions_during_training: True
-regularize_loss: False
-max_gen_len: 256
-do_logging: False
-experiment_name: Llama-2-7b-chat-hf_tiny_shakespeare.txt_31_training
-from_pretrained: True
-model_name: meta-llama/Llama-2-7b-chat-hf
-
-model_config:
-  attention_bias: False
-  attention_dropout: 0.0
-  bos_token_id: 1
-  eos_token_id: 2
-  hidden_act: silu
-  hidden_size: 4096
-  initializer_range: 0.02
-  max_position_embeddings: 4096
-  model_type: llama
-  num_attention_heads: 32
-  num_hidden_layers: 32
-  num_key_value_heads: 32
-  pretraining_tp: 1
-  rms_norm_eps: 1e-05
-  rope_scaling: None
-  rope_theta: 10000.0
-  tie_word_embeddings: False
-  torch_dtype: float16
-  transformers_version: 4.38.2
-  use_cache: True
-  vocab_size: 32000
-  irm_layer_size: 1024
-  irm_layer_num: 4
-
-Instantiating model
-Initializing IRM model...
-Number of available GPUs: 4
-CUDA_VISIBLE_DEVICES: 0,1,2,3
-Loaded tokenized data from /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/TinyShakespeare//split/train.pt
-pad_tok: 2
-Loaded tokenized data from /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/TinyShakespeare//split/val.pt
-pad_tok: 2
-/home/huang717/.conda/envs/test/lib/python3.10/site-packages/pytorch_lightning/trainer/connectors/data_connector.py:441: The 'train_dataloader' does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=1` in the `DataLoader` to improve performance.
-Sanity Checking: |          | 0/? [00:00<?, ?it/s]Sanity Checking:   0%|          | 0/2 [00:00<?, ?it/s]Sanity Checking DataLoader 0:   0%|          | 0/2 [00:00<?, ?it/s]Sanity Checking DataLoader 0:  50%|█████     | 1/2 [00:03<00:03,  0.26it/s]Sanity Checking DataLoader 0: 100%|██████████| 2/2 [00:07<00:00,  0.28it/s]                                                                           Training started
-GPU 0 memory allocated: 27.58 GB
-GPU 1 memory allocated: 0.00 GB
-GPU 2 memory allocated: 0.00 GB
-GPU 3 memory allocated: 0.00 GB
-Training: |          | 0/? [00:00<?, ?it/s]Training:   0%|          | 0/9035 [00:00<?, ?it/s]Epoch 0:   0%|          | 0/9035 [00:00<?, ?it/s] GPU 0 memory after distribution: 27.58 GB
-GPU 1 memory after distribution: 0.00 GB
-GPU 2 memory after distribution: 0.00 GB
-GPU 3 memory after distribution: 0.00 GB
-Epoch 0:   0%|          | 1/9035 [00:03<8:58:41,  0.28it/s]Epoch 0:   0%|          | 1/9035 [00:03<8:58:57,  0.28it/s, v_num=3, train_loss_step=2.140]Epoch 0:   0%|          | 2/9035 [00:07<8:48:05,  0.29it/s, v_num=3, train_loss_step=2.140]Epoch 0:   0%|          | 2/9035 [00:07<8:57:18,  0.28it/s, v_num=3, train_loss_step=2.020]Epoch 0:   0%|          | 3/9035 [00:10<8:50:49,  0.28it/s, v_num=3, train_loss_step=2.020]Epoch 0:   0%|          | 3/9035 [00:10<8:56:56,  0.28it/s, v_num=3, train_loss_step=1.990]Epoch 0:   0%|          | 4/9035 [00:14<8:58:21,  0.28it/s, v_num=3, train_loss_step=1.990]Epoch 0:   0%|          | 4/9035 [00:14<8:58:22,  0.28it/s, v_num=3, train_loss_step=2.100]Epoch 0:   0%|          | 5/9035 [00:17<8:54:25,  0.28it/s, v_num=3, train_loss_step=2.100]Epoch 0:   0%|          | 5/9035 [00:17<8:58:06,  0.28it/s, v_num=3, train_loss_step=2.200]Epoch 0:   0%|          | 6/9035 [00:21<8:54:44,  0.28it/s, v_num=3, train_loss_step=2.200]Epoch 0:   0%|          | 6/9035 [00:21<8:57:50,  0.28it/s, v_num=3, train_loss_step=1.950]Epoch 0:   0%|          | 7/9035 [00:24<8:55:02,  0.28it/s, v_num=3, train_loss_step=1.950]Epoch 0:   0%|          | 7/9035 [00:25<8:57:40,  0.28it/s, v_num=3, train_loss_step=2.200]Epoch 0:   0%|          | 8/9035 [00:28<8:57:35,  0.28it/s, v_num=3, train_loss_step=2.200]Epoch 0:   0%|          | 8/9035 [00:28<8:57:35,  0.28it/s, v_num=3, train_loss_step=2.150]Epoch 0:   0%|          | 9/9035 [00:32<8:55:34,  0.28it/s, v_num=3, train_loss_step=2.150]Epoch 0:   0%|          | 9/9035 [00:32<8:57:37,  0.28it/s, v_num=3, train_loss_step=2.190]Epoch 0:   0%|          | 10/9035 [00:35<8:55:46,  0.28it/s, v_num=3, train_loss_step=2.190]Epoch 0:   0%|          | 10/9035 [00:35<8:57:36,  0.28it/s, v_num=3, train_loss_step=1.990]Epoch 0:   0%|          | 11/9035 [00:39<8:55:55,  0.28it/s, v_num=3, train_loss_step=1.990]Epoch 0:   0%|          | 11/9035 [00:39<8:57:35,  0.28it/s, v_num=3, train_loss_step=2.170]Epoch 0:   0%|          | 12/9035 [00:42<8:57:37,  0.28it/s, v_num=3, train_loss_step=2.170]Epoch 0:   0%|          | 12/9035 [00:42<8:57:37,  0.28it/s, v_num=3, train_loss_step=2.140]Epoch 0:   0%|          | 13/9035 [00:46<8:56:17,  0.28it/s, v_num=3, train_loss_step=2.140]Epoch 0:   0%|          | 13/9035 [00:46<8:57:42,  0.28it/s, v_num=3, train_loss_step=2.050]Epoch 0:   0%|          | 14/9035 [00:49<8:56:21,  0.28it/s, v_num=3, train_loss_step=2.050]Epoch 0:   0%|          | 14/9035 [00:50<8:57:40,  0.28it/s, v_num=3, train_loss_step=2.090]Epoch 0:   0%|          | 15/9035 [00:53<8:56:25,  0.28it/s, v_num=3, train_loss_step=2.090]Epoch 0:   0%|          | 15/9035 [00:53<8:57:39,  0.28it/s, v_num=3, train_loss_step=2.320]Epoch 0:   0%|          | 16/9035 [00:57<8:57:40,  0.28it/s, v_num=3, train_loss_step=2.320]Epoch 0:   0%|          | 16/9035 [00:57<8:57:40,  0.28it/s, v_num=3, train_loss_step=2.170]Epoch 0:   0%|          | 17/9035 [01:00<8:56:37,  0.28it/s, v_num=3, train_loss_step=2.170]Epoch 0:   0%|          | 17/9035 [01:00<8:57:43,  0.28it/s, v_num=3, train_loss_step=2.100]Epoch 0:   0%|          | 18/9035 [01:04<8:56:40,  0.28it/s, v_num=3, train_loss_step=2.100]Epoch 0:   0%|          | 18/9035 [01:04<8:57:42,  0.28it/s, v_num=3, train_loss_step=1.990]Epoch 0:   0%|          | 19/9035 [01:07<8:56:42,  0.28it/s, v_num=3, train_loss_step=1.990]Epoch 0:   0%|          | 19/9035 [01:07<8:57:41,  0.28it/s, v_num=3, train_loss_step=2.100]Epoch 0:   0%|          | 20/9035 [01:11<8:57:40,  0.28it/s, v_num=3, train_loss_step=2.100]Epoch 0:   0%|          | 20/9035 [01:11<8:57:40,  0.28it/s, v_num=3, train_loss_step=2.070]Epoch 0:   0%|          | 21/9035 [01:15<8:56:47,  0.28it/s, v_num=3, train_loss_step=2.070]Epoch 0:   0%|          | 21/9035 [01:15<8:57:40,  0.28it/s, v_num=3, train_loss_step=1.980]Epoch 0:   0%|          | 22/9035 [01:18<8:56:48,  0.28it/s, v_num=3, train_loss_step=1.980]Epoch 0:   0%|          | 22/9035 [01:18<8:57:39,  0.28it/s, v_num=3, train_loss_step=2.050]Epoch 0:   0%|          | 23/9035 [01:22<8:56:48,  0.28it/s, v_num=3, train_loss_step=2.050]Epoch 0:   0%|          | 23/9035 [01:22<8:57:37,  0.28it/s, v_num=3, train_loss_step=2.080]Epoch 0:   0%|          | 24/9035 [01:25<8:57:35,  0.28it/s, v_num=3, train_loss_step=2.080]Epoch 0:   0%|          | 24/9035 [01:25<8:57:36,  0.28it/s, v_num=3, train_loss_step=2.190]Epoch 0:   0%|          | 25/9035 [01:29<8:56:51,  0.28it/s, v_num=3, train_loss_step=2.190]Epoch 0:   0%|          | 25/9035 [01:29<8:57:36,  0.28it/s, v_num=3, train_loss_step=2.110]Epoch 0:   0%|          | 26/9035 [01:32<8:56:51,  0.28it/s, v_num=3, train_loss_step=2.110]Epoch 0:   0%|          | 26/9035 [01:33<8:57:34,  0.28it/s, v_num=3, train_loss_step=2.110]Epoch 0:   0%|          | 27/9035 [01:36<8:56:52,  0.28it/s, v_num=3, train_loss_step=2.110]Epoch 0:   0%|          | 27/9035 [01:36<8:57:33,  0.28it/s, v_num=3, train_loss_step=1.920]Epoch 0:   0%|          | 28/9035 [01:40<8:57:33,  0.28it/s, v_num=3, train_loss_step=1.920]Epoch 0:   0%|          | 28/9035 [01:40<8:57:33,  0.28it/s, v_num=3, train_loss_step=2.040]Epoch 0:   0%|          | 29/9035 [01:43<8:56:54,  0.28it/s, v_num=3, train_loss_step=2.040]Epoch 0:   0%|          | 29/9035 [01:43<8:57:32,  0.28it/s, v_num=3, train_loss_step=1.960]Epoch 0:   0%|          | 30/9035 [01:47<8:56:54,  0.28it/s, v_num=3, train_loss_step=1.960]Epoch 0:   0%|          | 30/9035 [01:47<8:57:31,  0.28it/s, v_num=3, train_loss_step=2.220]Epoch 0:   0%|          | 31/9035 [01:50<8:56:53,  0.28it/s, v_num=3, train_loss_step=2.220]Epoch 0:   0%|          | 31/9035 [01:51<8:57:29,  0.28it/s, v_num=3, train_loss_step=2.000]Epoch 0:   0%|          | 32/9035 [01:54<8:57:27,  0.28it/s, v_num=3, train_loss_step=2.000]Epoch 0:   0%|          | 32/9035 [01:54<8:57:27,  0.28it/s, v_num=3, train_loss_step=2.040]Epoch 0:   0%|          | 33/9035 [01:58<8:56:53,  0.28it/s, v_num=3, train_loss_step=2.040]Epoch 0:   0%|          | 33/9035 [01:58<8:57:27,  0.28it/s, v_num=3, train_loss_step=2.190]Epoch 0:   0%|          | 34/9035 [02:01<8:56:52,  0.28it/s, v_num=3, train_loss_step=2.190]Epoch 0:   0%|          | 34/9035 [02:01<8:57:24,  0.28it/s, v_num=3, train_loss_step=2.120]Epoch 0:   0%|          | 35/9035 [02:05<8:56:51,  0.28it/s, v_num=3, train_loss_step=2.120]Epoch 0:   0%|          | 35/9035 [02:05<8:57:23,  0.28it/s, v_num=3, train_loss_step=2.210]Epoch 0:   0%|          | 36/9035 [02:08<8:57:21,  0.28it/s, v_num=3, train_loss_step=2.210]Epoch 0:   0%|          | 36/9035 [02:08<8:57:22,  0.28it/s, v_num=3, train_loss_step=2.100]Epoch 0:   0%|          | 37/9035 [02:12<8:56:51,  0.28it/s, v_num=3, train_loss_step=2.100]Epoch 0:   0%|          | 37/9035 [02:12<8:57:21,  0.28it/s, v_num=3, train_loss_step=2.080]Epoch 0:   0%|          | 38/9035 [02:16<8:56:50,  0.28it/s, v_num=3, train_loss_step=2.080]Epoch 0:   0%|          | 38/9035 [02:16<8:57:19,  0.28it/s, v_num=3, train_loss_step=2.030]Epoch 0:   0%|          | 39/9035 [02:19<8:56:49,  0.28it/s, v_num=3, train_loss_step=2.030]Epoch 0:   0%|          | 39/9035 [02:19<8:57:17,  0.28it/s, v_num=3, train_loss_step=2.060]Epoch 0:   0%|          | 40/9035 [02:23<8:57:15,  0.28it/s, v_num=3, train_loss_step=2.060]Epoch 0:   0%|          | 40/9035 [02:23<8:57:15,  0.28it/s, v_num=3, train_loss_step=2.020]Epoch 0:   0%|          | 41/9035 [02:26<8:56:46,  0.28it/s, v_num=3, train_loss_step=2.020]Epoch 0:   0%|          | 41/9035 [02:26<8:57:13,  0.28it/s, v_num=3, train_loss_step=2.110]Epoch 0:   0%|          | 42/9035 [02:30<8:56:44,  0.28it/s, v_num=3, train_loss_step=2.110]Epoch 0:   0%|          | 42/9035 [02:30<8:57:11,  0.28it/s, v_num=3, train_loss_step=2.180]Epoch 0:   0%|          | 43/9035 [02:33<8:56:42,  0.28it/s, v_num=3, train_loss_step=2.180]Epoch 0:   0%|          | 43/9035 [02:34<8:57:07,  0.28it/s, v_num=3, train_loss_step=2.230]Epoch 0:   0%|          | 44/9035 [02:37<8:57:05,  0.28it/s, v_num=3, train_loss_step=2.230]Epoch 0:   0%|          | 44/9035 [02:37<8:57:05,  0.28it/s, v_num=3, train_loss_step=2.240]Epoch 0:   0%|          | 45/9035 [02:41<8:56:37,  0.28it/s, v_num=3, train_loss_step=2.240]Epoch 0:   0%|          | 45/9035 [02:41<8:57:02,  0.28it/s, v_num=3, train_loss_step=2.090]Epoch 0:   1%|          | 46/9035 [02:44<8:56:35,  0.28it/s, v_num=3, train_loss_step=2.090]Epoch 0:   1%|          | 46/9035 [02:44<8:56:59,  0.28it/s, v_num=3, train_loss_step=2.140]Epoch 0:   1%|          | 47/9035 [02:48<8:56:32,  0.28it/s, v_num=3, train_loss_step=2.140]Epoch 0:   1%|          | 47/9035 [02:48<8:56:56,  0.28it/s, v_num=3, train_loss_step=2.070]Epoch 0:   1%|          | 48/9035 [02:52<8:56:53,  0.28it/s, v_num=3, train_loss_step=2.070]Epoch 0:   1%|          | 48/9035 [02:52<8:56:53,  0.28it/s, v_num=3, train_loss_step=1.960]Epoch 0:   1%|          | 49/9035 [02:55<8:56:28,  0.28it/s, v_num=3, train_loss_step=1.960]Epoch 0:   1%|          | 49/9035 [02:55<8:56:51,  0.28it/s, v_num=3, train_loss_step=2.120]Epoch 0:   1%|          | 50/9035 [02:59<8:56:25,  0.28it/s, v_num=3, train_loss_step=2.120]Epoch 0:   1%|          | 50/9035 [02:59<8:56:48,  0.28it/s, v_num=3, train_loss_step=2.000]Epoch 0:   1%|          | 51/9035 [03:02<8:56:22,  0.28it/s, v_num=3, train_loss_step=2.000]Epoch 0:   1%|          | 51/9035 [03:02<8:56:44,  0.28it/s, v_num=3, train_loss_step=2.130]Epoch 0:   1%|          | 52/9035 [03:06<8:56:41,  0.28it/s, v_num=3, train_loss_step=2.130]Epoch 0:   1%|          | 52/9035 [03:06<8:56:41,  0.28it/s, v_num=3, train_loss_step=2.230]Epoch 0:   1%|          | 53/9035 [03:09<8:56:17,  0.28it/s, v_num=3, train_loss_step=2.230]Epoch 0:   1%|          | 53/9035 [03:09<8:56:38,  0.28it/s, v_num=3, train_loss_step=2.040]Epoch 0:   1%|          | 54/9035 [03:13<8:56:14,  0.28it/s, v_num=3, train_loss_step=2.040]Epoch 0:   1%|          | 54/9035 [03:13<8:56:35,  0.28it/s, v_num=3, train_loss_step=2.090]Epoch 0:   1%|          | 55/9035 [03:17<8:56:11,  0.28it/s, v_num=3, train_loss_step=2.090]Epoch 0:   1%|          | 55/9035 [03:17<8:56:32,  0.28it/s, v_num=3, train_loss_step=2.280]Epoch 0:   1%|          | 56/9035 [03:20<8:56:29,  0.28it/s, v_num=3, train_loss_step=2.280]Epoch 0:   1%|          | 56/9035 [03:20<8:56:29,  0.28it/s, v_num=3, train_loss_step=2.080]Epoch 0:   1%|          | 57/9035 [03:24<8:56:07,  0.28it/s, v_num=3, train_loss_step=2.080]Epoch 0:   1%|          | 57/9035 [03:24<8:56:26,  0.28it/s, v_num=3, train_loss_step=2.100]Epoch 0:   1%|          | 58/9035 [03:27<8:56:04,  0.28it/s, v_num=3, train_loss_step=2.100]Epoch 0:   1%|          | 58/9035 [03:27<8:56:24,  0.28it/s, v_num=3, train_loss_step=2.150]Epoch 0:   1%|          | 59/9035 [03:31<8:56:02,  0.28it/s, v_num=3, train_loss_step=2.150]Epoch 0:   1%|          | 59/9035 [03:31<8:56:21,  0.28it/s, v_num=3, train_loss_step=2.130]Epoch 0:   1%|          | 60/9035 [03:35<8:56:18,  0.28it/s, v_num=3, train_loss_step=2.130]Epoch 0:   1%|          | 60/9035 [03:35<8:56:18,  0.28it/s, v_num=3, train_loss_step=2.120]Epoch 0:   1%|          | 61/9035 [03:38<8:55:56,  0.28it/s, v_num=3, train_loss_step=2.120]Epoch 0:   1%|          | 61/9035 [03:38<8:56:15,  0.28it/s, v_num=3, train_loss_step=2.050]Epoch 0:   1%|          | 62/9035 [03:42<8:55:54,  0.28it/s, v_num=3, train_loss_step=2.050]Epoch 0:   1%|          | 62/9035 [03:42<8:56:12,  0.28it/s, v_num=3, train_loss_step=2.170]Epoch 0:   1%|          | 63/9035 [03:45<8:55:51,  0.28it/s, v_num=3, train_loss_step=2.170]Epoch 0:   1%|          | 63/9035 [03:45<8:56:08,  0.28it/s, v_num=3, train_loss_step=2.150]Epoch 0:   1%|          | 64/9035 [03:49<8:56:05,  0.28it/s, v_num=3, train_loss_step=2.150]Epoch 0:   1%|          | 64/9035 [03:49<8:56:05,  0.28it/s, v_num=3, train_loss_step=2.110]Epoch 0:   1%|          | 65/9035 [03:52<8:55:45,  0.28it/s, v_num=3, train_loss_step=2.110]Epoch 0:   1%|          | 65/9035 [03:53<8:56:02,  0.28it/s, v_num=3, train_loss_step=2.230]Epoch 0:   1%|          | 66/9035 [03:56<8:55:42,  0.28it/s, v_num=3, train_loss_step=2.230]Epoch 0:   1%|          | 66/9035 [03:56<8:55:58,  0.28it/s, v_num=3, train_loss_step=1.930]Epoch 0:   1%|          | 67/9035 [04:00<8:55:38,  0.28it/s, v_num=3, train_loss_step=1.930]Epoch 0:   1%|          | 67/9035 [04:00<8:55:54,  0.28it/s, v_num=3, train_loss_step=2.040]Epoch 0:   1%|          | 68/9035 [04:03<8:55:51,  0.28it/s, v_num=3, train_loss_step=2.040]Epoch 0:   1%|          | 68/9035 [04:03<8:55:51,  0.28it/s, v_num=3, train_loss_step=1.920]Epoch 0:   1%|          | 69/9035 [04:07<8:55:32,  0.28it/s, v_num=3, train_loss_step=1.920]Epoch 0:   1%|          | 69/9035 [04:07<8:55:48,  0.28it/s, v_num=3, train_loss_step=2.150]Epoch 0:   1%|          | 70/9035 [04:10<8:55:28,  0.28it/s, v_num=3, train_loss_step=2.150]Epoch 0:   1%|          | 70/9035 [04:10<8:55:44,  0.28it/s, v_num=3, train_loss_step=2.070]Epoch 0:   1%|          | 71/9035 [04:14<8:55:24,  0.28it/s, v_num=3, train_loss_step=2.070]Epoch 0:   1%|          | 71/9035 [04:14<8:55:40,  0.28it/s, v_num=3, train_loss_step=1.980]Epoch 0:   1%|          | 72/9035 [04:18<8:55:36,  0.28it/s, v_num=3, train_loss_step=1.980]Epoch 0:   1%|          | 72/9035 [04:18<8:55:36,  0.28it/s, v_num=3, train_loss_step=2.040]Epoch 0:   1%|          | 73/9035 [04:21<8:55:19,  0.28it/s, v_num=3, train_loss_step=2.040]Epoch 0:   1%|          | 73/9035 [04:21<8:55:34,  0.28it/s, v_num=3, train_loss_step=2.100]Epoch 0:   1%|          | 74/9035 [04:25<8:55:15,  0.28it/s, v_num=3, train_loss_step=2.100]Epoch 0:   1%|          | 74/9035 [04:25<8:55:30,  0.28it/s, v_num=3, train_loss_step=1.930]Epoch 0:   1%|          | 75/9035 [04:28<8:55:12,  0.28it/s, v_num=3, train_loss_step=1.930]Epoch 0:   1%|          | 75/9035 [04:28<8:55:26,  0.28it/s, v_num=3, train_loss_step=2.060]Epoch 0:   1%|          | 76/9035 [04:32<8:55:23,  0.28it/s, v_num=3, train_loss_step=2.060]Epoch 0:   1%|          | 76/9035 [04:32<8:55:23,  0.28it/s, v_num=3, train_loss_step=2.110]Epoch 0:   1%|          | 77/9035 [04:35<8:55:05,  0.28it/s, v_num=3, train_loss_step=2.110]Epoch 0:   1%|          | 77/9035 [04:36<8:55:20,  0.28it/s, v_num=3, train_loss_step=2.110]Epoch 0:   1%|          | 78/9035 [04:39<8:55:02,  0.28it/s, v_num=3, train_loss_step=2.110]Epoch 0:   1%|          | 78/9035 [04:39<8:55:16,  0.28it/s, v_num=3, train_loss_step=2.150]Epoch 0:   1%|          | 79/9035 [04:43<8:54:58,  0.28it/s, v_num=3, train_loss_step=2.150]Epoch 0:   1%|          | 79/9035 [04:43<8:55:12,  0.28it/s, v_num=3, train_loss_step=2.100]Epoch 0:   1%|          | 80/9035 [04:46<8:55:08,  0.28it/s, v_num=3, train_loss_step=2.100]Epoch 0:   1%|          | 80/9035 [04:46<8:55:08,  0.28it/s, v_num=3, train_loss_step=2.190]Epoch 0:   1%|          | 81/9035 [04:50<8:54:51,  0.28it/s, v_num=3, train_loss_step=2.190]Epoch 0:   1%|          | 81/9035 [04:50<8:55:05,  0.28it/s, v_num=3, train_loss_step=2.150]Epoch 0:   1%|          | 82/9035 [04:53<8:54:48,  0.28it/s, v_num=3, train_loss_step=2.150]Epoch 0:   1%|          | 82/9035 [04:54<8:55:01,  0.28it/s, v_num=3, train_loss_step=2.110]Epoch 0:   1%|          | 83/9035 [04:57<8:54:44,  0.28it/s, v_num=3, train_loss_step=2.110]Epoch 0:   1%|          | 83/9035 [04:57<8:54:58,  0.28it/s, v_num=3, train_loss_step=2.130]Epoch 0:   1%|          | 84/9035 [05:01<8:54:54,  0.28it/s, v_num=3, train_loss_step=2.130]Epoch 0:   1%|          | 84/9035 [05:01<8:54:54,  0.28it/s, v_num=3, train_loss_step=2.010]Epoch 0:   1%|          | 85/9035 [05:04<8:54:38,  0.28it/s, v_num=3, train_loss_step=2.010]Epoch 0:   1%|          | 85/9035 [05:04<8:54:51,  0.28it/s, v_num=3, train_loss_step=2.190]Epoch 0:   1%|          | 86/9035 [05:08<8:54:34,  0.28it/s, v_num=3, train_loss_step=2.190]Epoch 0:   1%|          | 86/9035 [05:08<8:54:47,  0.28it/s, v_num=3, train_loss_step=2.020]Epoch 0:   1%|          | 87/9035 [05:11<8:54:30,  0.28it/s, v_num=3, train_loss_step=2.020]Epoch 0:   1%|          | 87/9035 [05:11<8:54:43,  0.28it/s, v_num=3, train_loss_step=2.090]Epoch 0:   1%|          | 88/9035 [05:15<8:54:39,  0.28it/s, v_num=3, train_loss_step=2.090]Epoch 0:   1%|          | 88/9035 [05:15<8:54:39,  0.28it/s, v_num=3, train_loss_step=2.100]Epoch 0:   1%|          | 89/9035 [05:18<8:54:23,  0.28it/s, v_num=3, train_loss_step=2.100]Epoch 0:   1%|          | 89/9035 [05:19<8:54:36,  0.28it/s, v_num=3, train_loss_step=2.060]Epoch 0:   1%|          | 90/9035 [05:22<8:54:20,  0.28it/s, v_num=3, train_loss_step=2.060]Epoch 0:   1%|          | 90/9035 [05:22<8:54:32,  0.28it/s, v_num=3, train_loss_step=2.190]Epoch 0:   1%|          | 91/9035 [05:26<8:54:16,  0.28it/s, v_num=3, train_loss_step=2.190]Epoch 0:   1%|          | 91/9035 [05:26<8:54:28,  0.28it/s, v_num=3, train_loss_step=1.980]Epoch 0:   1%|          | 92/9035 [05:29<8:54:25,  0.28it/s, v_num=3, train_loss_step=1.980]Epoch 0:   1%|          | 92/9035 [05:29<8:54:25,  0.28it/s, v_num=3, train_loss_step=2.070]Epoch 0:   1%|          | 93/9035 [05:33<8:54:10,  0.28it/s, v_num=3, train_loss_step=2.070]Epoch 0:   1%|          | 93/9035 [05:33<8:54:21,  0.28it/s, v_num=3, train_loss_step=2.060]Epoch 0:   1%|          | 94/9035 [05:36<8:54:06,  0.28it/s, v_num=3, train_loss_step=2.060]Epoch 0:   1%|          | 94/9035 [05:37<8:54:18,  0.28it/s, v_num=3, train_loss_step=2.090]Epoch 0:   1%|          | 95/9035 [05:40<8:54:02,  0.28it/s, v_num=3, train_loss_step=2.090]Epoch 0:   1%|          | 95/9035 [05:40<8:54:14,  0.28it/s, v_num=3, train_loss_step=1.960]Epoch 0:   1%|          | 96/9035 [05:44<8:54:10,  0.28it/s, v_num=3, train_loss_step=1.960]Epoch 0:   1%|          | 96/9035 [05:44<8:54:10,  0.28it/s, v_num=3, train_loss_step=2.190]Epoch 0:   1%|          | 97/9035 [05:47<8:53:56,  0.28it/s, v_num=3, train_loss_step=2.190]Epoch 0:   1%|          | 97/9035 [05:47<8:54:07,  0.28it/s, v_num=3, train_loss_step=2.130]Epoch 0:   1%|          | 98/9035 [05:51<8:53:52,  0.28it/s, v_num=3, train_loss_step=2.130]Epoch 0:   1%|          | 98/9035 [05:51<8:54:03,  0.28it/s, v_num=3, train_loss_step=2.090]Epoch 0:   1%|          | 99/9035 [05:54<8:53:48,  0.28it/s, v_num=3, train_loss_step=2.090]Epoch 0:   1%|          | 99/9035 [05:54<8:53:59,  0.28it/s, v_num=3, train_loss_step=2.070]Epoch 0:   1%|          | 100/9035 [05:58<8:53:56,  0.28it/s, v_num=3, train_loss_step=2.070]Epoch 0:   1%|          | 100/9035 [05:58<8:53:56,  0.28it/s, v_num=3, train_loss_step=2.160]Epoch 0:   1%|          | 101/9035 [06:02<8:53:42,  0.28it/s, v_num=3, train_loss_step=2.160]Epoch 0:   1%|          | 101/9035 [06:02<8:53:52,  0.28it/s, v_num=3, train_loss_step=2.040]Epoch 0:   1%|          | 102/9035 [06:05<8:53:38,  0.28it/s, v_num=3, train_loss_step=2.040]Epoch 0:   1%|          | 102/9035 [06:05<8:53:49,  0.28it/s, v_num=3, train_loss_step=2.030]Epoch 0:   1%|          | 103/9035 [06:09<8:53:34,  0.28it/s, v_num=3, train_loss_step=2.030]Epoch 0:   1%|          | 103/9035 [06:09<8:53:45,  0.28it/s, v_num=3, train_loss_step=1.950]Epoch 0:   1%|          | 104/9035 [06:12<8:53:41,  0.28it/s, v_num=3, train_loss_step=1.950]Epoch 0:   1%|          | 104/9035 [06:12<8:53:41,  0.28it/s, v_num=3, train_loss_step=2.170]Epoch 0:   1%|          | 105/9035 [06:16<8:53:27,  0.28it/s, v_num=3, train_loss_step=2.170]Epoch 0:   1%|          | 105/9035 [06:16<8:53:38,  0.28isrun: Job step aborted: Waiting up to 32 seconds for job step to finish.
-slurmstepd: error: *** STEP 2116864.0 ON dw-2-3 CANCELLED AT 2025-02-13T01:41:12 ***
-slurmstepd: error: *** JOB 2116864 ON dw-2-3 CANCELLED AT 2025-02-13T01:41:13 ***
