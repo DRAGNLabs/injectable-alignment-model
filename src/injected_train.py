@@ -8,12 +8,10 @@ from pytorch_lightning import Trainer, seed_everything
 from pytorch_lightning.plugins.environments import SLURMEnvironment
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint, Callback
 from pytorch_lightning.loggers import CSVLogger, TensorBoardLogger
-from transformers import LlamaTokenizer as HFTokenizer
 from transformers import AutoTokenizer
 
 from lightning.dataset import DataModule
 from sp_tokenizer.tokenizer import Tokenizer as SPTokenizer
-#from lightning.model import Model
 from llama_models.injected_llama_for_causal import LlamaForCausalLM as WrapperModel
 from llama_models.irm import IRM
 from utils.data_utils import Struct
@@ -64,7 +62,6 @@ def train(config):
     else:
         raise ValueError(f"Tokenizer type '{config.tokenizer_type}' not recognized. Must be 'hf' or 'sp'.")
 
-    #original_checkpoint_path = "/home/huang717/DRAGN/IRM/injectable-alignment-model/default_checkpoints/Llama-2-7b-chat-hf.ckpt"
     original_checkpoint_path = config.checkpoint_path
     print(f"Instantiating model")
     with torch.device('cpu'):
@@ -77,10 +74,10 @@ def train(config):
         print(f"Checkpoint loading complete.")
 
     #setup injection
-    def hijack_attn(forward):
+    def hijack_attn(forward, irm):
         def injected_forward(*input,**keywords):
             output = forward(*input,**keywords)
-            wrapper.irm.forward(output[0])
+            irm.forward(output[0])
             return output
         return injected_forward
     
@@ -93,7 +90,7 @@ def train(config):
             return tuple(output)
         return injected_forward
     
-    wrapper.model.layers[0].self_attn.forward = hijack_attn(wrapper.model.layers[0].self_attn.forward)
+    wrapper.model.layers[0].self_attn.forward = hijack_attn(wrapper.model.layers[0].self_attn.forward, wrapper.irm)
     layer = 31
     #for layer in irm.injection_layers: 
     wrapper.model.layers[layer].forward = hijack_layer(wrapper.model.layers[layer].forward, wrapper.irm, layer)
@@ -124,38 +121,6 @@ def train(config):
     print_callback = PrintCallback()
     memory_monitor_callback = MemoryMonitorCallback()
 
-
-    # Train
-    # if config.use_slurm:
-    #     trainer = Trainer(
-    #         accelerator=config.accelerator,
-    #         accumulate_grad_batches=config.gradient_accumulation_steps,
-    #         callbacks=[early_stopping, print_callback, model_checkpoint],
-    #         # check_val_every_n_epoch=config.check_val_every_n_epoch,
-    #         default_root_dir=config.default_root_dir,
-    #         devices=config.devices,
-    #         log_every_n_steps=config.log_every_n_steps,
-    #         logger=[csv_logger, tb_logger],
-    #         max_epochs=config.num_epochs,
-    #         num_nodes=config.num_nodes,
-    #         plugins=[SLURMEnvironment(requeue_signal=signal.SIGHUP)],
-    #         strategy="ddp",
-    #         sync_batchnorm=True,
-    #         val_check_interval=config.val_check_interval,
-    #         )
-    # else:
-    #     trainer = Trainer(
-    #         accelerator=config.accelerator,
-    #         accumulate_grad_batches=config.gradient_accumulation_steps,
-    #         callbacks=[early_stopping, print_callback, model_checkpoint],
-    #         # check_val_every_n_epoch=config.check_val_every_n_epoch,
-    #         default_root_dir=config.default_root_dir,
-    #         log_every_n_steps=config.log_every_n_steps,
-    #         logger=[csv_logger, tb_logger],
-    #         max_epochs=config.num_epochs,
-    #         sync_batchnorm=True,
-    #         val_check_interval=config.val_check_interval
-    #         )
     trainer_kwargs = {
         'accelerator': config.accelerator,
         'devices': config.devices,  # Explicitly set number of GPUs
