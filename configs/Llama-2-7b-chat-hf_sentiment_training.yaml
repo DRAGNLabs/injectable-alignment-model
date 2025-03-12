@@ -41,7 +41,7 @@ model_config:
   hidden_size: 4096
   initializer_range: 0.02
   intermediate_size: 11008
-  max_position_embeddings: 256
+  max_position_embeddings: 4096
   model_type: llama
   num_attention_heads: 32
   num_hidden_layers: 32
