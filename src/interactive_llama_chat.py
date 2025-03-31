@@ -29,6 +29,7 @@ class InteractiveLlama:
         self.config = config
         self.do_sample = True
         self.print_tokens = False
+        mapping = config.map_from_brenden
 
         # Initialize tokenizer
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -44,9 +45,14 @@ class InteractiveLlama:
             self.model = InjectedLlama(self.tokenizer, self.config)
             
             # Load checkpoint
-            print(f"Loading checkpoint from {config.checkpoint_path}")
-            checkpoint = torch.load(config.checkpoint_path, map_location=torch.device('cpu'))
-            self.model.load_state_dict(checkpoint['state_dict'], strict=False)
+            if mapping:
+                print(f"Loading checkpoint from {config.checkpoint_path}")
+                self.model = load_checkpoint_with_remapping(self.model, config.checkpoint_path)
+            else:
+                print(f"Loading checkpoint from {config.checkpoint_path}")
+                checkpoint = torch.load(config.checkpoint_path, map_location=torch.device('cpu'))
+                # print(checkpoint['state_dict'])
+                self.model.load_state_dict(checkpoint['state_dict'], strict=True)
 
         # Deactivate IRM
         # self.model.model.irm.deactivate()
@@ -86,43 +92,74 @@ class InteractiveLlama:
 
     def chat(self):
         conversation_history = ""
-        print("Starting chat session (type 'quit' to exit)")
+        # Display welcome message and help information on startup
+        print("Starting chat session.")
         print("-" * 50)
+        print("\nAvailable commands:")
+        print("  help       - Display this help message")
+        print("  quit       - Exit the chat session")
+        print("  deactivate - Deactivate the IRM")
+        print("  activate   - Activate the IRM")
+        print("  sample     - Toggle sampling (currently " + ("ON" if self.do_sample else "OFF") + ")")
+        print("  tokens     - Toggle token printing (currently " + ("ON" if self.print_tokens else "OFF") + ")")
+        print("  chat       - Proceed to chat input")
+        print("  [Enter]    - Proceed to chat input (same as 'chat')")
+        print("-" * 50)
+        print("Press Enter at the command prompt to proceed to chat input.")
         
         while True:
-            user_input = input("\nYou: ")
-            if user_input.lower() == 'quit':
+            # First, prompt for a command
+            command = input("\nCommand: ").lower().strip()
+            
+            # Handle commands
+            if command == 'help':
+                print("\nAvailable commands:")
+                print("  help       - Display this help message")
+                print("  quit       - Exit the chat session")
+                print("  deactivate - Deactivate the IRM")
+                print("  activate   - Activate the IRM")
+                print("  sample     - Toggle sampling (currently " + ("ON" if self.do_sample else "OFF") + ")")
+                print("  tokens     - Toggle token printing (currently " + ("ON" if self.print_tokens else "OFF") + ")")
+                print("  chat       - Proceed to chat input")
+                print("  [Enter]    - Proceed to chat input (same as 'chat')")
+                continue
+                
+            elif command == 'quit':
                 break
-            elif user_input.lower() == "deactivate":
+                
+            elif command == 'deactivate':
                 self.model.model.irm.deactivate()
                 print("***IRM Deactivated!***")
                 continue
-            elif user_input.lower() == 'activate':
+                
+            elif command == 'activate':
                 self.model.model.irm.activate()
                 print("***IRM Activated!***")
                 continue
-            elif user_input.lower() == 'sample':
-                if self.do_sample:
-                    self.do_sample = False
-                    print("***Sampling Deactivated!***")
-                else:
-                    self.do_sample = True
-                    print("***Sampling Activated!***")
+                
+            elif command == 'sample':
+                self.do_sample = not self.do_sample
+                print(f"***Sampling {'Activated' if self.do_sample else 'Deactivated'}!***")
                 continue
-            elif user_input.lower() == 'tokens' or user_input.lower() == 'token':
+                
+            elif command == 'tokens' or command == 'token':
+                self.print_tokens = not self.print_tokens
+                print(f"***Token Printing {'Activated' if self.print_tokens else 'Deactivated'}!***")
+                continue
+                
+            elif command == 'chat' or command == '':
+                # Proceed to get user input for the LLM
+                user_input = input("\nInput: ")
+                
+                # Generate response
+                response, tokens = self.generate(user_input)
+                
+                print(f"\nAssistant: {response}")
                 if self.print_tokens:
-                    self.print_tokens = False
-                    print("***Will Not Print Tokens!***")
-                else:
-                    self.print_tokens = True
-                    print("***Will Print Tokens!***")
-            
-            # Generate response
-            response,tokens = self.generate(user_input)
-            
-            print(f"\nAssistant: {response}")
-            if self.print_tokens:
-                print(tokens)
+                    print(tokens)
+                    
+            else:
+                print(f"Unknown command: '{command}'. Type 'help' for a list of available commands.")
 
 def get_attn_mask(tokenizer, prompt, max_length=128, temperature=0.7, top_p=0.9):
     # Tokenize input
@@ -157,10 +194,50 @@ def check_attn_mask_shape():
         
         print(f"\nShape of attention mask: {attn_mask.shape}") 
 
+def load_checkpoint_with_remapping(model, checkpoint_path):
+    # Load the checkpoint
+    checkpoint = torch.load(checkpoint_path)
+    state_dict = checkpoint['state_dict']
+    
+    # Create a new state dict with remapped keys
+    new_state_dict = {}
+    new_state_dict['lm_head.weight'] = state_dict['lm_head.weight']
+    
+    # Process each key in the checkpoint
+    for key, value in state_dict.items():
+        # Map standalone IRM keys: "irm.X" -> "model.irm.X"
+        if key.startswith('irm.'):
+            new_key = 'model.' + key
+            new_state_dict[new_key] = value
+            
+    # Load the existing keys that don't need remapping
+    for key, value in state_dict.items():
+        if key.startswith('model.'):
+            new_state_dict[key] = value
+    
+    # If layer IRMs are missing in checkpoint 2, we need to handle that
+    # Either by skipping those weights or by copying from the standalone IRM
+    
+    # Option: Copy standalone IRM weights to each layer IRM
+    if 'irm.basic_forward.0.weight' in state_dict and 'model.layers.0.irm.basic_forward.0.weight' not in new_state_dict:
+        for layer_idx in range(32):  # Adjust based on your model's structure
+            for irm_key in [k for k in state_dict.keys() if k.startswith('irm.')]:
+                layer_irm_key = f'model.layers.{layer_idx}.{irm_key}'
+                new_state_dict[layer_irm_key] = state_dict[irm_key]
+    
+    # Load the remapped state dict
+    missing_keys, unexpected_keys = model.load_state_dict(new_state_dict, strict=True)
+    
+    print(f"Missing keys: {missing_keys}")
+    print(f"Unexpected keys: {unexpected_keys}")
+    
+    return model
+
 def main():
 
     args = sys.argv
-    config_path = args[1]
+    # config_path = args[1]
+    config_path = '/home/huang717/DRAGN/IRM/injectable-alignment-model/configs/Llama-2-tiny_shakespeare_31_probe.yaml'
 
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)

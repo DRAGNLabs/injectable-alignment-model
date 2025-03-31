@@ -1,0 +1,3 @@
+{'positive_count': 2007, 'positive_mean': 0.6537550115771685, 'negative_count': 2089, 'negative_mean': -0.6362202230643196}
+{'positive_count': 2042, 'positive_mean': 0.49701580280493646, 'negative_count': 2054, 'negative_mean': -0.5013471242392614}
+{'positive_count': 2040, 'positive_mean': 0.4442786117789168, 'negative_count': 2056, 'negative_mean': -0.42533555759885266}

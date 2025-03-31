@@ -2,15 +2,22 @@ tokenizer_type: hf
 tokenizer_path: ('meta-llama/Llama-2-7b-chat-hf',)
 pad_id: -1
 vocab_size: -1
-IRM_layers: [0]
+# IRM_layers: [0]
+# IRM_layers: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31]
+IRM_layers: [31]
 loss_function_index: 0
 default_root_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_tiny_shakespeare_31_training/
 # checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/chat_tiny_shakespeare_31_training_context_4096_lr_1e-5_epoch_10_irm_1024x4/checkpoints/model-epoch=3-val_loss=2.53.ckpt
 # checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/chat_tiny_shakespeare_31_training_context_4096_lr_5e-5_epoch_5_irm_1024x4/checkpoints/model-epoch=0-val_loss=2.02.ckpt
 # checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_anger_60k_31_training_latest/checkpoints/model-epoch=14-val_loss=0.54.ckpt
-checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_anger_60k_0_training_latest/checkpoints/model-epoch=14-val_loss=0.36.ckpt
+# checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/Llama-2-7b-chat-hf_anger_60k_0_training_latest/checkpoints/model-epoch=14-val_loss=0.36.ckpt
+# checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/src/Llama2-IRM_0-31_model-epoch=0-val_loss=1.45.ckpt
+# checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/with_regularization/Anger60k_L1_on_outputs_irm_layer_31/checkpoints/model-epoch=14-val_loss=1.06.ckpt
+checkpoint_path: /home/huang717/groups/grp_inject/nobackup/archive/model-14-loss=0.58.ckpt
+# checkpoint_path: /home/huang717/DRAGN/IRM/injectable-alignment-model/runs/chat_tiny_shakespeare_31_training_context_4096_lr_5e-5_epoch_5_irm_1024x4/checkpoints/model-epoch=0-val_loss=2.03.ckpt
 dataset_dir: /home/huang717/DRAGN/IRM/injectable-alignment-model/datasets/TinyShakespeare/
 dataset_name: tiny_shakespeare
+map_from_brenden: True
 accelerator: gpu
 num_nodes: 1
 num_workers: 1
@@ -29,6 +36,10 @@ early_stopping: 3
 save_top_k: 3
 save_predictions_during_training: true
 regularize_loss: False
+regularize_parameters: false
+regularize_outputs: false
+regularization_type: 'l1'
+regularization_strength: 1.0e-5  # Becomes the weight_decay parameter
 max_gen_len: 20
 do_logging: False
 experiment_name: Llama-2-7b-chat-hf_tiny_shakespeare_31_inference

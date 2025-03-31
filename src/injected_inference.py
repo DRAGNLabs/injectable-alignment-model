@@ -23,7 +23,7 @@ from llama_models.llama_for_causal import LlamaForCausalLM as Llama
 
 device = torch.device('cuda' if 'CUDA_VISIBLE_DEVICES' in os.environ else 'cpu')
 
-def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! I"]):
+def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! I"], mapping=False):
     # Loading the model directly from huggingface
     if model_type == "hf_load":
         model = Llama.from_pretrained("meta-llama/Llama-2-7b-hf")
@@ -38,8 +38,11 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
     elif model_type in ["irm_load", "irm_deactivated"]:
         model = IRM_Model(tokenizer, config)
 
-        checkpoint = torch.load(config.checkpoint_path, map_location=torch.device('cpu'))
-        model.load_state_dict(checkpoint['state_dict'])
+        if mapping:
+            model = load_checkpoint_with_remapping(model, config.checkpoint_path)
+        else:
+            checkpoint = torch.load(config.checkpoint_path, map_location=torch.device('cpu'))
+            model.load_state_dict(checkpoint['state_dict'])
 
         # Deactivate any IRM contributions, so the IRM should behave as the base model
         if model_type == "irm_deactivated":
@@ -76,6 +79,46 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
         model.log_irm()
         print(f"output: {decoded}\n")
 
+def load_checkpoint_with_remapping(model, checkpoint_path):
+    # Load the checkpoint
+    checkpoint = torch.load(checkpoint_path, map_location=torch.device('cpu'))
+    state_dict = checkpoint['state_dict']
+    irm_keys = [k for k in state_dict.keys() if k.startswith('irm.')]
+    
+    # Create a new state dict with remapped keys
+    new_state_dict = {}
+    new_state_dict['lm_head.weight'] = state_dict['lm_head.weight']
+    
+    # Process each key in the checkpoint
+    for key, value in state_dict.items():
+        # Map standalone IRM keys: "irm.X" -> "model.irm.X"
+        if key.startswith('irm.'):
+            new_key = 'model.' + key
+            new_state_dict[new_key] = value
+            
+    # Load the existing keys that don't need remapping
+    for key, value in state_dict.items():
+        if key.startswith('model.'):
+            new_state_dict[key] = value
+    
+    # If layer IRMs are missing in checkpoint 2, we need to handle that
+    # Either by skipping those weights or by copying from the standalone IRM
+    
+    # Option: Copy standalone IRM weights to each layer IRM
+    if 'irm.basic_forward.0.weight' in state_dict and 'model.layers.0.irm.basic_forward.0.weight' not in new_state_dict:
+        for layer_idx in range(32):  # Adjust based on your model's structure
+            for irm_key in irm_keys:
+                layer_irm_key = f'model.layers.{layer_idx}.{irm_key}'
+                new_state_dict[layer_irm_key] = state_dict[irm_key]
+    
+    # Load the remapped state dict
+    missing_keys, unexpected_keys = model.load_state_dict(new_state_dict, strict=False)
+    
+    print(f"Missing keys: {missing_keys}")
+    print(f"Unexpected keys: {unexpected_keys}")
+    
+    return model
+
 args = sys.argv
 config_path = args[1]
 
@@ -101,6 +144,10 @@ elif config.tokenizer_type == "sp":
 else:
     raise ValueError(f"Tokenizer type '{config.tokenizer_type}' not recognized. Must be 'hf' or 'sp'.")
 
+mapping = False
+if hasattr(config, 'map_from_brenden') and config.map_from_brenden:
+    mapping = True
+
 
 print("Tokenizer loaded", flush=True)
 model_types = ["irm_load"]#"hf_load", "static_load", "irm_load", "irm_deactivated"]
@@ -117,4 +164,4 @@ prompts = ["In which decade did Beyonce become famous? ",
 print("Generating outputs", flush=True)
 for model_type in model_types:
     print(f"Presenting outputs for {model_type}")
-    generate_from_model(model_type, tokenizer, config, prompt_list=prompts)
+    generate_from_model(model_type, tokenizer, config, prompt_list=prompts, mapping=mapping)

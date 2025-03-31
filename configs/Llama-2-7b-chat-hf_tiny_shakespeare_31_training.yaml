@@ -25,7 +25,11 @@ seed: 42
 early_stopping: 3
 save_top_k: 5
 save_predictions_during_training: true
-regularize_loss: False
+regularize_loss: false  # Still needed to enable the feature
+regularize_parameters: false
+regularize_outputs: true
+regularization_type: 'l1'
+regularization_strength: 1.0e-6  # Becomes the weight_decay parameter
 max_gen_len: 256
 do_logging: False
 experiment_name: Llama-2-7b-chat-hf_tiny_shakespeare.txt_31_training

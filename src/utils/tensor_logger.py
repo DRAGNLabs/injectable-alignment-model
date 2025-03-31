@@ -71,33 +71,52 @@ class tensor_logger:
         self.sequence_len = 1
         
     def get_layer_weights(self, tensor, layer_id): return tensor[:, :, :, self.layers.index(layer_id)]
-    
+
     def write_csv(self, df):
-        if self.sequence_len <= self.token_number: name_of_csv = f'generated_token_{self.token_number - self.sequence_len + 1}.csv'
-        else : name_of_csv = f'prompt_token_{self.token_number}.csv'
-        self.output_path = os.path.join(self.base_output_path, self.experiment_name, "Prompt{}_CSVs".format(self.prompt_number))
-        os.makedirs(self.output_path, exist_ok=True)
-        df.to_csv(os.path.join(self.output_path,name_of_csv), index=False)
+        # Determine if this is a prompt token or a generated token, 
+        # note that the activation of the last prompt token is the prediction for the first generated token
+        is_prompt_token = self.token_number < self.sequence_len
         
-    def add_tensor(self, tensor: torch.Tensor):
-        print(tensor.shape[1], flush=True)
-        if tensor.shape[1] > 1:
-            print("Splitting tensor", flush=True)
-            self.sequence_len = tensor.shape[1]
-            tensors = torch.split(tensor, 1, dim=1)
-            for t in tensors: self.add_tensor(t)
+        if is_prompt_token:
+            name_of_csv = f'prompt_token_{self.token_number}.csv'
         else:
-            weights = torch.flatten(tensor, start_dim=0, end_dim=2).cpu().detach().numpy()
+            # Maintain the original index calculation for generated tokens
+            gen_token_index = self.token_number - self.sequence_len + 1
+            name_of_csv = f'generated_token_{gen_token_index}.csv'
+        
+        # Set up the output directory path
+        self.output_path = os.path.join(self.base_output_path, self.experiment_name, f"Prompt{self.prompt_number}_CSVs")
+        
+        # Create the directory if it doesn't exist
+        os.makedirs(self.output_path, exist_ok=True)
+        
+        # Save the dataframe to CSV
+        df.to_csv(os.path.join(self.output_path, name_of_csv), index=False)
+    
+    # This function gets called everytime IRM's forward() is called
+    def add_tensor(self, tensor: torch.Tensor):
+        input_seq_length = tensor.shape[1]
+        print(input_seq_length, flush=True)
+
+        if input_seq_length > 1: # This is the user's input prompt, this is the 1st time add_tensor() gets called when given a new prompt.
+            print("Splitting tensor", flush=True)
+            self.sequence_len = input_seq_length
+            tensors = torch.split(tensor, 1, dim=1) # Split it along seq dimension by token positions.
+
+            for t in tensors: self.add_tensor(t)
+
+        else: # When the model generates tokens one by one, the input_seq_length is 1 each time because of KV caching.
+            weights = torch.flatten(tensor, start_dim=0, end_dim=2).cpu().detach().numpy() # Those are not actually weights, they are the output of IRM's forward()
             
-            print("Weights shape: {}\n\n".format(weights.shape), flush=True)
-            print("Weights Length: {}\n\n".format(len(weights)), flush=True)
+            # print("Weights shape: {}\n\n".format(weights.shape), flush=True)
+            # print("Weights Length: {}\n\n".format(len(weights)), flush=True)
             dataFrames = []
-            for i in range(weights.shape[1]):
+            for i in range(weights.shape[1]): # When IRM is injected to multiple positions, this for loop iterates through every layer.
                 curr_weights = weights[:, i]
                 curr_layer = self.layers[i]
                 dataFrames.append(pd.DataFrame({'index': range(len(curr_weights)),  'layer': [curr_layer for j in range(len(curr_weights))], 'value': curr_weights}))
             self.token_df =  pd.concat(dataFrames)
-            print(len(self.token_df))
+            # print(len(self.token_df))
 
             self.write_csv(self.token_df)
             self.token_number += 1
@@ -208,69 +227,152 @@ class tensor_logger:
         plt.close()
 
     def recursively_generate_heatmap(self, path):
+        """
+        Recursively processes CSV files to generate heatmaps and other visualizations.
+        This function is the main entry point for visualization generation after data collection.
+        
+        Args:
+            path (str): The path is self.output_path, which is "Promptx_CSVs"
+        """
+        # Dictionary to store DataFrames from CSV files
         data = dict()
+        # List to track CSV file identifiers for ordered processing
         csv_identifiers = []
         csv_counter = 1
+
+        # Check if the provided path is a directory
         if os.path.isdir(path):
             print("Path: ", path, flush=True)
-            # Get and Sort files
+            
+            # Get and sort files using natural sorting (handles numbers in filenames properly)
             files = os.listdir(path)
-            files = natsorted(files)
+            files = natsorted(files)  # Natural sort handles "file10" coming after "file9" correctly
 
+            # Those files would be "generated_token_x.csv" or "prompt_token_x.csv"
             for file in files:
-                if os.path.isdir(os.path.join(path, file)):
-                    self.recursively_generate_heatmap(os.path.join(path, file)) 
+                file_path = os.path.join(path, file)
+                
+                # If it's a directory, recursively process it, which never happens I guess
+                if os.path.isdir(file_path):
+                    self.recursively_generate_heatmap(file_path)
                 else:
                     print("File: ", file, flush=True)
-                    df = pd.read_csv(os.path.join(path, file))
+                
+                    # Read the CSV file into a DataFrame
+                    df = pd.read_csv(file_path)
+                    
+                    # Add a 'csv_number' column to track the source file
+                    # This helps correlate visualizations back to specific tokens
                     df['csv_number'] = csv_counter
+                    
+                    # Store the DataFrame in our dictionary, using filename as key
                     data[file] = df
+                    
+                    # Keep track of the identifier for ordering
                     csv_identifiers.append(csv_counter)
                     csv_counter += 1
 
-        self.img_output_path = os.path.join(self.base_output_path, self.experiment_name, 'images/', "prompt_{}".format(self.prompt_number - 1))
+        # Set up the output directory for visualization images
+        # Store them in a separate 'images' folder organized by prompt number
+        self.img_output_path = os.path.join(
+            self.base_output_path, 
+            self.experiment_name, 
+            'images', 
+            f"prompt_{self.prompt_number - 1}"
+        )
         os.makedirs(self.img_output_path, exist_ok=True)
 
+        # Generate different types of visualizations from the collected data
+            
+        # 1. Generate histograms showing frequency of top activations by layer
         self.generate_histograms(data.values())
+        
+        # 2. Calculate and visualize sparsity patterns across layers
         self.calculate_and_plot_sparsity(data.values())
+        
+        # 3. Create histogram showing which tokens have most significant activations
         self.create_histogram_of_top_values_by_csv(data.values(), csv_identifiers)
 
+        # Calculate global min/max values across all DataFrames for consistent color scaling
+        # This ensures that heatmaps are comparable to each other
         i = 1
-        maxv = []
-        minv = []
-        for df in data.values():
-            print("Dataframe{}:\n".format(i), flush = True)
-            print(df.head(), flush = True)
+        maxv = []  # Track maximum values
+        minv = []  # Track minimum values
+
+        for df in data.values(): # Iterate thru each 
+            print(f"Analyzing DataFrame {i}:", flush=True)
+            print(df.head(), flush=True)
+            
+            # Find and print the maximum value and its location
             max_index = df['value'].idxmax()
-            print("Max value and index: ", df.loc[max_index], flush = True)
+            print("Max value and index: ", df.loc[max_index], flush=True)
+            
+            # Find and print the minimum value and its location
             min_index = df['value'].idxmin()
-            print("Min value and index: ", df.loc[min_index], flush = True)
+            print("Min value and index: ", df.loc[min_index], flush=True)
+            
+            # Store the extreme values
             maxv.append(df['value'].max())
             minv.append(df['value'].min())
             i += 1
+        
+        # Store the global extreme values
         self.max_value = max(maxv)
-        print("Max value:{}".format(self.max_value), flush = True)
         self.min_value = min(minv)
-        print("Min Value:{}".format(self.min_value), flush = True)
+        print(f"Global max value: {self.max_value}", flush=True)
+        print(f"Global min value: {self.min_value}", flush=True)
 
-        avg_max = sum(maxv) / len(maxv)
-        avg_min = sum(minv) / len(minv)
+        # Calculate average extremes for color scaling
+        # Adding a 10% margin to ensure all values are visible
+        avg_max = sum(maxv) / len(maxv) * 1.1
+        avg_min = sum(minv) / len(minv) * 1.1
 
-        vals = []
-        i = 1
-        name = "gen"
-        lastname = "gen"
+        # Generate individual heatmaps for each file
+        # Sort by token type (prompt vs generated) and token number
+        prompt_files = []
+        generated_files = []
+        
+        # Separate and sort files by type
         for file in data.keys():
-            name = file.split("_")[0]
-            if name[0] != lastname[0]: i = 1
-            self.generate_singel_heatmap(data.get(file), name, i, avg_max * 1.1, avg_min * 1.1)
-            i += 1
-            lastname = name
+            if file.startswith('prompt'):
+                prompt_files.append(file)
+            elif file.startswith('generated'):
+                generated_files.append(file)
+        
+        # Generate individual heatmaps for each file
+        # Process prompt files first with their own counter
+        prompt_counter = 1
+        for file in prompt_files:
+            self.generate_singel_heatmap(
+                data.get(file),  # DataFrame
+                'prompt',        # Base filename
+                prompt_counter,  # Index number
+                avg_max,         # Color scale maximum
+                avg_min          # Color scale minimum
+            )
+            prompt_counter += 1
 
-        print("Generating 3D heatmap", flush = True) 
-        ### IF YOU WANT TO GENERATE A 3D HEATMAP, UNCOMMENT THE FOLLOWING LINE ###
+        # Process generated files next with a separate counter
+        generated_counter = 1
+        for file in generated_files:
+            self.generate_singel_heatmap(
+                data.get(file),   # DataFrame
+                'generated',      # Base filename
+                generated_counter,# Index number
+                avg_max,          # Color scale maximum
+                avg_min           # Color scale minimum
+            )
+            generated_counter += 1
+        
+        ### IF YOU WANT TO GENERATE A 3D HEATMAP, UNCOMMENT THE FOLLOWING LINES ###
+        # print("Generating 3D heatmap", flush = True) 
         # self.generate_anim(data.values())
 
+        print("Generating average of 10 heatmaps", flush=True)
+
+        # FIXME: Confirm with Dallin and Dr. Fulda that this is what we want. 
+        # Currently the so called "Average_first_10_generated_token_value_heatmap.png" is 
+        # actually the average of (all prompt tokens + the first 10 generated tokens)
         vals = []
         for key in data.keys():
             if "generated" in key and len(vals) < 10: vals.append(data.get(key))

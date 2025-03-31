@@ -25,7 +25,9 @@ seed: 42
 early_stopping: 6
 save_top_k: 3
 save_predictions_during_training: true
-regularize_loss: False
+regularize_loss: true  # Still needed to enable the feature
+regularization_type: "l2_optimizer"
+regularization_strength: 1.0e-4  # Becomes the weight_decay parameter
 max_gen_len: 256
 do_logging: False
 experiment_name: Llama-2-7b-chat-hf_sadness_60k_31_training

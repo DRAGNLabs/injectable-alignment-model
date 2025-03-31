@@ -235,11 +235,13 @@ class LlamaForCausalLM(LlamaPreTrainedModel, LightningModule):
             shift_labels = shift_labels.to(shift_logits.device)
             loss = loss_fct(shift_logits, shift_labels)
             
+            # Add regularization if configured
             if self.irm_config.regularize_loss:
-                l1 = self.l1_loss_alpha * torch.sum(torch.abs(self.model.irm.weights))
-                print(f"\nloss: {loss}      l1: {l1}")
-                loss += l1
-                print(f"sum: {loss}")
+                reg_loss = self.model.irm.get_regularization_loss()
+                if reg_loss != 0:
+                    print(f"\nloss: {loss}      reg_loss: {reg_loss}")
+                    loss += reg_loss
+                    print(f"sum: {loss}")
                 
         if not return_dict:
             output = (logits,) + outputs[1:]
@@ -475,7 +477,15 @@ class LlamaForCausalLM(LlamaPreTrainedModel, LightningModule):
     
     def configure_optimizers(self):
         params = self.model.irm.parameters()
-        optimizer = torch.optim.Adam(params, lr=self.irm_config.lr)
+        
+        # If using L2 regularization through weight decay, set it up here
+        weight_decay = 0.0
+        if self.irm_config.regularize_loss and self.irm_config.regularize_parameters \
+            and hasattr(self.irm_config, 'regularization_type') \
+            and self.irm_config.regularization_type == 'l2_optimizer':
+            weight_decay = getattr(self.irm_config, 'regularization_strength', 1e-3)
+            
+        optimizer = torch.optim.Adam(params, lr=self.irm_config.lr, weight_decay=weight_decay)
         lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, self.irm_config.gamma)
         return [optimizer], [lr_scheduler]
 

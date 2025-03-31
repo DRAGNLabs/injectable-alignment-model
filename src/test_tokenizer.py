@@ -1,5 +1,7 @@
 from transformers import LlamaTokenizer as HFTokenizer
 from transformers import AutoTokenizer
+import torch
+
 
 # model_path = "/home/huang717/DRAGN/IRM/injectable-alignment-model/src/local_tokenizer"
 model_path = "meta-llama/Llama-2-7b-chat-hf"
@@ -77,7 +79,7 @@ words = [
 
 
 # 1. Encode the string
-encoded = tokenizer.encode(text,add_special_tokens=True)
+encoded = torch.tensor(tokenizer.encode(text,add_special_tokens=True))
 # encoded = encoded[1:]
 
 # 2. Print the token IDs

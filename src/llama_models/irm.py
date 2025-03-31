@@ -33,6 +33,18 @@ class IRM(nn.Module):
 
         self.do_logging = config.do_logging
 
+        # For manual injection
+        self.manually_inject = False
+        self.injected_neuron_ids : list = []
+        self.injected_neuron_vals : list = [] # Must either have the same length as self.injected_neuron_ids or a single value (broadcast)
+        self.manual_injection_tensor : torch.Tensor = None
+
+        # Store regularization configuration
+        self.regularization_parameters = getattr(config, 'regularize_parameters', False)
+        self.regularization_outputs = getattr(config, 'regularize_outputs', False)
+        self.regularization_type = getattr(config, 'regularization_type', 'none')  # 'none', 'l1', or 'l2'
+        self.regularization_strength = getattr(config, 'regularization_strength', 1e-3)
+
 
         self.vocab_size = config.vocab_size
         self.hidden_size = config.model_config["hidden_size"]
@@ -83,18 +95,85 @@ class IRM(nn.Module):
             layers.append(nn.Linear(self.linear_size, self.hidden_size * self.num_injected_positions))
         
         return nn.Sequential(*layers)
+    
+    # L2 regularization is more common to be implemented thru the "weight_decay" in optimizer.
+    # L2 in optimizer is also implemented in injected_llama_for_causal.py
+    def get_regularization_loss(self):
+        """
+        Calculate regularization loss based on configured type and strength.
+        Applies regularization to the parameters of the linear layers, not the outputs.
+        Returns 0 if regularization is disabled.
+        """
+        if self.regularization_type == 'none' or self.num_injected_positions == 0:
+            return 0.0
+        
+        
+        # Get all parameters from the basic_forward module
+        reg_loss = 0.0
+
+        if self.regularization_parameters:
+            for param in self.basic_forward.parameters():
+                if self.regularization_type == 'l1':
+                    # L1 regularization: sum of absolute values
+                    reg_loss += torch.sum(torch.abs(param))
+                elif self.regularization_type == 'l2':
+                    # L2 regularization: sum of squared values
+                    reg_loss += torch.sum(param ** 2) / 2
+
+        if self.regularization_outputs:
+            if self.regularization_type == 'l1':
+                reg_loss += torch.sum(torch.abs(self.weights))
+            elif self.regularization_type == 'l2':
+                reg_loss += torch.sum(self.weights ** 2) / 2
+        
+        return self.regularization_strength * reg_loss
+
+    # FIXME: Right now we are assuming only injecting in one layer
+    def setup_manual_injection(self, input_shape):
+        if not self.manually_inject:
+            return
+        
+        output_dim = self.hidden_size * self.num_injected_positions
+        self.manual_injection_tensor = torch.zeros(input_shape)
+
+        # Check if we need to broadcast values or use them directly
+        if len(self.injected_neuron_vals) == 1 and len(self.injected_neuron_ids) > 1:
+            # Broadcasting case: one value for all specified neurons
+            broadcast_value = self.injected_neuron_vals[0]
+            
+            # For each batch and sequence position, set the specified neurons to their values
+            for neuron_idx in self.injected_neuron_ids:
+                # This will set the value at all batch items and sequence positions
+                # but only at the specified neuron indices in the hidden dimension
+                self.manual_injection_tensor[..., neuron_idx] = broadcast_value
+        else:
+            # Direct mapping case: each neuron gets its corresponding value
+            assert len(self.injected_neuron_ids) == len(self.injected_neuron_vals), \
+                "injected_neuron_ids and injected_neuron_vals must have the same length"
+            
+            # Set each neuron to its specified value
+            for idx, (neuron_idx, neuron_val) in enumerate(zip(self.injected_neuron_ids, self.injected_neuron_vals)):
+                # Set the value for all batch items and sequence positions
+                self.manual_injection_tensor[..., neuron_idx] = neuron_val
+
+        return 
 
     def forward(self, x: torch.Tensor):
         curr_batch_size = x.size()[0]
-        self.weights = self.basic_forward(x).view(curr_batch_size, -1, self.hidden_size, self.num_injected_positions)
+        if not self.manually_inject:
+            self.weights = self.basic_forward(x).view(curr_batch_size, -1, self.hidden_size, self.num_injected_positions)
 
-        if self.do_logging:
-            print("Tensor shape: ", self.weights.size())
-            self.logger.add_tensor(self.weights)
-            
-			# Weights.size() tells you how many layers you have.
-            
-			# The final dimension is the layers, so you can index the weights by layer.  self.weights[:,:,:,:0] would give you the weights for the first layer.
+            if self.do_logging:
+                print("Tensor shape: ", self.weights.size())
+                self.logger.add_tensor(self.weights)
+                
+                # Weights.size() tells you how many layers you have.
+                
+                # The final dimension is the layers, so you can index the weights by layer.  self.weights[:,:,:,:0] would give you the weights for the first layer.
+        else:
+            hidden_states_shape = x.shape
+            self.setup_manual_injection(hidden_states_shape)
+            self.weights = self.manual_injection_tensor.view(curr_batch_size, -1, self.hidden_size, self.num_injected_positions)
 
 
     def get_layer_weights(self, layer_id):
@@ -106,7 +185,7 @@ class IRM(nn.Module):
     def deactivate(self):
         self.active_irm = False
 
-    def injected_operation(self, layer_id, llm_output):
+    def injected_operation(self, layer_id, llm_output): # FIXME: Figure out the shape of llm_output to perform the injection!
         if self.active_irm:
             return self.get_layer_weights(layer_id) + llm_output
         else:
