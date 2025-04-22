@@ -11,6 +11,7 @@ from pytorch_lightning.loggers import CSVLogger, TensorBoardLogger
 from transformers import AutoTokenizer
 
 from lightning.dataset import DataModule
+from lightning.pretokenized_pure_text_dataset import DataModule as PretokenDataModule
 from sp_tokenizer.tokenizer import Tokenizer as SPTokenizer
 from llama_models.injected_llama_for_causal import LlamaForCausalLM as WrapperModel
 from llama_models.irm import IRM
@@ -66,12 +67,12 @@ def train(config):
     print(f"Instantiating model")
     with torch.device('cpu'):
         wrapper = WrapperModel(tokenizer, config)
-        print(f"Loading from checkpoint")
-        checkpoint = torch.load(original_checkpoint_path,  map_location=torch.device('cpu'))
-        wrapper.load_state_dict(checkpoint['state_dict'], strict=False)
-        del checkpoint  # Free memory
+        #print(f"Loading from checkpoint")
+        #checkpoint = torch.load(original_checkpoint_path,  map_location=torch.device('cpu'))
+        #wrapper.load_state_dict(checkpoint['state_dict'], strict=False)
+        #del checkpoint  # Free memory
         torch.cuda.empty_cache()
-        print(f"Checkpoint loading complete.")
+        #print(f"Checkpoint loading complete.")
 
     #setup injection
     def hijack_attn(forward, irm):
@@ -91,9 +92,8 @@ def train(config):
         return injected_forward
     
     wrapper.model.layers[0].self_attn.forward = hijack_attn(wrapper.model.layers[0].self_attn.forward, wrapper.irm)
-    layer = 31
-    #for layer in irm.injection_layers: 
-    wrapper.model.layers[layer].forward = hijack_layer(wrapper.model.layers[layer].forward, wrapper.irm, layer)
+    for layer in irm.injection_layers: 
+        wrapper.model.layers[layer].forward = hijack_layer(wrapper.model.layers[layer].forward, wrapper.irm, layer)
     
     # Load the model from the original checkpoint with strict=False, so it will only fill in the weights that are in both models, without errors
 
