@@ -17,7 +17,6 @@ from transformers.utils import (
 from transformers.cache_utils import Cache
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
-from llama_models.injected_llama_model import InjectedLlamaModel
 from llama_models.irm import IRM
 from pytorch_lightning import LightningModule
 
