@@ -45,6 +45,9 @@ class IRM(nn.Module):
         self.regularization_type = getattr(config, 'regularization_type', 'none')  # 'none', 'l1', or 'l2'
         self.regularization_strength = getattr(config, 'regularization_strength', 1e-3)
 
+        # Store injected module configuration
+        self.injected_module = getattr(config, 'injected_module', 'mlp')
+
 
         self.vocab_size = config.vocab_size
         self.hidden_size = config.model_config["hidden_size"]

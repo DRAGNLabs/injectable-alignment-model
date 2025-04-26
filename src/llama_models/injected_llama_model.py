@@ -101,14 +101,24 @@ class InjectedLlamaDecoderLayer(nn.Module):
             if self.layer_idx == 0:
                 self.irm(hidden_states)
             
-        if self.layer_idx in self.irm.injection_layers:
-            hidden_states = self.irm.injected_operation(self.layer_idx, hidden_states)
+        # IRM injection
+        if 'attn' in self.irm.injected_module:
+            if self.layer_idx in self.irm.injection_layers:
+                hidden_states = self.irm.injected_operation(self.layer_idx, hidden_states)
 
         # Fully Connected
         residual = hidden_states
         hidden_states = self.post_attention_layernorm(hidden_states)
         hidden_states = self.mlp(hidden_states)
+
+        # IRM injection
+        if 'mlp' in self.irm.injected_module:
+            if self.layer_idx in self.irm.injection_layers:
+                hidden_states = self.irm.injected_operation(self.layer_idx, hidden_states)
+
+        # residual connection
         hidden_states = residual + hidden_states
+
 
         outputs = (hidden_states,)
 
