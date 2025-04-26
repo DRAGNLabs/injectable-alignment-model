@@ -22,4 +22,5 @@ mamba activate test
 
 export 'PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:1024'
 
-srun python3 ../src/injected_inference.py ../configs/with_regularization/Sadness60k_L1_on_outputs_irm_layer_31_inference.yaml
+# srun python3 ../src/injected_inference.py ../configs/with_regularization/Sadness60k_L1_on_outputs_irm_layer_31_inference.yaml
+srun python3 ../src/injected_inference.py ../configs/with_regularization/Sadness60k_L1_on_outputs_irm_layer_31_inference_seed_0.yaml

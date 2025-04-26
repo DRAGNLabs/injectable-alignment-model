@@ -68,7 +68,7 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
                                         temperature=temperature, 
                                         top_p=top_p, 
                                         repetition_penalty=repetition_penalty, 
-                                        do_sample=True,
+                                        do_sample=False,
                                         pad_token_id=pad)
         
         print(f"length of ids: {len(generate_ids.tolist())}")

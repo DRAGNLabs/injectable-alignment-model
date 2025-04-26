@@ -37,4 +37,34 @@
 # sbatch --job-name "Neutral60k, L1 on outputs, irm at layer 31, seed 0, training" with_regularization/injected_train_neutral60k_L1_on_outputs_irm_layer_31.sh
 
 
-sbatch --job-name "Anger60k, L1 on outputs, irm at layer 31, inference, Brenden version" injected_inference_anger60k_L1_on_outputs_irm_layer_31_brenden.sh
+# sbatch --job-name "Anger60k, L1 on outputs, irm at layer 31, inference, Brenden version" injected_inference_anger60k_L1_on_outputs_irm_layer_31_brenden.sh
+
+# sbatch --job-name "Anger60k, L1 on outputs, irm at layer 0, seed 0, training" with_regularization/injected_train_anger60k_L1_on_outputs_irm_layer_0.sh
+# sbatch --job-name "Sadness60k, L1 on outputs, irm at layer 0, seed 0, training" with_regularization/injected_train_sadness60k_L1_on_outputs_irm_layer_0.sh
+# sbatch --job-name "Neutral60k, L1 on outputs, irm at layer 0, seed 0, training" with_regularization/injected_train_neutral60k_L1_on_outputs_irm_layer_0.sh
+
+# sbatch --job-name "Anger60k, L1 on outputs, irm at layer 15, seed 0, training" with_regularization/injected_train_anger60k_L1_on_outputs_irm_layer_15.sh
+# sbatch --job-name "Sadness60k, L1 on outputs, irm at layer 15, seed 0, training" with_regularization/injected_train_sadness60k_L1_on_outputs_irm_layer_15.sh
+# sbatch --job-name "Neutral60k, L1 on outputs, irm at layer 15, seed 0, training" with_regularization/injected_train_neutral60k_L1_on_outputs_irm_layer_15.sh
+
+# sbatch --job-name "Anger60k, L1 on outputs, irm at layer 15, inference" with_regularization/injected_inference_anger60k_L1_on_outputs_irm_layer_15.sh
+# sbatch --job-name "Sadness60k, L1 on outputs, irm at layer 15, inference" with_regularization/injected_inference_sadness60k_L1_on_outputs_irm_layer_15.sh
+# sbatch --job-name "Neutral60k, L1 on outputs, irm at layer 15, inference" with_regularization/injected_inference_neutral60k_L1_on_outputs_irm_layer_15.sh
+
+# sbatch --job-name "Anger60k, L1 on outputs, irm at layer 0, inference, seed 0" with_regularization/injected_inference_anger60k_L1_on_outputs_irm_layer_0.sh
+# sbatch --job-name "Sadness60k, L1 on outputs, irm at layer 0, inference, seed 0" with_regularization/injected_inference_sadness60k_L1_on_outputs_irm_layer_0.sh
+# sbatch --job-name "Neutral60k, L1 on outputs, irm at layer 0, inference, seed 0" with_regularization/injected_inference_neutral60k_L1_on_outputs_irm_layer_0.sh
+
+# sbatch --job-name "Anger60k, L1 on outputs, irm at layer 15, inference, seed 0" with_regularization/injected_inference_anger60k_L1_on_outputs_irm_layer_15.sh
+# sbatch --job-name "Sadness60k, L1 on outputs, irm at layer 15, inference, seed 0" with_regularization/injected_inference_sadness60k_L1_on_outputs_irm_layer_15.sh
+# sbatch --job-name "Neutral60k, L1 on outputs, irm at layer 15, inference, seed 0" with_regularization/injected_inference_neutral60k_L1_on_outputs_irm_layer_15.sh
+
+# sbatch --job-name "Anger60k, L1 on outputs, irm at layer 31, inference, seed 0" with_regularization/injected_inference_anger60k_L1_on_outputs_irm_layer_31.sh
+# sbatch --job-name "Sadness60k, L1 on outputs, irm at layer 31, inference, seed 0" with_regularization/injected_inference_sadness60k_L1_on_outputs_irm_layer_31.sh
+# sbatch --job-name "Neutral60k, L1 on outputs, irm at layer 31, inference, seed 0" with_regularization/injected_inference_neutral60k_L1_on_outputs_irm_layer_31.sh
+
+
+sbatch --job-name "Anger60k, L1 on outputs, irm at layer 0, seed 0, injected after mlp, training" with_regularization/injected_train_anger60k_L1_on_outputs_irm_layer_0.sh
+sbatch --job-name "Anger60k, L1 on outputs, irm at layer 15, seed 0, injected after mlp, training" with_regularization/injected_train_anger60k_L1_on_outputs_irm_layer_15.sh
+sbatch --job-name "Anger60k, L1 on outputs, irm at layer 31, seed 0, injected after mlp, training" with_regularization/injected_train_anger60k_L1_on_outputs_irm_layer_31.sh
+
