@@ -47,25 +47,42 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
     elif config.tokenizer_type == "hf": pad = tokenizer.pad_token_id
 
     #setup injection
-     def hijack_zeroth(forward):
-        def injected_forward(*input,**keywords):
-            output = forward(*input,**keywords)
-            self.steer_vectors = [output[0]]
-            return output
-        return injected_forward
     def hijack_layer(forward, layer):
         def injected_forward(*input,**keywords):
             output = forward(*input,**keywords)
-            self.steer_vectors.append(output[0])
+            self.steer_vector[layer] = torch.add(self.output[0], self.steer_vector[layer])
+            self.steer_elements[layer] += 1
             return output
         return injected_forward
 
-    model.layers[0].forward = hijack_zeroth(model.layers[0].forward)
-    for layer in range(1, config.model_config.num_hidden_layers): 
+    for layer in range(config.model_config.num_hidden_layers): 
         model.layers[layer].forward = hijack_layer(model.layers[layer].forward, layer)
 
-    steer_vectors = []
-
+    model.steering_vectors = []
+    for alignment in datasets:
+        model.steer_vector = [0]*config.model_config.num_hidden_layers
+        model.steer_elements = [0]*config.model_config.num_hidden_layers
+        for prompt in alignment:
+            if config.tokenizer_type == "sp": prompt_tokens = torch.tensor(tokenizer.encode(prompt, bos=True, eos=False)).reshape(1,-1)
+            elif config.tokenizer_type == "hf": prompt_tokens = torch.tensor(tokenizer.encode(prompt)).reshape(1,-1)
+    
+            max_gen_len = 256
+            temperature = 0.6
+            top_p = 0.9
+            repetition_penalty = None
+    
+            generate_ids = model.generate(prompt_tokens.to(device), 
+                                            max_length=max_gen_len, 
+                                            temperature=temperature, 
+                                            top_p=top_p, 
+                                            repetition_penalty=repetition_penalty, 
+                                            do_sample=True,
+                                            pad_token_id=pad)
+            
+        for layer in range(config.model_config.num_hidden_layers):
+            model.steer_vector[layer] = model.steer_vector[layer] / model.steer_elements[layer]
+        model.steering_vectors.append(model.steer_vector)
+        
     for prompt in prompt_list:
         if config.tokenizer_type == "sp": prompt_tokens = torch.tensor(tokenizer.encode(prompt, bos=True, eos=False)).reshape(1,-1)
         elif config.tokenizer_type == "hf": prompt_tokens = torch.tensor(tokenizer.encode(prompt)).reshape(1,-1)
@@ -88,7 +105,7 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
 
         if config.tokenizer_type == "sp": decoded = tokenizer.decode(generate_ids.tolist())
         elif config.tokenizer_type == "hf": decoded = tokenizer._decode(generate_ids.tolist()[0])
-        steer_vectors.append(model.steer_vectors)
+        
         print(f"output: {decoded}\n")
 
 args = sys.argv
@@ -129,7 +146,7 @@ prompts = ["In which decade did Beyonce become famous? ",
            "What is the capital of France? ", "What is wrong with you? ", "What do hamburgers and dumplings have in common? "]
 
 
-print("Generating outputs", flush=True)
+print("Generating steering vectors", flush=True)
 for model_type in model_types:
     print(f"Presenting outputs for {model_type}")
     generate_from_model(model_type, tokenizer, config, prompt_list=prompts)
