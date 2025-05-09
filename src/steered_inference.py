@@ -58,6 +58,19 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
     for layer in range(config.model_config.num_hidden_layers): 
         model.layers[layer].forward = hijack_layer(model.layers[layer].forward, layer)
 
+    datasets = []
+    try:
+        for filename in os.listdir(config.dataset_dir):
+            file_path = os.path.join(config.dataset_dir, filename)
+            alignment = []
+            if os.path.isfile(file_path):
+                with open(file_path, 'r') as file:
+                    for line in file:
+                        alignment.append(line)
+            datasets.append(alignment)               
+    except FileNotFoundError:
+        print(f"Error: Directory not found: {config.dataset_dir}")
+
     model.steering_vectors = []
     for alignment in datasets:
         model.steer_vector = [0]*config.model_config.num_hidden_layers
