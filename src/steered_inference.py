@@ -1,24 +1,3 @@
-    #setup injection
-    def hijack_attn(forward, irm):
-        def injected_forward(*input,**keywords):
-            output = forward(*input,**keywords)
-            irm.forward(output[0])
-            return output
-        return injected_forward
-    
-    def hijack_layer(forward,irm,layer):
-        def injected_forward(*input,**keywords):
-            output = forward(*input,**keywords)
-            irm_out = irm.get_layer_weights(layer)
-            output = list(output)
-            output[0] += irm_out
-            return tuple(output)
-        return injected_forward
-    
-    wrapper.model.layers[0].self_attn.forward = hijack_attn(wrapper.model.layers[0].self_attn.forward, wrapper.irm)
-    for layer in irm.injection_layers: 
-        wrapper.model.layers[layer].forward = hijack_layer(wrapper.model.layers[layer].forward, wrapper.irm, layer)
-
 import os
 import sys
 from typing import List
@@ -52,7 +31,7 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
         model.load_state_dict(checkpoint['state_dict'])
     # Loading a model injected with an IRM (path specified in config file)
     elif model_type in ["irm_load", "irm_deactivated"]:
-        model = IRM_Model(tokenizer, config)
+        model = WrapperModel(tokenizer, config)
 
         checkpoint = torch.load(config.checkpoint_path, map_location=torch.device('cpu'))
         model.load_state_dict(checkpoint['state_dict'])
@@ -66,6 +45,26 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
 
     if config.tokenizer_type == "sp": pad = tokenizer.eos_id
     elif config.tokenizer_type == "hf": pad = tokenizer.pad_token_id
+
+    #setup injection
+     def hijack_zeroth(forward):
+        def injected_forward(*input,**keywords):
+            output = forward(*input,**keywords)
+            self.steer_vectors = [output[0]]
+            return output
+        return injected_forward
+    def hijack_layer(forward, layer):
+        def injected_forward(*input,**keywords):
+            output = forward(*input,**keywords)
+            self.steer_vectors.append(output[0])
+            return output
+        return injected_forward
+
+    model.layers[0].forward = hijack_zeroth(model.layers[0].forward)
+    for layer in range(1, config.model_config.num_hidden_layers): 
+        model.layers[layer].forward = hijack_layer(model.layers[layer].forward, layer)
+
+    steer_vectors = []
 
     for prompt in prompt_list:
         if config.tokenizer_type == "sp": prompt_tokens = torch.tensor(tokenizer.encode(prompt, bos=True, eos=False)).reshape(1,-1)
@@ -89,7 +88,7 @@ def generate_from_model(model_type, tokenizer, config, prompt_list=["Hey there! 
 
         if config.tokenizer_type == "sp": decoded = tokenizer.decode(generate_ids.tolist())
         elif config.tokenizer_type == "hf": decoded = tokenizer._decode(generate_ids.tolist()[0])
-        model.log_irm()
+        steer_vectors.append(model.steer_vectors)
         print(f"output: {decoded}\n")
 
 args = sys.argv
